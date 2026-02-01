@@ -1,0 +1,28 @@
+{
+  "name": "@extenzo/create-extenzo-app",
+  "version": "0.0.1",
+  "description": "Interactive scaffolder for extenzo extension projects",
+  "type": "module",
+  "bin": {
+    "create-extenzo-app": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "scripts": {
+    "build": "rslib build",
+    "start": "node dist/cli.js"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "prompts": "^2.4.2",
+    "kolorist": "^1.8.0",
+    "minimist": "^1.2.8"
+  },
+  "devDependencies": {
+    "@rslib/core": "^0.19.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

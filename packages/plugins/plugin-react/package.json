@@ -1,0 +1,39 @@
+{
+  "name": "@extenzo/plugin-react",
+  "version": "0.0.1",
+  "description": "extenzo plugin: enable React + JSX for the project",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "rslib build",
+    "dev": "rslib build --watch"
+  },
+  "devDependencies": {
+    "@rspack/core": "^1.0.0",
+    "@rsbuild/core": "^1.6.0",
+    "@rsbuild/plugin-react": "^1.2.0",
+    "@rslib/core": "^0.19.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "@rsbuild/core": ">=1.0.0",
+    "@rspack/core": ">=1.0.0",
+    "@rsbuild/plugin-react": ">=1.0.0",
+    "react": ">=17.0.0",
+    "react-dom": ">=17.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": { "optional": true },
+    "react-dom": { "optional": true }
+  }
+}

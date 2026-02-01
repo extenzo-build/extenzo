@@ -1,0 +1,36 @@
+{
+  "name": "@extenzo/plugin-hmr",
+  "version": "0.0.1",
+  "description": "Rsbuild plugin: launch browser and HMR in dev (internal)",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "rslib build",
+    "dev": "rslib build --watch"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@rspack/core": "^1.0.0",
+    "@rsbuild/core": "^1.6.0",
+    "@rslib/core": "^0.19.0",
+    "@types/node": "^20.0.0",
+    "@types/ws": "^8.5.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "@rsbuild/core": ">=1.0.0",
+    "@rspack/core": ">=1.0.0"
+  },
+  "optionalDependencies": {
+    "ws": "^8.18.0"
+  }
+}

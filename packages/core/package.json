@@ -1,0 +1,36 @@
+{
+  "name": "@extenzo/core",
+  "version": "0.0.1",
+  "description": "extenzo core: types, config loading, entry discovery/resolution, manifest building",
+  "type": "module",
+  "main": "./dist/cjs/index.cjs",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.cjs",
+      "default": "./dist/esm/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "rslib build",
+    "dev": "rslib build --watch",
+    "test": "rstest run"
+  },
+  "dependencies": {
+    "jiti": "^2.0.0"
+  },
+  "devDependencies": {
+    "@rsbuild/core": "^1.6.0",
+    "@rslib/core": "^0.19.0",
+    "@rstest/core": "^0.8.1",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "@rsbuild/core": ">=1.0.0"
+  }
+}

@@ -1,0 +1,3 @@
+# extenzo default output directory (dev/build)
+.extenzo
+node_modules

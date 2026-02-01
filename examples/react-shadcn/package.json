@@ -1,0 +1,31 @@
+{
+  "name": "extenzo-example-react-shadcn",
+  "version": "0.0.1",
+  "private": true,
+  "description": "React + shadcn/ui: popup, options, content, background, sidepanel",
+  "type": "module",
+  "scripts": {
+    "dev": "extenzo dev",
+    "build": "extenzo build"
+  },
+  "dependencies": {
+    "@extenzo/core": "workspace:*",
+    "@extenzo/cli": "workspace:*",
+    "@extenzo/plugin-react": "workspace:*",
+    "@extenzo/utils": "workspace:*",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tailwind-merge": "^2.2.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.326",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.0.0"
+  }
+}

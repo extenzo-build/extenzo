@@ -1,0 +1,20 @@
+{
+  "name": "extenzo-example-devtools-native-ts",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Pure TypeScript Chrome DevTools extension: background + devtools panel",
+  "type": "module",
+  "scripts": {
+    "dev": "extenzo dev",
+    "build": "extenzo build"
+  },
+  "dependencies": {
+    "@extenzo/core": "workspace:*",
+    "@extenzo/cli": "workspace:*",
+    "@extenzo/utils": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.326",
+    "typescript": "^5.0.0"
+  }
+}

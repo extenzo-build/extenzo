@@ -1,0 +1,29 @@
+{
+  "name": "extenzo-workspace",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter @extenzo/cli dev",
+    "create": "pnpm --filter @extenzo/create-extenzo-app start",
+
+    "packages:build": "pnpm --filter \"./packages/**\" run build",
+    "packages:test": "pnpm --filter @extenzo/core run test",
+    "test": "pnpm run packages:test",
+
+    "examples:build": "pnpm --filter 'extenzo-example-*' run build",
+    "examples:dev": "pnpm --filter 'extenzo-example-*' run dev",
+    "examples:dev:react-template": "pnpm --filter extenzo-example-react-template run dev",
+    "examples:dev:vue-template": "pnpm --filter extenzo-example-vue-template run dev",
+    "examples:dev:devtools-native-ts": "pnpm --filter extenzo-example-devtools-native-ts run dev",
+    "examples:dev:react-shadcn": "pnpm --filter extenzo-example-react-shadcn run dev",
+    "examples:dev:manual-install": "pnpm --filter extenzo-example-manual-install run dev",
+    "examples:build:react-template": "pnpm --filter extenzo-example-react-template run build",
+    "examples:build:vue-template": "pnpm --filter extenzo-example-vue-template run build",
+    "examples:build:devtools-native-ts": "pnpm --filter extenzo-example-devtools-native-ts run build",
+    "examples:build:react-shadcn": "pnpm --filter extenzo-example-react-shadcn run build",
+    "examples:build:manual-install": "pnpm --filter extenzo-example-manual-install run build",
+
+    "build": "pnpm run packages:build && pnpm run examples:build"
+  },
+  "packageManager": "pnpm@10.0.0"
+}

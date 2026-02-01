@@ -1,0 +1,467 @@
+.layout-config {
+  padding: 0 20px 20px 20px;
+  color: var(--video-roll-text-color);
+}
+
+.config-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: var(--video-roll-header-background-color);
+  color: var(--video-roll-text-color);
+  border-radius: 8px;
+}
+
+.config-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--van-primary-color);
+  color: var(--video-roll-text-color);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.config-toggle-btn:hover {
+  background: var(--van-primary-color-dark);
+}
+
+.config-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.tab-config-item {
+  color: var(--video-roll-text-color);
+}
+
+.config-actions button {
+  padding: 6px 12px;
+  border: 1px solid var(--van-gray-6);
+  background: var(--van-sidebar-selected-background);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.3s;
+}
+
+.config-actions button:hover {
+  background: var(--video-roll-header-background-color);
+  border-color: var(--van-primary-color);
+}
+
+.tab-selector {
+  // display: flex;
+  // gap: 8px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: var(--video-roll-header-background-color);
+  border-radius: 8px;
+
+  .van-tabs__nav {
+    background-color: transparent !important;
+  }
+}
+
+.tab-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--van-gray-6);
+  background: var(--van-sidebar-selected-background);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.tab-btn:hover {
+  background: var(--video-roll-header-background-color);
+  border-color: var(--van-primary-color);
+}
+
+.tab-btn.active {
+  background: var(--van-primary-color);
+  color: var(--video-roll-text-color);
+  border-color: var(--van-primary-color);
+}
+
+.rows-config {
+  margin-top: 20px;
+}
+
+.row-config {
+  margin-bottom: 24px;
+  padding: 16px;
+  border: 2px dashed var(--video-roll-border-color);
+  border-radius: 8px;
+  background: transparent;
+}
+
+.row-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--van-gray-8);
+}
+
+.row-header span {
+  font-weight: 600;
+  color: var(--video-roll-text-color);
+}
+
+.row-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.row-controls label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--video-roll-text-color);
+}
+
+.row-controls select {
+  padding: 4px 8px;
+  border: 1px solid var(--van-gray-4);
+  background: var(--van-gray-6);
+  color: var(--video-roll-text-color);
+  border-radius: 4px;
+  font-size: 12px;
+  transition: all 0.3s ease;
+}
+
+.row-controls select:hover {
+  border-color: var(--van-primary-color);
+  background: var(--van-gray-5);
+  box-shadow: 0 0 0 1px rgba(164, 148, 198, 0.3);
+}
+
+.row-controls select:focus {
+  outline: none;
+  border-color: var(--van-primary-color);
+  background: var(--van-primary-color);
+  color: var(--video-roll-text-color);
+  box-shadow: 0 0 0 2px rgba(164, 148, 198, 0.4);
+}
+
+.row-controls select:active {
+  background: var(--van-primary-color);
+  color: var(--video-roll-text-color);
+}
+
+.row-controls select option {
+  background: var(--van-gray-6);
+  color: var(--video-roll-text-color);
+}
+
+.row-controls select option:checked,
+.row-controls select option:checked,
+.row-controls select option:focus {
+  background: var(--van-primary-color);
+  color: var(--video-roll-text-color);
+}
+
+.row-controls button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--van-gray-6);
+  background: var(--van-sidebar-selected-background);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.row-controls button:hover {
+  background: var(--video-roll-header-background-color);
+  border-color: var(--van-primary-color);
+}
+
+.components-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px;
+}
+
+.component-item {
+  padding: 12px;
+  border: 1px solid var(--van-gray-6);
+  background: var(--van-sidebar-selected-background);
+  border-radius: 6px;
+  cursor: move;
+  transition: all 0.3s;
+}
+
+.component-item:hover {
+  border-color: var(--van-primary-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.component-item.hidden {
+  opacity: 0.5;
+  background: var(--van-gray-2);
+}
+
+.component-item.hidden .component-controls select {
+  background: var(--van-gray-5);
+  color: var(--van-gray-2);
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.component-item.hidden .component-controls select:hover {
+  // border-color: var(--van-primary-color);
+  background: var(--van-gray-4);
+  box-shadow: 0 0 0 1px rgba(164, 148, 198, 0.3);
+  opacity: 0.9;
+}
+
+.component-item.hidden .component-controls select:focus {
+  background: var(--van-primary-color);
+  color: var(--video-roll-text-color);
+  opacity: 1;
+  box-shadow: 0 0 0 2px rgba(164, 148, 198, 0.4);
+}
+
+.component-item.hidden .component-controls select option:hover {
+  background: var(--van-primary-color);
+  color: var(--video-roll-text-color);
+}
+
+.component-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.drag-handle {
+  width: 14px;
+  height: 14px;
+  color: var(--van-gray-5);
+  cursor: grab;
+}
+
+.component-header span {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--video-roll-text-color);
+}
+
+.component-header button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.component-header button:hover {
+  background: var(--video-roll-header-background-color);
+
+}
+
+.icon {
+  width: 14px;
+  height: 14px;
+}
+
+.component-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.component-controls label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--van-gray-6);
+}
+
+.component-controls select {
+  padding: 2px 6px;
+  border: 1px solid var(--van-gray-4);
+  background: var(--van-gray-6);
+  color: var(--video-roll-text-color);
+  border-radius: 3px;
+  font-size: 11px;
+  transition: all 0.3s ease;
+}
+
+.component-controls select:hover {
+  border-color: var(--van-primary-color);
+  background: var(--van-gray-5);
+  box-shadow: 0 0 0 1px rgba(164, 148, 198, 0.3);
+}
+
+.component-controls select:focus {
+  outline: none;
+  border-color: var(--van-primary-color);
+  background: var(--van-primary-color);
+  color: var(--video-roll-text-color);
+  box-shadow: 0 0 0 2px rgba(164, 148, 198, 0.4);
+}
+
+.component-controls select:active {
+  background: var(--van-primary-color);
+  color: var(--video-roll-text-color);
+}
+
+.component-controls select option {
+  background: var(--van-gray-6);
+  color: var(--video-roll-text-color);
+}
+
+.component-controls select option:hover {
+  background: var(--van-primary-color);
+  color: var(--video-roll-text-color);
+}
+
+.component-controls select option:checked {
+  background: var(--van-primary-color);
+  color: var(--video-roll-text-color);
+}
+
+.add-row-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  border: 2px dashed var(--van-gray-6);
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--van-gray-6);
+  transition: all 0.3s;
+}
+
+.add-row-btn:hover {
+  border-color: var(--van-primary-color);
+  color: var(--van-primary-color);
+  background: var(--van-primary-color-light);
+}
+
+.tab-config {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: var(--video-roll-header-background-color);
+  border-radius: 8px;
+}
+
+.tab-config-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--van-gray-8);
+}
+
+.tab-config-header h3 {
+  flex: 1;
+  margin: 0;
+  font-size: 16px;
+  color: var(--video-roll-text-color);
+}
+
+.toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: var(--van-gray-4);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.toggle-switch.active {
+  background: var(--van-primary-color);
+}
+
+.toggle-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: var(--van-sidebar-selected-background);
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+
+.toggle-switch.active::after {
+  transform: translateX(20px);
+}
+
+.preset-layouts {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: var(--video-roll-header-background-color);
+  border-radius: 8px;
+}
+
+.preset-layouts h3 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: var(--van-gray-8);
+}
+
+.preset-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.preset-btn {
+  padding: 6px 12px;
+  border: 1px solid var(--van-gray-6);
+  background: var(--van-sidebar-selected-background);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.3s;
+}
+
+.preset-btn:hover {
+  background: var(--video-roll-header-background-color);
+  border-color: var(--van-primary-color);
+}
+
+.success-message {
+  padding: 8px 12px;
+  background: var(--van-success-color);
+  color: var(--van-sidebar-selected-background);
+  border-radius: 4px;
+  font-size: 12px;
+  margin-left: 8px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.success-message.show {
+  opacity: 1;
+}

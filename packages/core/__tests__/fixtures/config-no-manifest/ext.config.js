@@ -1,0 +1,1 @@
+export default { srcDir: "src" };

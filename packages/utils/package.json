@@ -1,0 +1,26 @@
+{
+  "name": "@extenzo/utils",
+  "version": "0.0.1",
+  "description": "Extension runtime: webextension-polyfill wrapper for unified browser API",
+  "type": "module",
+  "exports": {
+    "./webextension-polyfill": {
+      "types": "./dist/webextension-polyfill.d.ts",
+      "import": "./dist/webextension-polyfill.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "rslib build",
+    "dev": "rslib build --watch"
+  },
+  "dependencies": {
+    "webextension-polyfill": "^0.10.0"
+  },
+  "devDependencies": {
+    "@rslib/core": "^0.19.0",
+    "@types/node": "^20.0.0",
+    "@types/webextension-polyfill": "^0.10.0",
+    "typescript": "^5.0.0"
+  }
+}

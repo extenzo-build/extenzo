@@ -1,0 +1,41 @@
+{
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "declaration": true,
+    "allowJs": true,
+    "target": "esnext",
+    "module": "nodenext",
+    "strict": true,
+    "sourceMap": true,
+    "jsx": "preserve",
+    "jsxImportSource": "vue",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "rootDir": "./src",
+    "baseUrl": "./",
+    "paths": {
+      "*": ["types/*"],
+      "@/*": ["./src/*"],
+      "src/*": ["./src/*"],
+      "src/types/type": ["./src/types/type.d.ts"],
+      "src/lib/directive": ["./src/lib/directive.ts"]
+    },
+    "ignoreDeprecations": "6.0",
+    "lib": ["es2021", "dom"],
+    "typeRoots": ["./node_modules/@types"],
+    "types": [
+      "chrome",
+      "node",
+      "webextension-polyfill",
+      "lodash-es",
+      "three",
+      "file-saver",
+      "vidstack/vue"
+    ]
+  },
+  "allowSyntheticDefaultImports": true,
+  "isolatedModules": true,
+  "exclude": ["node_modules", "src/**/*.html"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
+}

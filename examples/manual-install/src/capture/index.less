@@ -1,0 +1,68 @@
+:root {
+  --background-color: rgb(24, 24, 28);
+  --background-color-2: #26262a;
+  --van-primary-color: #a494c6 !important;
+  --van-sidebar-width: 100px !important;
+  --van-sidebar-padding: 12.5px var(--van-padding-sm) !important;
+  --van-sidebar-background: #1f1f1f97 !important;
+  --van-sidebar-selected-background: #5d5d6045 !important;
+  --video-roll-background-active: linear-gradient(
+    135deg,
+    #ce9ffc 10%,
+    #7367f0 100%
+  );
+}
+
+.van-theme-dark {
+  --video-roll-primary-background-color: rgb(24, 24, 28);
+  --video-roll-header-background-color: #26262a;
+  --video-roll-container-background-color: rgba(214, 213, 215, 0.112);
+  --video-roll-text-color: #ffffffa1;
+  --video-roll-logo-usd-color: #eff2f5;
+  --video-roll-border-color: #59595b45;
+  --video-roll-btn-on-color: #eff2f5;
+  --video-roll-resetBtn-shadow: 2px 2px 4px #5d5f626c, -2px -2px 4px #5d5f626c;
+  --video-roll-resetBtn-bg-color: rgba(155, 155, 155, 0.4);
+  --video-roll-footer-progress-color: rgba(155, 155, 155, 0.4);
+}
+
+.van-theme-light {
+  --video-roll-primary-background-color: #eff2f5;
+  --video-roll-header-background-color: #ffffff;
+  --video-roll-container-background-color: #ffffff;
+  --video-roll-text-color: #303043;
+  --video-roll-logo-usd-color: #303043;
+  --video-roll-border-color: #30304341;
+  --video-roll-btn-on-color: #eff2f5;
+  --video-roll-resetBtn-shadow: 2px 2px 4px #eff2f5, -2px -2px 4px #eff2f5;
+  --video-roll-resetBtn-bg-color: rgba(232, 232, 232, 0.67);
+  --video-roll-footer-progress-color: rgba(155, 155, 155, 0.4);
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+
+  .vc-colorpicker.black {
+    background-color: #26262a !important;
+  }
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+
+
+
+  background-color: var(--video-roll-primary-background-color);
+
+  main {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    overflow: auto;
+  }
+}
+

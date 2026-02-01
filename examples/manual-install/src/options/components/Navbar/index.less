@@ -1,0 +1,43 @@
+.options-nav {
+  width: 200px;
+  font-size: 20px;
+  padding: 30px 10px;
+  position: sticky;
+  top: 0px;
+  .options-nav-item {
+    color: #596b78;
+    margin-bottom: 20px;
+    cursor: pointer;
+    padding: 10px;
+    position: relative;
+    &:hover {
+      color: var(--video-roll-text-color);
+    }
+  }
+  .active-item {
+    color: var(--video-roll-text-color);
+    background-color: var(--video-roll-header-background-color);
+    border-radius: 5px;
+  }
+
+  .nav-title-wrapper {
+    position: relative;
+    display: inline-block;
+  }
+
+  .pro-badge {
+    position: absolute;
+    top: -8px;
+    right: -25px;
+    background: linear-gradient(135deg, #ce9ffc 10%, #7367f0 100%);
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 8px;
+    line-height: 1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transform: scale(0.9);
+    letter-spacing: 0.5px;
+  }
+}

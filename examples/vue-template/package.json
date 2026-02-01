@@ -1,0 +1,22 @@
+{
+  "name": "extenzo-example-vue-template",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Vue browser extension template: popup, options, content, background + messaging",
+  "type": "module",
+  "scripts": {
+    "dev": "extenzo dev -b chrome",
+    "build": "extenzo build"
+  },
+  "dependencies": {
+    "@extenzo/core": "workspace:*",
+    "@extenzo/cli": "workspace:*",
+    "@extenzo/plugin-vue": "workspace:*",
+    "@extenzo/utils": "workspace:*",
+    "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.326",
+    "typescript": "^5.0.0"
+  }
+}
