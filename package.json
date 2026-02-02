@@ -23,7 +23,15 @@
     "examples:build:react-shadcn": "pnpm --filter extenzo-example-react-shadcn run build",
     "examples:build:manual-install": "pnpm --filter extenzo-example-manual-install run build",
 
-    "build": "pnpm run packages:build && pnpm run examples:build"
+    "build": "pnpm run packages:build && pnpm run examples:build",
+
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "pnpm run packages:build && pnpm publish -r",
+    "ci:publish": "pnpm publish -r --access public"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.0"
   },
   "packageManager": "pnpm@10.0.0"
 }

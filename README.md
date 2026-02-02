@@ -5,10 +5,9 @@
 <h1 align="center">
 Extenzo
 </h1>
-
-# Extenzo
-
-Browser extension development framework built on Rsbuild. Supports Vanilla / Vue / React with HMR in dev.
+<p align="center">
+Browser extension development framework built on Rsbuild
+</p>
 
 ## Quick start
 

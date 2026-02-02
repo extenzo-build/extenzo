@@ -5,10 +5,9 @@
 <h1 align="center">
 Extenzo
 </h1>
-
-# Extenzo
-
-基于 Rsbuild 的浏览器插件开发框架，支持 Vanilla / Vue / React，开发模式带热更新。
+<p align="center">
+基于 Rsbuild 的浏览器插件开发框架，简单，快速
+</p>
 
 ## 快速开始
 
