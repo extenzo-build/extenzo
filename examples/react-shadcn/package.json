@@ -9,9 +9,7 @@
     "build": "extenzo build"
   },
   "dependencies": {
-    "@extenzo/core": "workspace:*",
-    "@extenzo/cli": "workspace:*",
-    "@extenzo/plugin-react": "workspace:*",
+    "extenzo": "workspace:*",
     "@extenzo/utils": "workspace:*",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",

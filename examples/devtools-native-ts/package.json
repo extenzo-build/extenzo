@@ -9,8 +9,7 @@
     "build": "extenzo build"
   },
   "dependencies": {
-    "@extenzo/core": "workspace:*",
-    "@extenzo/cli": "workspace:*",
+    "extenzo": "workspace:*",
     "@extenzo/utils": "workspace:*"
   },
   "devDependencies": {

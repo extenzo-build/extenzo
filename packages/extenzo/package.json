@@ -1,0 +1,16 @@
+{
+  "name": "extenzo",
+  "version": "0.0.1",
+  "description": "Build tool for browser extensions — one install, extenzo dev / build",
+  "type": "module",
+  "bin": {
+    "extenzo": "./bin/extenzo.mjs"
+  },
+  "files": ["bin"],
+  "scripts": {
+    "build": "echo 'No build step'"
+  },
+  "dependencies": {
+    "@extenzo/cli": "workspace:*"
+  }
+}

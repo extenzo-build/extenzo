@@ -9,9 +9,7 @@
     "build": "extenzo build"
   },
   "dependencies": {
-    "@extenzo/core": "workspace:*",
-    "@extenzo/cli": "workspace:*",
-    "@extenzo/plugin-vue": "workspace:*",
+    "extenzo": "workspace:*",
     "@extenzo/utils": "workspace:*",
     "vue": "^3.5.0"
   },

@@ -14,15 +14,12 @@ importers:
 
   examples/devtools-native-ts:
     dependencies:
-      '@extenzo/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
-      '@extenzo/core':
-        specifier: workspace:*
-        version: link:../../packages/core
       '@extenzo/utils':
         specifier: workspace:*
         version: link:../../packages/utils
+      extenzo:
+        specifier: workspace:*
+        version: link:../../packages/extenzo
     devDependencies:
       '@types/chrome':
         specifier: ^0.0.326
@@ -33,15 +30,6 @@ importers:
 
   examples/manual-install:
     dependencies:
-      '@extenzo/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
-      '@extenzo/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@extenzo/plugin-vue':
-        specifier: workspace:*
-        version: link:../../packages/plugins/plugin-vue
       '@extenzo/utils':
         specifier: workspace:*
         version: link:../../packages/utils
@@ -90,6 +78,9 @@ importers:
       easyqrcodejs:
         specifier: ^4.6.1
         version: 4.6.2
+      extenzo:
+        specifier: workspace:*
+        version: link:../../packages/extenzo
       file-saver:
         specifier: ^2.0.5
         version: 2.0.5
@@ -211,15 +202,6 @@ importers:
 
   examples/react-shadcn:
     dependencies:
-      '@extenzo/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
-      '@extenzo/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@extenzo/plugin-react':
-        specifier: workspace:*
-        version: link:../../packages/plugins/plugin-react
       '@extenzo/utils':
         specifier: workspace:*
         version: link:../../packages/utils
@@ -229,6 +211,9 @@ importers:
       clsx:
         specifier: ^2.1.0
         version: 2.1.1
+      extenzo:
+        specifier: workspace:*
+        version: link:../../packages/extenzo
       react:
         specifier: ^18.2.0
         version: 18.3.1
@@ -263,18 +248,12 @@ importers:
 
   examples/react-template:
     dependencies:
-      '@extenzo/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
-      '@extenzo/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@extenzo/plugin-react':
-        specifier: workspace:*
-        version: link:../../packages/plugins/plugin-react
       '@extenzo/utils':
         specifier: workspace:*
         version: link:../../packages/utils
+      extenzo:
+        specifier: workspace:*
+        version: link:../../packages/extenzo
       react:
         specifier: ^18.2.0
         version: 18.3.1
@@ -297,18 +276,12 @@ importers:
 
   examples/vue-template:
     dependencies:
-      '@extenzo/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
-      '@extenzo/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@extenzo/plugin-vue':
-        specifier: workspace:*
-        version: link:../../packages/plugins/plugin-vue
       '@extenzo/utils':
         specifier: workspace:*
         version: link:../../packages/utils
+      extenzo:
+        specifier: workspace:*
+        version: link:../../packages/extenzo
       vue:
         specifier: ^3.5.0
         version: 3.5.27(typescript@5.9.3)
@@ -421,6 +394,12 @@ importers:
       typescript:
         specifier: ^5.0.0
         version: 5.9.3
+
+  packages/extenzo:
+    dependencies:
+      '@extenzo/cli':
+        specifier: workspace:*
+        version: link:../cli
 
   packages/plugins/plugin-entry:
     dependencies:

@@ -9,9 +9,7 @@
     "build": "extenzo build"
   },
   "dependencies": {
-    "@extenzo/cli": "workspace:*",
-    "@extenzo/core": "workspace:*",
-    "@extenzo/plugin-vue": "workspace:*",
+    "extenzo": "workspace:*",
     "@extenzo/utils": "workspace:*",
     "@mediabunny/mp3-encoder": "^1.26.0",
     "@primeuix/themes": "^1.2.5",

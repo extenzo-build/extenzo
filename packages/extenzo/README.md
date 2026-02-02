@@ -1,4 +1,4 @@
-<p align="center">
+extenzo<p align="center">
   <img width="230" src="extenzo.png">
 </p>
 
@@ -133,7 +133,7 @@ The framework follows common practice: **recommended dev dependencies** are chec
 
 To skip auto-install (e.g. in CI or when you manage deps yourself), set **`EXTENZO_SKIP_DEPS=1`**.
 
-- **extenzo** brings in `@extenzo/cli`, `@rsbuild/core`, and the framework plugins; add **extenzo** as a dev dependency and use `extenzo dev` and `extenzo build` in your scripts.
+- **extenzo** brings in `@extenzo/cli`, `@rsbuild/core`, and the framework plugins; you only need to add **extenzo** to your project. Use `extenzo dev` and `extenzo build` in your scripts.
 
 ## Dev HMR
 

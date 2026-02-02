@@ -1,4 +1,5 @@
 packages:
+  - "packages/extenzo"
   - "packages/cli"
   - "packages/core"
   - "packages/utils"

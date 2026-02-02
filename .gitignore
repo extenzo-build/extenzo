@@ -1,3 +1,15 @@
+# 以下规则对所有目录生效（**/ 表示任意层级）
+
 # extenzo default output directory (dev/build)
-.extenzo
-node_modules
+**/.extenzo
+# package build output
+**/dist
+# archives (e.g. extenzo build --zip)
+**/*.zip
+**/*.tar.gz
+**/*.tgz
+# env (local / secrets)
+**/.env
+**/.env.*
+!**/.env.example
+**/node_modules
