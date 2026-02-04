@@ -2,7 +2,7 @@
 
 Minimal browser extension template with React: **popup**, **options**, **content script**, **background** and simple messaging.
 
-**Dependencies**: With `@extenzo/plugin-react` you only need to add **react** and **react-dom** in your app. You do **not** need to manually install `@rsbuild/plugin-react` — the plugin brings it in.
+**Dependencies**: Add **react**, **react-dom** and **@rsbuild/plugin-react** to your project; use `plugins: [pluginReact()]` in ext.config (import from `@rsbuild/plugin-react`).
 
 ## Structure
 

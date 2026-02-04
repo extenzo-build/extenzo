@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import { resolve } from "path";
 import { existsSync } from "fs";
-import { runPipeline } from "./pipeline.js";
-import { wrapExtenzoOutput } from "./prefixStream.js";
-import { zipDist } from "./zipDist.js";
+import { runPipeline } from "./pipeline.ts";
+import { wrapExtenzoOutput } from "./prefixStream.ts";
+import { zipDist } from "./zipDist.ts";
 import { exitWithError, createConfigNotFoundError, CONFIG_FILES } from "@extenzo/core";
 
 const root = process.cwd();
@@ -22,7 +22,14 @@ async function main(): Promise<void> {
   wrapExtenzoOutput();
 
   const { createRsbuild } = await import("@rsbuild/core");
-  const rsbuild = await createRsbuild({ rsbuildConfig: ctx.rsbuildConfig });
+  const rsbuild = await createRsbuild({
+    rsbuildConfig: ctx.rsbuildConfig,
+    cwd: ctx.root,
+    loadEnv: {
+      cwd: ctx.root,
+      prefixes: ctx.config.envPrefix ?? [""],
+    },
+  });
 
   if (ctx.command === "dev") {
     await rsbuild.build({ watch: true });

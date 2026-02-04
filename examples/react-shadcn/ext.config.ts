@@ -1,6 +1,6 @@
 import { resolve } from "path";
-import { defineConfig } from "@extenzo/core";
-import react from "@extenzo/plugin-react";
+import { defineConfig } from "extenzo";
+import { pluginReact } from "@rsbuild/plugin-react";
 
 const manifest = {
   name: "React + shadcn/ui Example",
@@ -17,7 +17,7 @@ export default defineConfig({
   srcDir: "src",
   outDir: "dist",
   manifest: { chromium: manifest, firefox: { ...manifest } },
-  plugins: [react()],
+  plugins: [pluginReact()],
   rsbuildConfig: {
     resolve: { alias: { "@": resolve(process.cwd(), "src") } },
   },

@@ -6,7 +6,7 @@ import {
   discoverEntries,
   getHtmlEntryNames,
   getScriptOnlyEntryNames,
-} from "../src/entryDiscoverer.js";
+} from "../src/entryDiscoverer.ts";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixtureDir = path.join(__dirname, "fixtures", "entry-discovery");
@@ -42,6 +42,25 @@ describe("EntryDiscoverer", () => {
       const discoverer = new EntryDiscoverer();
       const entries = discoverer.discover(path.join(__dirname, "fixtures"));
       expect(entries).toEqual([]);
+    });
+
+    it("skips html entry dir when no script (only index.html)", () => {
+      const entries = discoverEntries(fixtureDir);
+      const sidepanel = entries.find((e) => e.name === "sidepanel");
+      expect(sidepanel).toBeUndefined();
+    });
+
+    it("skips path that is file not directory", async () => {
+      const { mkdirSync, writeFileSync, rmSync } = await import("fs");
+      const { join } = await import("path");
+      const { tmpdir } = await import("os");
+      const dir = join(tmpdir(), `extenzo-discover-${Date.now()}`);
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(join(dir, "background"), "file not dir", "utf-8");
+      const discoverer = new EntryDiscoverer();
+      const entries = discoverer.discover(dir);
+      expect(entries).toEqual([]);
+      rmSync(dir, { recursive: true, force: true });
     });
   });
 });

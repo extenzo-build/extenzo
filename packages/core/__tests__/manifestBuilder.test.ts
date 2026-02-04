@@ -1,7 +1,7 @@
 import { describe, expect, it } from "@rstest/core";
-import { ManifestBuilder, resolveManifestChromium, resolveManifestFirefox } from "../src/manifestBuilder.js";
-import { MANIFEST_ENTRY_PATHS } from "../src/constants.js";
-import type { EntryInfo } from "../src/types.js";
+import { ManifestBuilder, resolveManifestChromium, resolveManifestFirefox } from "../src/manifestBuilder.ts";
+import { MANIFEST_ENTRY_PATHS } from "../src/constants.ts";
+import type { EntryInfo } from "../src/types.ts";
 
 function entry(name: string, scriptPath: string, htmlPath?: string): EntryInfo {
   return { name, scriptPath, htmlPath };
@@ -86,6 +86,48 @@ describe("ManifestBuilder", () => {
     it("resolveManifestFirefox returns firefox manifest", () => {
       const out = resolveManifestFirefox({ firefox: baseManifest }, []);
       expect((out as { name?: string }).name).toBe("Test");
+    });
+  });
+
+  describe("options and sidepanel", () => {
+    it("injects options_ui when options entry present", () => {
+      const builder = new ManifestBuilder();
+      const out = builder.buildForBrowser(
+        { chromium: baseManifest },
+        [entry("options", "/o/index.js", "/o/index.html")],
+        "chromium"
+      );
+      expect(out).toHaveProperty("options_ui");
+      expect((out as { options_ui?: { page: string } }).options_ui?.page).toBe(
+        MANIFEST_ENTRY_PATHS.options
+      );
+    });
+
+    it("injects side_panel when sidepanel entry present", () => {
+      const builder = new ManifestBuilder();
+      const out = builder.buildForBrowser(
+        { chromium: baseManifest },
+        [entry("sidepanel", "/s/index.js", "/s/index.html")],
+        "chromium"
+      );
+      expect(out).toHaveProperty("side_panel");
+      expect((out as { side_panel?: { default_path: string } }).side_panel?.default_path).toBe(
+        MANIFEST_ENTRY_PATHS.sidepanel
+      );
+    });
+
+    it("uses firefox fallback to chromium when firefox undefined", () => {
+      const config = { chromium: { ...baseManifest, name: "C" } };
+      const builder = new ManifestBuilder();
+      const out = builder.buildForBrowser(config, [], "firefox");
+      expect((out as { name?: string }).name).toBe("C");
+    });
+
+    it("uses chromium fallback to firefox when chromium undefined", () => {
+      const config = { firefox: { ...baseManifest, name: "F" } };
+      const builder = new ManifestBuilder();
+      const out = builder.buildForBrowser(config, [], "chromium");
+      expect((out as { name?: string }).name).toBe("F");
     });
   });
 });

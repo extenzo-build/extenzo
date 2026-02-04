@@ -11,7 +11,7 @@ Rsbuild plugin for **dev mode**: after dist is ready, launches Chrome or Firefox
 
 ## Conventions
 
-- Browser path: prefer config.launch, then env BROWSER_CHROME / BROWSER_FIREFOX
+- Browser path: config.launch.chrome / launch.firefox; if unset, try OS default paths (DEFAULT_CHROME_PATHS / DEFAULT_FIREFOX_PATHS defined in this plugin)
 - HMR port etc. aligned with core’s HMR_WS_PORT
 
 ## When changing this package

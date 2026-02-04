@@ -1,20 +1,20 @@
-export { defineConfig } from "./defineConfig.js";
-export { ConfigLoader, resolveExtenzoConfig, loadConfigFile } from "./configLoader.js";
+export { defineConfig } from "./defineConfig.ts";
+export { ConfigLoader, resolveExtenzoConfig, loadConfigFile } from "./configLoader.ts";
 export {
   EntryDiscoverer,
   discoverEntries,
   getHtmlEntryNames,
   getScriptOnlyEntryNames,
-} from "./entryDiscoverer.js";
-export { EntryResolver, resolveEntries } from "./entryResolver.js";
+} from "./entryDiscoverer.ts";
+export { EntryResolver, resolveEntries } from "./entryResolver.ts";
 export {
   ManifestBuilder,
   resolveManifestChromium,
   resolveManifestFirefox,
-} from "./manifestBuilder.js";
-export { mergeRsbuildConfig } from "./mergeRsbuildConfig.js";
-export { CliParser, parseCliArgs, assertSupportedBrowser } from "./cliParser.js";
-export type { CliParseResult } from "./cliParser.js";
+} from "./manifestBuilder.ts";
+export { mergeRsbuildConfig } from "@rsbuild/core";
+export { CliParser, parseCliArgs, assertSupportedBrowser } from "./cliParser.ts";
+export type { CliParseResult } from "./cliParser.ts";
 export {
   ExtenzoError,
   exitWithError,
@@ -25,8 +25,8 @@ export {
   createInvalidBrowserError,
   createUnknownCommandError,
   EXTENZO_ERROR_CODES,
-} from "./errors.js";
-export type { ExtenzoErrorCode } from "./errors.js";
+} from "./errors.ts";
+export type { ExtenzoErrorCode } from "./errors.ts";
 export {
   DEFAULT_OUT_DIR,
   DEFAULT_SRC_DIR,
@@ -36,18 +36,23 @@ export {
   SUPPORTED_BROWSERS,
   CLI_COMMANDS,
   MANIFEST_ENTRY_PATHS,
+  MANIFEST_DIR,
+  MANIFEST_FILE_NAMES,
   CONFIG_FILES,
   SCRIPT_EXTS,
   HTML_ENTRY_NAMES,
   SCRIPT_ONLY_ENTRY_NAMES,
   RESERVED_ENTRY_NAMES,
-} from "./constants.js";
-export type { BrowserTarget, CliCommand } from "./constants.js";
+} from "./constants.ts";
+export { ManifestLoader, resolveManifestInput } from "./manifestLoader.ts";
+export type { BrowserTarget, CliCommand } from "./constants.ts";
 export type {
   ExtenzoUserConfig,
   ExtenzoResolvedConfig,
   ManifestConfig,
+  ManifestPathConfig,
+  RsbuildConfigHelpers,
   EntryInfo,
   LifecycleHooks,
   PipelineContext,
-} from "./types.js";
+} from "./types.ts";

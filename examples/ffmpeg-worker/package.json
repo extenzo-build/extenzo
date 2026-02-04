@@ -1,0 +1,22 @@
+{
+  "name": "extenzo-example-ffmpeg-worker",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Extenzo example: popup opens videopanel with ffmpeg.wasm (worker)",
+  "type": "module",
+  "scripts": {
+    "dev": "extenzo dev",
+    "build": "extenzo build"
+  },
+  "dependencies": {
+    "@extenzo/utils": "workspace:*",
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/core": "^0.12.6",
+    "@ffmpeg/util": "^0.12.1"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.326",
+    "extenzo": "workspace:*",
+    "typescript": "^5.0.0"
+  }
+}

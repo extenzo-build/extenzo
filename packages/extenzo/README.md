@@ -1,4 +1,4 @@
-extenzo<p align="center">
+<p align="center">
   <img width="230" src="extenzo.png">
 </p>
 
@@ -8,6 +8,8 @@ Extenzo
 <p align="center">
 Browser extension development framework built on Rsbuild
 </p>
+
+Browser extension development involves more complex debugging, so we use **full-bundle mode** to minimize the gap between dev and production. Thanks to **Rsbuild’s performance**, extenzo uses **build watch** for hot reload—same bundled output in dev and production, without sacrificing build speed.
 
 ## Quick start
 
@@ -37,7 +39,7 @@ Create `ext.config.ts` (or `ext.config.js`) in the project root and configure it
 
 ### Packages and imports
 
-- **Core** (`defineConfig`, types, discovery, manifest, etc.) is exported from **`@extenzo/core`**. In config use: `import { defineConfig } from "@extenzo/core"`.
+- **Core** (`defineConfig`, types, discovery, manifest, etc.) is exported from **extenzo**. In config use: `import { defineConfig } from "extenzo"`.
 - **Runtime utilities** (e.g. [webextension-polyfill](https://github.com/mozilla/webextension-polyfill)) are exported from **`@extenzo/utils`**. Install `@extenzo/utils` and use:
 
 ```ts
@@ -53,12 +55,12 @@ Return a config object from `defineConfig`. Supported fields:
 | Field | Description |
 |-------|-------------|
 | **manifest** | Extension manifest. Single object or split as `chromium` / `firefox` |
-| **plugins** | Rsbuild plugins array (like Vite). Use function calls, e.g. `plugins: [vue()]`, `plugins: [react()]` (import from `@extenzo/plugin-vue` / `@extenzo/plugin-react`) |
+| **plugins** | Rsbuild plugins array (like Vite). Use function calls, e.g. `plugins: [vue()]` (from `@extenzo/plugin-vue`) or `plugins: [pluginReact()]` (from `@rsbuild/plugin-react`) |
 | **rsbuildConfig** | Override or extend Rsbuild config (like Vite’s build options). **Object**: deep-merged with base. **Function**: `(base) => config` for full control |
 | **entry** | Custom entries: object, key = entry name (reserved: popup, options, sidepanel, background, devtools, content; others custom), value = path string relative to baseDir (e.g. `'content/index.ts'`). Omit to use default discovery from baseDir |
 | **srcDir** | Source directory; default is project root. Also the base for **entry** paths |
 | **outDir** | Output directory; default `"dist"` |
-| **launch** | Dev browser paths. `launch.chrome`, `launch.firefox` for Chrome/Firefox executables; used when running `extenzo dev`. Falls back to `.env` `BROWSER_CHROME` / `BROWSER_FIREFOX` if unset |
+| **launch** | Dev browser paths. `launch.chrome`, `launch.firefox` for Chrome/Firefox executables; used when running `extenzo dev`. If unset, tries OS default install paths |
 | **hooks** | Lifecycle hooks at “parse CLI → load config → build Rsbuild config → run build”. See “Lifecycle hooks” below |
 
 ### Lifecycle hooks
@@ -75,12 +77,12 @@ Configure `hooks` in `defineConfig`. Each hook receives `PipelineContext` (root,
 
 ### Errors and exit codes
 
-On missing config, no entries, invalid command or invalid `-b`, the CLI throws **ExtenzoError** (with `code`, `details`, `hint`), prints a clear message to stderr and exits with a non-zero code. Error codes are exported from `@extenzo/core` as `EXTENZO_ERROR_CODES`.
+On missing config, no entries, invalid command or invalid `-b`, the CLI throws **ExtenzoError** (with `code`, `details`, `hint`), prints a clear message to stderr and exits with a non-zero code. Error codes are exported from `extenzo` as `EXTENZO_ERROR_CODES`.
 
 ### Config example
 
 ```ts
-import { defineConfig } from "@extenzo/core";
+import { defineConfig } from "extenzo";
 import vue from "@extenzo/plugin-vue";
 
 export default defineConfig({
@@ -129,7 +131,7 @@ Default is Chrome if `-b` is omitted. The target is determined only by `-b`, not
 The framework follows common practice: **recommended dev dependencies** are checked before build and **installed automatically** when missing (using the project’s package manager: pnpm / npm / yarn / bun).
 
 - **Extension development**: `@types/chrome` (Chrome extension API types) is installed as a dev dependency if not already in the project.
-- **Plugins**: If you use `plugins: [vue()]`, the CLI ensures `vue` is installed; if you use `plugins: [react()]`, it ensures `react` and `react-dom` are installed. Plugins declare these as optional peer dependencies.
+- **Plugins**: If you use `plugins: [vue()]`, the CLI ensures `vue` is installed. For React, use `@rsbuild/plugin-react` and add `react` and `react-dom` (and `@rsbuild/plugin-react`) to your project.
 
 To skip auto-install (e.g. in CI or when you manage deps yourself), set **`EXTENZO_SKIP_DEPS=1`**.
 
@@ -139,10 +141,7 @@ To skip auto-install (e.g. in CI or when you manage deps yourself), set **`EXTEN
 
 In dev, a WebSocket server is started and the extension is reloaded after each build. The Rsbuild plugin opens the browser and loads the extension after the first build; later rebuilds trigger a reload via WebSocket.
 
-Browser paths can be set via **launch** in config or **.env** (launch wins):
-
-- **ext.config**: `launch: { chrome: "C:\\...\\chrome.exe", firefox: "C:\\...\\firefox.exe" }`
-- **.env**: `BROWSER_CHROME=...`, `BROWSER_FIREFOX=...`
+Browser paths: set **launch** in config to override; otherwise the framework tries OS default paths (Windows / macOS / Linux).
 
 ## Repo structure
 
@@ -154,7 +153,6 @@ Browser paths can be set via **launch** in config or **.env** (launch wins):
 - `packages/plugins/plugin-extension`: **Internal** – writes manifest.json
 - `packages/plugins/plugin-hmr**: **Internal** – dev HMR and browser launch
 - `packages/plugins/plugin-vue`: Vue 3 + Vue JSX + Less + Babel; use `plugins: [vue()]`
-- `packages/plugins/plugin-react`: React + JSX; use `plugins: [react()]`
-- `packages/create-extenzo-app`: Scaffold CLI; generates project with `plugins: [vue()]` or `plugins: [react()]`
+- `packages/create-extenzo-app`: Scaffold CLI; generates project with `plugins: [vue()]` or `plugins: [pluginReact()]` (use `@rsbuild/plugin-react` for React)
 
 The framework runs plugin-entry, plugin-extension and plugin-hmr by default. Users add framework plugins via `plugins: [vue()]` etc. and override Rsbuild via `rsbuildConfig`.

@@ -9,6 +9,14 @@ Extenzo
 Browser extension development framework built on Rsbuild
 </p>
 
+<div align="center">
+![](https://img.shields.io/github/package-json/v/extenzo-build/extenzo)
+</div>
+
+## Why extenzo
+
+Browser extension development involves more complex debugging than typical web apps, so we believe **full-bundle mode** is necessary to minimize the gap between development and production. Thanks to **Rsbuild’s performance**, extenzo uses **build watch** for hot reload—you get the same bundled output in dev and production, so behavior stays consistent, without sacrificing build speed.
+
 ## Quick start
 
 ### Option 1: Scaffold a new project
@@ -37,7 +45,7 @@ Create `ext.config.ts` (or `ext.config.js`) in the project root and configure it
 
 ### Packages and imports
 
-- **Core** (`defineConfig`, types, discovery, manifest, etc.) is exported from **`@extenzo/core`**. In config use: `import { defineConfig } from "@extenzo/core"`.
+- **Core** (`defineConfig`, types, discovery, manifest, etc.) is exported from **extenzo**. In config use: `import { defineConfig } from "extenzo"`.
 - **Runtime utilities** (e.g. [webextension-polyfill](https://github.com/mozilla/webextension-polyfill)) are exported from **`@extenzo/utils`**. Install `@extenzo/utils` and use:
 
 ```ts
@@ -52,14 +60,16 @@ Return a config object from `defineConfig`. Supported fields:
 
 | Field | Description |
 |-------|-------------|
-| **manifest** | Extension manifest. Single object or split as `chromium` / `firefox` |
-| **plugins** | Rsbuild plugins array (like Vite). Use function calls, e.g. `plugins: [vue()]`, `plugins: [react()]` (import from `@extenzo/plugin-vue` / `@extenzo/plugin-react`) |
+| **manifest** | Extension manifest. Object(s) in config, path strings (relative to srcDir), or omit to auto-load: srcDir then srcDir/manifest for `manifest.json` / `manifest.chromium.json` / `manifest.firefox.json` |
+| **plugins** | Rsbuild plugins array (like Vite). Use function calls, e.g. `plugins: [vue()]` (from `@extenzo/plugin-vue`) or `plugins: [pluginReact()]` (from `@rsbuild/plugin-react`) |
 | **rsbuildConfig** | Override or extend Rsbuild config (like Vite’s build options). **Object**: deep-merged with base. **Function**: `(base) => config` for full control |
 | **entry** | Custom entries: object, key = entry name (reserved: popup, options, sidepanel, background, devtools, content; others custom), value = path string relative to baseDir (e.g. `'content/index.ts'`). Omit to use default discovery from baseDir |
 | **srcDir** | Source directory; default is project root. Also the base for **entry** paths |
 | **outDir** | Output directory; default `"dist"` |
-| **launch** | Dev browser paths. `launch.chrome`, `launch.firefox` for Chrome/Firefox executables; used when running `extenzo dev`. Falls back to `.env` `BROWSER_CHROME` / `BROWSER_FIREFOX` if unset |
+| **launch** | Dev browser paths. `launch.chrome`, `launch.firefox` for Chrome/Firefox executables; used when running `extenzo dev`. If unset, tries OS default install paths (see [launch](/config/launch)) |
 | **hooks** | Lifecycle hooks at “parse CLI → load config → build Rsbuild config → run build”. See “Lifecycle hooks” below |
+
+**Manifest from files:** Priority: (1) manifest in ext.config, (2) files in **srcDir** (`manifest.json`, `manifest.chromium.json`, `manifest.firefox.json`), (3) files in **srcDir/manifest/** if none in srcDir. Base and overrides are deep-merged per browser. You can also set paths in config: `manifest: { chromium: 'src/manifest/manifest.json', firefox: '...' }`; paths are resolved from srcDir.
 
 ### Lifecycle hooks
 
@@ -75,12 +85,12 @@ Configure `hooks` in `defineConfig`. Each hook receives `PipelineContext` (root,
 
 ### Errors and exit codes
 
-On missing config, no entries, invalid command or invalid `-b`, the CLI throws **ExtenzoError** (with `code`, `details`, `hint`), prints a clear message to stderr and exits with a non-zero code. Error codes are exported from `@extenzo/core` as `EXTENZO_ERROR_CODES`.
+On missing config, no entries, invalid command or invalid `-b`, the CLI throws **ExtenzoError** (with `code`, `details`, `hint`), prints a clear message to stderr and exits with a non-zero code. Error codes are exported from `extenzo` as `EXTENZO_ERROR_CODES`.
 
 ### Config example
 
 ```ts
-import { defineConfig } from "@extenzo/core";
+import { defineConfig } from "extenzo";
 import vue from "@extenzo/plugin-vue";
 
 export default defineConfig({
@@ -95,7 +105,7 @@ export default defineConfig({
   plugins: [vue()],
   // launch: { chrome: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", firefox: "..." },
   // rsbuildConfig: (config) => config,
-  // entry: { background: "background/index.ts", content: "content/index.ts", popup: "popup/index.ts" },
+  // entry: { background: "background/index.ts", content: "content/index.ts", popup: "popup/index.html" },
   // hooks: { beforeBuild: (ctx) => console.log("Building for", ctx.browser) },
 });
 ```
@@ -104,7 +114,7 @@ export default defineConfig({
 
 - By default, entries are discovered under the **project root** or **srcDir** (baseDir). You can override with **entry**:
   - **background**, **content**: script only
-  - **popup**, **options**, **sidepanel**, **devtools**: require `index.html` + entry script in the same dir
+  - **popup**, **options**, **sidepanel**, **devtools**: HTML entry (e.g. `index.html`); scripts, if any, are included in the HTML
   - Reserved names (fixed): popup, options, sidepanel, background, devtools, content; other names are custom
   - **entry** values are paths relative to baseDir, e.g. `'content/index.ts'`, `'src/popup/index.ts'`
 
@@ -124,6 +134,18 @@ Use **`-b chrome`** or **`-b firefox`** to choose the target browser (and thus m
 
 Default is Chrome if `-b` is omitted. The target is determined only by `-b`, not by env vars.
 
+## Architecture
+
+The following diagram shows how extenzo goes from your config to a built extension and (in dev) to browser launch and HMR.
+
+<p align="center">
+  <img src="extenzo-architecture.png" alt="Extenzo architecture: config → Pipeline → Rsbuild → dev HMR / build output" width="720">
+</p>
+
+
+
+**Summary:** CLI loads `ext.config`, resolves manifest (from config or `srcDir` / `srcDir/manifest`), discovers and resolves entries, then builds an Rsbuild config with **plugin-entry** (entries + HTML), your **plugins** (e.g. Vue/React), and **plugin-extension** (writes `manifest.json` after build). In **dev**, **plugin-hmr** starts a WebSocket server and opens the browser; each rebuild triggers a reload. In **build**, the output is written and optionally zipped.
+
 ## Dependencies
 
 The framework follows common practice: **recommended dev dependencies** are checked before build and **installed automatically** when missing (using the project’s package manager: pnpm / npm / yarn / bun).
@@ -139,10 +161,7 @@ To skip auto-install (e.g. in CI or when you manage deps yourself), set **`EXTEN
 
 In dev, a WebSocket server is started and the extension is reloaded after each build. The Rsbuild plugin opens the browser and loads the extension after the first build; later rebuilds trigger a reload via WebSocket.
 
-Browser paths can be set via **launch** in config or **.env** (launch wins):
-
-- **ext.config**: `launch: { chrome: "C:\\...\\chrome.exe", firefox: "C:\\...\\firefox.exe" }`
-- **.env**: `BROWSER_CHROME=...`, `BROWSER_FIREFOX=...`
+Browser paths: set **launch** in config to override; otherwise the framework tries OS default paths (Windows / macOS / Linux common install locations).
 
 ## Repo structure
 
@@ -154,7 +173,12 @@ Browser paths can be set via **launch** in config or **.env** (launch wins):
 - `packages/plugins/plugin-extension`: **Internal** – writes manifest.json
 - `packages/plugins/plugin-hmr**: **Internal** – dev HMR and browser launch
 - `packages/plugins/plugin-vue`: Vue 3 + Vue JSX + Less + Babel; use `plugins: [vue()]`
-- `packages/plugins/plugin-react`: React + JSX; use `plugins: [react()]`
-- `packages/create-extenzo-app`: Scaffold CLI; generates project with `plugins: [vue()]` or `plugins: [react()]`
+- `packages/create-extenzo-app`: Scaffold CLI; generates project with `plugins: [vue()]` or `plugins: [pluginReact()]` (use `@rsbuild/plugin-react` for React)
 
 The framework runs plugin-entry, plugin-extension and plugin-hmr by default. Users add framework plugins via `plugins: [vue()]` etc. and override Rsbuild via `rsbuildConfig`.
+
+## Test coverage & Codecov
+
+- **Per-package coverage**: `pnpm run test:coverage` runs tests with coverage in each package; each package writes to `./coverage/` (html, json, **lcov.info**).
+- **Merged report for Codecov**: `pnpm run test:coverage:report` runs all package coverages and merges them into **`coverage/lcov.info`** at repo root. Use this file with [Codecov](https://codecov.io) to get a single coverage badge (e.g. in CI: run `test:coverage:report`, then upload `coverage/lcov.info` with the Codecov CLI or GitHub Action).
+- Config: `codecov.yml` at repo root; root `coverage/` is in `.gitignore`.

@@ -6,13 +6,12 @@ import {
   mergeRsbuildConfig,
   HMR_WS_PORT,
 } from "@extenzo/core";
-import type { PipelineContext } from "@extenzo/core";
+import type { PipelineContext, RsbuildConfigHelpers } from "@extenzo/core";
 import { entryPlugin } from "@extenzo/plugin-entry";
 import { extensionPlugin } from "@extenzo/plugin-extension";
 import { hmrPlugin } from "@extenzo/plugin-hmr";
 import { getVueRsbuildPlugins } from "@extenzo/plugin-vue";
-import { getReactRsbuildPlugins } from "@extenzo/plugin-react";
-import { ensureDependencies } from "./ensureDeps.js";
+import { ensureDependencies } from "./ensureDeps.ts";
 
 type LoosePlugin = RsbuildConfig["plugins"] extends (infer P)[] ? P : never;
 
@@ -60,8 +59,6 @@ export class Pipeline {
         `Unknown browser "${parseResult.unknownBrowser}", use chrome or firefox. Defaulting to chromium.`
       );
     }
-    process.env.BROWSER = parseResult.browser;
-
     const { config, baseEntries, entries } = this.configLoader.resolve(root);
     await ensureDependencies(root, config);
     const outDir = config.outDir;
@@ -69,19 +66,21 @@ export class Pipeline {
     const distPath = resolve(root, outputRoot, outDir);
     const isDev = parseResult.command === "dev";
 
-    let baseConfig = this.buildBaseRsbuildConfig({ root, config, baseEntries, entries });
-    baseConfig = await this.applyUserRsbuildConfig(baseConfig, config);
-    baseConfig = this.injectHmrForDev(baseConfig, {
+    const base = this.buildBaseRsbuildConfig({ root, config, baseEntries, entries, browser: parseResult.browser });
+    const userConfig = await this.resolveUserRsbuildConfig(base, config);
+    const hmrOverrides = this.buildHmrOverrides(isDev, {
       root,
       command: parseResult.command,
       browser: parseResult.browser,
       config,
       baseEntries,
       entries,
-      rsbuildConfig: baseConfig,
+      rsbuildConfig: base,
       isDev,
       distPath,
     });
+    const merged = mergeRsbuildConfig(base, userConfig);
+    const baseConfig = hmrOverrides ? mergeRsbuildConfig(merged, hmrOverrides) : merged;
 
     const ctx: PipelineContext = {
       root,
@@ -116,72 +115,70 @@ export class Pipeline {
         const vuePlugins = getVueRsbuildPlugins(appRoot);
         if (Array.isArray(vuePlugins)) out.push(...(vuePlugins as LoosePlugin[]));
       }
-      if (name === "extenzo-react") {
-        const reactPlugins = getReactRsbuildPlugins(appRoot);
-        if (Array.isArray(reactPlugins)) out.push(...(reactPlugins as LoosePlugin[]));
-      }
       out.push(p as LoosePlugin);
     }
     return out;
   }
 
   private buildBaseRsbuildConfig(
-    ctx: Pick<PipelineContext, "root" | "config" | "baseEntries" | "entries">
+    ctx: Pick<PipelineContext, "root" | "config" | "baseEntries" | "entries" | "browser">
   ): RsbuildConfig {
     const expanded = this.expandFrameworkPlugins(ctx.config.plugins, ctx.root);
     const plugins: RsbuildConfig["plugins"] = [
       entryPlugin(ctx.config, ctx.entries),
       ...expanded,
-      extensionPlugin(ctx.config, ctx.entries),
+      extensionPlugin(ctx.config, ctx.entries, ctx.browser),
     ];
-    return { root: ctx.root, plugins };
+    return {
+      root: ctx.root,
+      plugins,
+      output: { legalComments: "none" },
+    };
   }
 
-  private async applyUserRsbuildConfig(
+  /** 解析用户 rsbuildConfig：对象则直接返回，函数则传入 base 与 helpers 后返回结果。 */
+  private async resolveUserRsbuildConfig(
     base: RsbuildConfig,
     config: PipelineContext["config"]
   ): Promise<RsbuildConfig> {
     const user = config.rsbuildConfig ?? config.rsbuild;
-    if (typeof user === "function") return user(base);
-    if (user && typeof user === "object") return mergeRsbuildConfig(base, user);
-    return base;
+    if (typeof user === "function") {
+      const helpers: RsbuildConfigHelpers = { merge: mergeRsbuildConfig };
+      type Fn = (
+        base: RsbuildConfig,
+        helpers?: RsbuildConfigHelpers
+      ) => RsbuildConfig | Promise<RsbuildConfig>;
+      return (user as Fn)(base, helpers);
+    }
+    if (user && typeof user === "object") return user;
+    return {};
   }
 
-  private injectHmrForDev(
-    baseConfig: RsbuildConfig,
+  /** dev 时返回 HMR 相关覆盖（dev + tools.rspack），由 mergeRsbuildConfig 与 base/user 合并。 */
+  private buildHmrOverrides(
+    isDev: boolean,
     ctx: PipelineContext
-  ): RsbuildConfig {
-    if (!ctx.isDev) return baseConfig;
-    const prevRspack = baseConfig.tools?.rspack;
+  ): RsbuildConfig | undefined {
+    if (!isDev) return undefined;
+    // 优先使用用户传入的 launch 路径，未传时由 plugin-hmr 使用默认路径常量；chromium 映射为 chrome
     const hmrOpts = {
       distPath: ctx.distPath,
       autoOpen: true,
-      browser: ctx.browser,
+      browser: (ctx.browser === "chromium" ? "chrome" : ctx.browser) as "chrome" | "firefox",
       chromePath: ctx.config.launch?.chrome,
       firefoxPath: ctx.config.launch?.firefox,
       wsPort: HMR_WS_PORT,
       enableReload: true,
     };
+    const rspackFn = (rspackConfig: unknown, utils: { appendPlugins?: (p: unknown) => void }) => {
+      disableRspackHmr(rspackConfig);
+      if (utils?.appendPlugins) utils.appendPlugins(hmrPlugin(hmrOpts));
+      return rspackConfig;
+    };
     return {
-      ...baseConfig,
-      dev: {
-        ...baseConfig.dev,
-        hmr: false,
-        liveReload: false,
-      },
+      dev: { hmr: false, liveReload: false },
       tools: {
-        ...baseConfig.tools,
-        rspack: ((rspackConfig: unknown, utils: { appendPlugins?: (p: unknown) => void }) => {
-          let result = rspackConfig;
-          if (typeof prevRspack === "function") {
-            result =
-              (prevRspack as (c: unknown, e: unknown) => unknown)(rspackConfig, utils) ??
-              rspackConfig;
-          }
-          disableRspackHmr(result);
-          if (utils?.appendPlugins) utils.appendPlugins(hmrPlugin(hmrOpts));
-          return result;
-        }) as RsbuildConfig["tools"] extends { rspack?: infer R } ? R : never,
+        rspack: rspackFn as RsbuildConfig["tools"] extends { rspack?: infer R } ? R : never,
       },
     };
   }

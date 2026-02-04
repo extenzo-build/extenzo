@@ -4,91 +4,11 @@ import { resolve, join } from "path";
 import prompts from "prompts";
 import { blue, green } from "kolorist";
 import minimist from "minimist";
-
-type Framework = "vanilla" | "vue" | "react";
-type Language = "js" | "ts";
+import { getScriptExt, getConfigContent, getPackageJson } from "./templates.ts";
+import type { Framework, Language } from "./templates.ts";
 
 const argv = minimist(process.argv.slice(2));
 const targetDir = argv._[0] ?? "my-extension";
-
-function getScriptExt(lang: Language): string {
-  return lang === "ts" ? ".ts" : ".js";
-}
-
-function getConfigContent(framework: Framework, lang: Language): string {
-  const importLine =
-    framework === "vue"
-      ? 'import vue from "@extenzo/plugin-vue";'
-      : framework === "react"
-        ? 'import react from "@extenzo/plugin-react";'
-        : "";
-  const pluginsLine =
-    framework === "vue"
-      ? "plugins: [vue()],"
-      : framework === "react"
-        ? "plugins: [react()],"
-        : "";
-  return `import { defineConfig } from "@extenzo/core";
-${importLine}
-
-export default defineConfig({
-  srcDir: "src",
-  outDir: "dist",
-  // outputRoot 默认 ".extenzo"，构建产物在 .extenzo/dist
-  manifest: {
-    name: "My Extension",
-    version: "1.0.0",
-    manifest_version: 3,
-    description: "Browser extension built with extenzo",
-    permissions: ["storage", "activeTab"],
-  },
-  ${pluginsLine}
-  // 需要覆盖 Rsbuild 配置时使用 rsbuildConfig（对象会深度合并，函数则完全控制）
-  // rsbuildConfig: (config) => config,
-});
-`;
-}
-
-function getPackageJson(framework: Framework, lang: Language): string {
-  const base: Record<string, unknown> = {
-    name: targetDir.replace(/\s+/g, "-").toLowerCase(),
-    version: "1.0.0",
-    private: true,
-    type: "module",
-    scripts: {
-      dev: "extenzo dev",
-      build: "extenzo build",
-    },
-  };
-  const deps: Record<string, string> = { "@extenzo/cli": "^0.1.0", "@rsbuild/core": "^1.6.0" };
-  if (framework === "vue") {
-    deps["vue"] = "^3.4.0";
-    deps["@extenzo/plugin-vue"] = "^0.1.0";
-    (base as any).devDependencies = {
-      "@rsbuild/plugin-vue": "^1.2.0",
-      "@rsbuild/plugin-vue-jsx": "^1.1.0",
-      "@rsbuild/plugin-less": "^1.5.0",
-      "@rsbuild/plugin-babel": "^1.0.6",
-    };
-  }
-  if (framework === "react") {
-    deps["react"] = "^18.2.0";
-    deps["react-dom"] = "^18.2.0";
-    deps["@extenzo/plugin-react"] = "^0.1.0";
-    (base as any).devDependencies = {
-      ...((base as any).devDependencies ?? {}),
-      "@rsbuild/plugin-react": "^1.2.0",
-    };
-  }
-  if (lang === "ts") {
-    (base as any).devDependencies = {
-      ...((base as any).devDependencies ?? {}),
-      typescript: "^5.0.0",
-    };
-  }
-  (base as any).dependencies = deps;
-  return JSON.stringify(base, null, 2);
-}
 
 function getBackgroundContent(lang: Language): string {
   if (lang === "ts") {
@@ -294,7 +214,7 @@ async function main() {
     join(root, `ext.config.${configExt}`),
     getConfigContent(framework, lang)
   );
-  writeFileSync(join(root, "package.json"), getPackageJson(framework, lang));
+  writeFileSync(join(root, "package.json"), getPackageJson(framework, lang, targetDir));
 
   writeFileSync(
     join(src, "background", `index${scriptExt}`),

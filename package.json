@@ -2,13 +2,25 @@
   "name": "extenzo-workspace",
   "private": true,
   "type": "module",
+  "version": "0.0.1",
+  "description": "Build tool for browser extensions — one install, extenzo dev / build",
+  "author": "Gomi",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/extenzo-build/extenzo.git"
+  },
+  "homepage": "https://extenzo.dev",
   "scripts": {
     "dev": "pnpm --filter @extenzo/cli dev",
     "create": "pnpm --filter @extenzo/create-extenzo-app start",
 
-    "packages:build": "pnpm --filter \"./packages/**\" run build",
-    "packages:test": "pnpm --filter @extenzo/core run test",
+    "packages:build": "pnpm -r --filter \"./packages/**\" run build",
+    "packages:test": "pnpm -r --filter \"./packages/**\" run test",
+    "packages:test:coverage": "pnpm -r --filter \"./packages/**\" run test:coverage",
     "test": "pnpm run packages:test",
+    "test:coverage": "pnpm run packages:test:coverage",
+    "test:coverage:report": "pnpm run test:coverage && node scripts/merge-coverage.mjs",
 
     "examples:build": "pnpm --filter 'extenzo-example-*' run build",
     "examples:dev": "pnpm --filter 'extenzo-example-*' run dev",
@@ -16,7 +28,7 @@
     "examples:dev:vue-template": "pnpm --filter extenzo-example-vue-template run dev",
     "examples:dev:devtools-native-ts": "pnpm --filter extenzo-example-devtools-native-ts run dev",
     "examples:dev:react-shadcn": "pnpm --filter extenzo-example-react-shadcn run dev",
-    "examples:dev:manual-install": "pnpm --filter extenzo-example-manual-install run dev",
+    "examples:dev:ffmpeg-worker": "pnpm --filter extenzo-example-ffmpeg-worker run dev",
     "examples:build:react-template": "pnpm --filter extenzo-example-react-template run build",
     "examples:build:vue-template": "pnpm --filter extenzo-example-vue-template run build",
     "examples:build:devtools-native-ts": "pnpm --filter extenzo-example-devtools-native-ts run build",
@@ -25,13 +37,18 @@
 
     "build": "pnpm run packages:build && pnpm run examples:build",
 
+    "docs:dev": "pnpm --filter extenzo-docs dev",
+    "docs:build": "pnpm --filter extenzo-docs build",
+    "docs:preview": "pnpm --filter extenzo-docs preview",
+
     "changeset": "changeset",
     "version": "changeset version",
     "release": "pnpm run packages:build && pnpm publish -r",
     "ci:publish": "pnpm publish -r --access public"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.27.0"
+    "@changesets/cli": "^2.27.0",
+    "lcov-result-merger": "^5.0.1"
   },
   "packageManager": "pnpm@10.0.0"
 }

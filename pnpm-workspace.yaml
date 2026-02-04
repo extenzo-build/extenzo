@@ -7,6 +7,6 @@ packages:
   - "packages/plugins/plugin-extension"
   - "packages/plugins/plugin-hmr"
   - "packages/plugins/plugin-vue"
-  - "packages/plugins/plugin-react"
   - "packages/create-extenzo-app"
+  - "docs"
   - "examples/*"

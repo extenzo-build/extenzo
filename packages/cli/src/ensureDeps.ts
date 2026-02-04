@@ -9,10 +9,9 @@ const EXTENSION_DEV_DEPS = ["@types/chrome"] as const;
 /** 框架插件名 → 用户项目需安装的运行时依赖（peer 概念，未装则自动安装） */
 const PLUGIN_PEER_DEPS: Record<string, readonly string[]> = {
   "extenzo-vue": ["vue"],
-  "extenzo-react": ["react", "react-dom"],
 };
 
-type PackageManager = "pnpm" | "npm" | "yarn" | "bun";
+export type PackageManager = "pnpm" | "npm" | "yarn" | "bun";
 
 function detectPackageManager(root: string): PackageManager {
   if (existsSync(resolve(root, "pnpm-lock.yaml"))) return "pnpm";
@@ -88,14 +87,22 @@ function runInstall(root: string, pm: PackageManager, packages: string[], dev: b
   return result.status === 0;
 }
 
+export type RunInstallFn = (
+  root: string,
+  pm: PackageManager,
+  packages: string[],
+  dev: boolean
+) => boolean;
+
 /**
  * 按业界常见方式：检查项目是否已安装扩展开发与插件所需的依赖，缺失则用当前包管理器自动安装。
  * 可通过环境变量 EXTENZO_SKIP_DEPS=1 跳过（如 CI 或用户已统一管理依赖）。
+ * 测试时可传入 runInstall 以替代真实 spawn，便于单测覆盖。
  */
 export async function ensureDependencies(
   root: string,
   config: ExtenzoResolvedConfig,
-  options?: { silent?: boolean }
+  options?: { silent?: boolean; runInstall?: RunInstallFn }
 ): Promise<{ installed: string[] }> {
   if (process.env.EXTENZO_SKIP_DEPS === "1") return { installed: [] };
 
@@ -106,7 +113,8 @@ export async function ensureDependencies(
     console.log(`[extenzo] Ensuring dev dependencies: ${toInstall.join(", ")}`);
   }
   const pm = detectPackageManager(root);
-  const ok = runInstall(root, pm, toInstall, true);
+  const installFn = options?.runInstall ?? runInstall;
+  const ok = installFn(root, pm, toInstall, true);
   if (!ok && !options?.silent) {
     console.warn(`[extenzo] Failed to install some dependencies. You may run: ${pm} add -D ${toInstall.join(" ")}`);
   }

@@ -1,6 +1,6 @@
 {
   "name": "@extenzo/cli",
-  "version": "0.0.1",
+  "version": "0.1.0-alpha.0",
   "description": "extenzo CLI: extenzo dev / build, parses argv and drives Rsbuild",
   "type": "module",
   "bin": {
@@ -9,7 +9,9 @@
   "files": ["dist"],
   "scripts": {
     "build": "rslib build",
-    "dev": "rslib build --watch"
+    "dev": "rslib build --watch",
+    "test": "rstest run",
+    "test:coverage": "rstest run --coverage"
   },
   "dependencies": {
     "@rsbuild/core": "^1.6.0",
@@ -19,15 +21,15 @@
     "@extenzo/plugin-extension": "workspace:*",
     "@extenzo/plugin-hmr": "workspace:*",
     "@extenzo/plugin-vue": "workspace:*",
-    "@extenzo/plugin-react": "workspace:*",
     "@rsbuild/plugin-babel": "^1.0.6",
     "@rsbuild/plugin-vue": "^1.2.0",
-    "@rsbuild/plugin-react": "^1.2.0",
     "@vue/babel-plugin-jsx": "^1.1.1",
     "@vue/compiler-sfc": "^3.2.47"
   },
   "devDependencies": {
     "@rslib/core": "^0.19.0",
+    "@rstest/core": "^0.8.1",
+    "@rstest/coverage-istanbul": "^0.2.0",
     "@types/archiver": "^6.0.0",
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0"

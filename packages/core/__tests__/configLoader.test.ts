@@ -1,8 +1,8 @@
 import path from "path";
 import { fileURLToPath } from "url";
 import { describe, expect, it } from "@rstest/core";
-import { ConfigLoader, loadConfigFile, resolveExtenzoConfig } from "../src/configLoader.js";
-import { createConfigNotFoundError, createManifestMissingError } from "../src/errors.js";
+import { ConfigLoader, loadConfigFile, resolveExtenzoConfig } from "../src/configLoader.ts";
+import { createConfigNotFoundError, createManifestMissingError } from "../src/errors.ts";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixtureDir = path.join(__dirname, "fixtures", "config-loader");
@@ -49,5 +49,13 @@ describe("resolveExtenzoConfig with invalid config", () => {
     expect(() => resolveExtenzoConfig(noManifestDir)).toThrow();
     const err = createManifestMissingError();
     expect(err.code).toBe("EXTENZO_MANIFEST_MISSING");
+  });
+});
+
+describe("loadConfigFile throws on load error", () => {
+  it("throws createConfigLoadError when config file throws", () => {
+    const loadErrorDir = path.join(__dirname, "fixtures", "config-load-error");
+    const loader = new ConfigLoader();
+    expect(() => loader.loadConfigFile(loadErrorDir)).toThrow("加载配置文件失败");
   });
 });

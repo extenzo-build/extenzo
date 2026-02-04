@@ -8,13 +8,38 @@ import { tmpdir } from "os";
 import { createServer } from "node:http";
 import { WebSocketServer, WebSocket } from "ws";
 
+/** 未配置 launch 时，按系统尝试的默认 Chrome 可执行路径（按顺序取第一个存在的） */
+const DEFAULT_CHROME_PATHS: Record<string, string[]> = {
+  win32: [
+    "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+  ],
+  darwin: ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"],
+  linux: [
+    "/usr/bin/google-chrome",
+    "/usr/bin/google-chrome-stable",
+    "/usr/bin/chromium",
+    "/usr/bin/chromium-browser",
+  ],
+};
+
+/** 未配置 launch 时，按系统尝试的默认 Firefox 可执行路径（按顺序取第一个存在的） */
+const DEFAULT_FIREFOX_PATHS: Record<string, string[]> = {
+  win32: [
+    "C:\\Program Files\\Mozilla Firefox\\firefox.exe",
+    "C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe",
+  ],
+  darwin: ["/Applications/Firefox.app/Contents/MacOS/firefox"],
+  linux: ["/usr/bin/firefox", "/usr/bin/firefox-esr"],
+};
+
 export interface HmrPluginOptions {
   distPath: string;
   autoOpen?: boolean;
-  browser?: "chromium" | "firefox";
-  /** Chrome executable path (overrides .env BROWSER_CHROME). From config.launch.chrome. */
+  browser?: "chrome" | "firefox";
+  /** Chrome executable path. From config.launch.chrome; else tries default OS paths. */
   chromePath?: string;
-  /** Firefox executable path (overrides .env BROWSER_FIREFOX). From config.launch.firefox. */
+  /** Firefox executable path. From config.launch.firefox; else tries default OS paths. */
   firefoxPath?: string;
   wsPort?: number;
   enableReload?: boolean;
@@ -44,23 +69,23 @@ async function ensureDistReady(distPath: string, timeoutMs = 15000): Promise<boo
   throw new Error(`dist not ready: ${manifestPath}`);
 }
 
-async function getBrowserPath(
-  browser: "chromium" | "firefox",
+/**
+ * 解析浏览器可执行路径：用户传入的 launch 路径优先，未传时才使用系统默认路径。
+ */
+function getBrowserPath(
+  browser: "chrome" | "firefox",
   options: { chromePath?: string; firefoxPath?: string }
-): Promise<string | null> {
-  const fromConfig = browser === "chromium" ? options.chromePath : options.firefoxPath;
-  if (fromConfig && fromConfig.trim()) return fromConfig.trim();
+): string | null {
+  const userPath = browser === "chrome" ? options.chromePath : options.firefoxPath;
+  if (userPath != null && userPath.trim() !== "") return userPath.trim();
 
-  const path = require("path") as typeof import("path");
-  const envPath = path.resolve(process.cwd(), ".env");
-  if (!existsSync(envPath)) return null;
-  try {
-    const envContent = await readFile(envPath, "utf-8");
-    const key = browser === "chromium" ? "BROWSER_CHROME" : "BROWSER_FIREFOX";
-    const match = envContent.match(new RegExp(`^${key}\\s*=\\s*(.+)$`, "m"));
-    if (match) return match[1].trim().replace(/^['"]|['"]$/g, "");
-  } catch {
-    // ignore
+  const platform = process.platform;
+  const paths = browser === "chrome"
+    ? DEFAULT_CHROME_PATHS[platform]
+    : DEFAULT_FIREFOX_PATHS[platform];
+  if (!paths) return null;
+  for (const p of paths) {
+    if (existsSync(p)) return p;
   }
   return null;
 }
@@ -181,18 +206,17 @@ async function cleanup(): Promise<void> {
 async function launchBrowser(options: HmrPluginOptions): Promise<void> {
   const {
     distPath,
-    browser = "chromium",
+    browser = "chrome",
     chromePath,
     firefoxPath,
     wsPort = 23333,
     enableReload = true,
   } = options;
-  const browserBinary = await getBrowserPath(browser, { chromePath, firefoxPath });
+  const browserBinary = getBrowserPath(browser, { chromePath, firefoxPath });
   if (!browserBinary) {
-    const envKey = browser === "chromium" ? "BROWSER_CHROME" : "BROWSER_FIREFOX";
-    const launchKey = browser === "chromium" ? "launch.chrome" : "launch.firefox";
+    const launchKey = browser === "chrome" ? "launch.chrome" : "launch.firefox";
     console.warn(
-      `${browser} path not found; set ${launchKey} in ext.config or ${envKey} in .env`
+      `${browser} path not found; set ${launchKey} in ext.config, or install the browser at a default location`
     );
     return;
   }
@@ -246,7 +270,7 @@ export function hmrPlugin(options: HmrPluginOptions) {
   const {
     distPath,
     autoOpen = true,
-    browser = (process.env.BROWSER as "chromium" | "firefox") || "chromium",
+    browser = "chrome",
     wsPort = 23333,
     enableReload = true,
   } = options;

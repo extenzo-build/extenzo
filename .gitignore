@@ -13,3 +13,12 @@
 **/.env.*
 !**/.env.example
 **/node_modules
+
+# 根目录合并后的覆盖率报告（CI 生成，用于 Codecov）
+/coverage
+# coverage
+**/coverage
+
+# Rspress docs build output (run pnpm docs:build to generate)
+/docs/doc_build
+/docs/node_modules/.rspress

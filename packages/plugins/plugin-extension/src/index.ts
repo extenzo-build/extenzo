@@ -1,20 +1,20 @@
 import type { Compiler } from "@rspack/core";
 import type { RsbuildPluginAPI } from "@rsbuild/core";
 import { resolve } from "path";
-import { writeFileSync, existsSync, mkdirSync, unlinkSync } from "fs";
+import { writeFileSync, existsSync, mkdirSync } from "fs";
 import type { ExtenzoResolvedConfig } from "@extenzo/core";
 import type { EntryInfo } from "@extenzo/core";
+import type { BrowserTarget } from "@extenzo/core";
 import { resolveManifestChromium, resolveManifestFirefox } from "@extenzo/core";
 
-const NO_HTML_ENTRIES = ["background", "content"];
-
 /**
- * Only generates manifest.json after build and removes stray HTML for background/content.
- * Entry and HTML are handled by plugin-entry.
+ * Writes manifest.json after build. Entry and HTML (html: false for background/content) are handled by plugin-entry.
+ * Browser comes from CLI -b (config/constants), not from env.
  */
 export function extensionPlugin(
   resolvedConfig: ExtenzoResolvedConfig,
-  entries: EntryInfo[]
+  entries: EntryInfo[],
+  browser: BrowserTarget
 ) {
   const { root, outDir, outputRoot, manifest } = resolvedConfig;
   const distPath = resolve(root, outputRoot, outDir);
@@ -31,20 +31,6 @@ export function extensionPlugin(
           apply(compiler: Compiler) {
             compiler.hooks.afterEmit.tap("extenzo-extension-post-build", () => {
               if (!existsSync(distPath)) mkdirSync(distPath, { recursive: true });
-              for (const name of NO_HTML_ENTRIES) {
-                const nestedPath = resolve(distPath, name, "index.html");
-                const flatPath = resolve(distPath, `${name}.html`);
-                for (const htmlPath of [nestedPath, flatPath]) {
-                  if (existsSync(htmlPath)) {
-                    try {
-                      unlinkSync(htmlPath);
-                    } catch {
-                      // ignore
-                    }
-                  }
-                }
-              }
-              const browser = (process.env.BROWSER as "chromium" | "firefox") || "chromium";
               const manifestObj =
                 browser === "firefox"
                   ? resolveManifestFirefox(manifest, entries)

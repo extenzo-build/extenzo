@@ -74,10 +74,12 @@ export function createConfigLoadError(filePath: string, cause: unknown): Extenzo
 }
 
 export function createManifestMissingError(): ExtenzoError {
-  return new ExtenzoError("配置中缺少 manifest 字段", {
+  return new ExtenzoError("未找到 manifest 配置或文件", {
     code: EXTENZO_ERROR_CODES.MANIFEST_MISSING,
-    details: "defineConfig 返回的对象必须包含 manifest（或 chromium / firefox 分支）",
-    hint: "在 ext.config 中添加 manifest: { name, version, manifest_version, ... }",
+    details:
+      "请在 ext.config 中配置 manifest，或于 srcDir 或 srcDir/manifest 下放置 manifest.json / manifest.chromium.json / manifest.firefox.json",
+    hint:
+      "方式一：ext.config 中 manifest: { name, version, ... }；方式二：srcDir 或 srcDir/manifest 下放 manifest.json；方式三：manifest: { chromium: 'path/to/manifest.json' }（路径相对 srcDir）",
   });
 }
 

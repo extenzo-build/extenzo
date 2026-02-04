@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@rstest/core";
-import { mergeRsbuildConfig } from "../src/mergeRsbuildConfig.js";
+import { mergeRsbuildConfig } from "../src/index.ts";
 import type { RsbuildConfig } from "@rsbuild/core";
 
 describe("mergeRsbuildConfig", () => {

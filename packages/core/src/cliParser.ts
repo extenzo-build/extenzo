@@ -3,8 +3,8 @@ import {
   DEFAULT_BROWSER,
   type BrowserTarget,
   type CliCommand,
-} from "./constants.js";
-import { createInvalidBrowserError, createUnknownCommandError } from "./errors.js";
+} from "./constants.ts";
+import { createInvalidBrowserError, createUnknownCommandError } from "./errors.ts";
 
 const BROWSER_FLAGS = ["-b", "--browser"];
 const BROWSER_ALIASES: Record<string, BrowserTarget> = {

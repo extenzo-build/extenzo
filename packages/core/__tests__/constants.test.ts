@@ -11,7 +11,7 @@ import {
   CLI_COMMANDS,
   SUPPORTED_BROWSERS,
   MANIFEST_ENTRY_PATHS,
-} from "../src/constants.js";
+} from "../src/constants.ts";
 
 describe("constants", () => {
   it("CONFIG_FILES includes ext.config.ts and ext.config.js", () => {

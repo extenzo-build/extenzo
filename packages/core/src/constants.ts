@@ -50,6 +50,16 @@ export const CLI_COMMANDS = ["dev", "build"] as const;
 
 export type CliCommand = (typeof CLI_COMMANDS)[number];
 
+/** srcDir 下 manifest 子目录名（第二查找位置：srcDir/manifest/） */
+export const MANIFEST_DIR = "manifest";
+
+/** srcDir 下自动读取的 manifest 文件名（优先级：base 公共，chromium/firefox 覆盖） */
+export const MANIFEST_FILE_NAMES = {
+  base: "manifest.json",
+  chromium: "manifest.chromium.json",
+  firefox: "manifest.firefox.json",
+} as const;
+
 /** manifest 中各入口产出路径（相对 outDir） */
 export const MANIFEST_ENTRY_PATHS = {
   background: "background/index.js",

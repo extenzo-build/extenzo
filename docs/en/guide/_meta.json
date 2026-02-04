@@ -1,0 +1,5 @@
+[
+  { "type": "file", "name": "introduction", "label": "Introduction" },
+  { "type": "file", "name": "install", "label": "Installation" },
+  { "type": "file", "name": "feature-subsets", "label": "Feature Subsets" }
+]

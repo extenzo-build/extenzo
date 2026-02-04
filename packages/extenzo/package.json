@@ -1,16 +1,29 @@
 {
   "name": "extenzo",
-  "version": "0.0.1",
+  "version": "0.1.0-alpha.0",
   "description": "Build tool for browser extensions — one install, extenzo dev / build",
   "type": "module",
   "bin": {
     "extenzo": "./bin/extenzo.mjs"
   },
-  "files": ["bin"],
+  "main": "./index.mjs",
+  "module": "./index.mjs",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.mjs",
+      "default": "./index.mjs"
+    }
+  },
+  "files": ["bin", "index.mjs", "index.d.ts"],
   "scripts": {
-    "build": "echo 'No build step'"
+    "build": "echo 'No build step'",
+    "test": "node -e \"process.exit(0)\"",
+    "test:coverage": "node -e \"process.exit(0)\""
   },
   "dependencies": {
-    "@extenzo/cli": "workspace:*"
+    "@extenzo/cli": "workspace:*",
+    "@extenzo/core": "workspace:*"
   }
 }

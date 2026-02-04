@@ -9,10 +9,10 @@
     "build": "extenzo build"
   },
   "dependencies": {
-    "extenzo": "workspace:*",
     "@extenzo/utils": "workspace:*"
   },
   "devDependencies": {
+    "extenzo": "workspace:*",
     "@types/chrome": "^0.0.326",
     "typescript": "^5.0.0"
   }

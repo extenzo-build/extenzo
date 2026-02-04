@@ -1,5 +1,5 @@
-import { defineConfig } from "@extenzo/core";
-import react from "@extenzo/plugin-react";
+import { defineConfig } from "extenzo";
+import { pluginReact } from "@rsbuild/plugin-react";
 
 const manifest = {
   name: "React Extension Template",
@@ -25,5 +25,8 @@ export default defineConfig({
   srcDir: "src",
   outDir: "dist",
   manifest: { chromium: manifest, firefox: { ...manifest } },
-  plugins: [react()],
+  plugins: [pluginReact()],
+  launch: {
+    chrome: "C:\\Users\\GomiGXY\\Downloads\\chrome-win64\\chrome.exe",
+  }
 });

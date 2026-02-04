@@ -3,8 +3,8 @@ import {
   CliParser,
   parseCliArgs,
   assertSupportedBrowser,
-} from "../src/cliParser.js";
-import { createUnknownCommandError, createInvalidBrowserError } from "../src/errors.js";
+} from "../src/cliParser.ts";
+import { createUnknownCommandError, createInvalidBrowserError } from "../src/errors.ts";
 
 describe("CliParser", () => {
   const parser = new CliParser();

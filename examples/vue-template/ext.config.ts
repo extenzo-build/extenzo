@@ -1,4 +1,4 @@
-import { defineConfig } from "@extenzo/core";
+import { defineConfig } from "extenzo";
 import vue from "@extenzo/plugin-vue";
 
 const manifest = {

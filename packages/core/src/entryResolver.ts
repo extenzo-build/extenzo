@@ -1,8 +1,8 @@
 import { resolve, dirname, basename } from "path";
 import { existsSync } from "fs";
-import type { ExtenzoUserConfig, EntryInfo } from "./types.js";
-import { HTML_ENTRY_NAMES, SCRIPT_EXTS } from "./constants.js";
-import { EntryDiscoverer } from "./entryDiscoverer.js";
+import type { ExtenzoUserConfig, EntryInfo } from "./types.ts";
+import { HTML_ENTRY_NAMES, SCRIPT_EXTS } from "./constants.ts";
+import { EntryDiscoverer } from "./entryDiscoverer.ts";
 
 const HTML_ENTRY_SET = new Set(HTML_ENTRY_NAMES);
 

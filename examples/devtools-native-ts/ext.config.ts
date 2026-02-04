@@ -1,4 +1,4 @@
-import { defineConfig } from "@extenzo/core";
+import { defineConfig } from "extenzo";
 
 const manifest = {
   name: "DevTools Native TS Example",

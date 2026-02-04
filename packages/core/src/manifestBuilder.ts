@@ -1,6 +1,6 @@
-import type { ManifestConfig, EntryInfo } from "./types.js";
-import { MANIFEST_ENTRY_PATHS } from "./constants.js";
-import type { BrowserTarget } from "./constants.js";
+import type { ManifestConfig, EntryInfo } from "./types.ts";
+import { MANIFEST_ENTRY_PATHS } from "./constants.ts";
+import type { BrowserTarget } from "./constants.ts";
 
 function isChromiumFirefoxManifest(
   m: ManifestConfig

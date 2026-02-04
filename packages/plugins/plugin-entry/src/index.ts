@@ -62,8 +62,15 @@ export function entryPlugin(resolvedConfig: ExtenzoResolvedConfig, entries: Entr
   const { outDir, outputRoot, root } = resolvedConfig;
   const publicDir = resolve(root, "public");
 
-  const entry: Record<string, string> = {};
-  for (const e of entries) entry[e.name] = e.scriptPath;
+  const entry: Record<string, string | { import: string; html?: boolean }> = {};
+  for (const e of entries) {
+    const needsHtml = e.htmlPath != null && !NO_HTML_ENTRIES.includes(e.name);
+    if (needsHtml) {
+      entry[e.name] = e.scriptPath;
+    } else {
+      entry[e.name] = { import: e.scriptPath, html: false };
+    }
+  }
   const entryNames = new Set(Object.keys(entry));
 
   const templateMap = buildTemplateMapFromEntries(entries);
@@ -74,7 +81,8 @@ export function entryPlugin(resolvedConfig: ExtenzoResolvedConfig, entries: Entr
     setup(api: RsbuildPluginAPI) {
       api.modifyRsbuildConfig((config) => {
         config.source = config.source ?? {};
-        config.source.entry = { ...(config.source.entry as Record<string, string>), ...entry };
+        const prevEntry = config.source.entry as Record<string, string | { import: string; html?: boolean }> | undefined;
+        config.source.entry = { ...prevEntry, ...entry };
 
         config.html = config.html ?? {};
         const prevTemplate = config.html.template;

@@ -1,11 +1,11 @@
 import { resolve } from "path";
 import { existsSync, statSync } from "fs";
-import type { EntryInfo } from "./types.js";
+import type { EntryInfo } from "./types.ts";
 import {
   SCRIPT_EXTS,
   HTML_ENTRY_NAMES,
   SCRIPT_ONLY_ENTRY_NAMES,
-} from "./constants.js";
+} from "./constants.ts";
 
 function findScriptInDir(dir: string, scriptExts: readonly string[]): string | undefined {
   for (const ext of scriptExts) {

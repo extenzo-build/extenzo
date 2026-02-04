@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Rsbuild plugin that, after build, writes `dist/manifest.json` (chromium or firefox per BROWSER env) and removes stray HTML for background and content.
+Rsbuild plugin that, after build, writes `dist/manifest.json` (chromium or firefox per CLI `-b` / browser param). Browser is passed from pipeline (config/constants), not from env.
 
 ## When to use
 
