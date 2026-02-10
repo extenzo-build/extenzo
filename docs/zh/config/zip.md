@@ -18,7 +18,7 @@
 ### 默认开启 zip（无需配置）
 
 ```ts
-// ext.config.ts
+// exo.config.ts
 import { defineConfig } from "extenzo";
 
 export default defineConfig({
@@ -31,7 +31,7 @@ export default defineConfig({
 ### 关闭 zip（仅输出目录）
 
 ```ts
-// ext.config.ts
+// exo.config.ts
 import { defineConfig } from "extenzo";
 
 export default defineConfig({

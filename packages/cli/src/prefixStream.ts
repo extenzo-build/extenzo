@@ -1,5 +1,20 @@
-/** ANSI: cyan, then reset */
-const PREFIX = "\x1b[36m[extenzo]\x1b[0m ";
+/** ANSI: orange (256 color 208), then reset. Exported for tests. */
+export const EXO_PREFIX = "\x1b[38;5;208m[exo]\x1b[0m ";
+const PREFIX = EXO_PREFIX;
+
+let rawStdoutWrite: NodeJS.WriteStream["write"] | null = null;
+let rawStderrWrite: NodeJS.WriteStream["write"] | null = null;
+
+/** Return raw stream writes (before wrap) for the shared logger so output has a single prefix. */
+export function getRawWrites(): {
+  stdout: NodeJS.WriteStream["write"];
+  stderr: NodeJS.WriteStream["write"];
+} {
+  return {
+    stdout: rawStdoutWrite ?? process.stdout.write.bind(process.stdout),
+    stderr: rawStderrWrite ?? process.stderr.write.bind(process.stderr),
+  };
+}
 
 type Encoding = BufferEncoding | ((err?: Error) => void);
 type WriteCallback = (err?: Error) => void;
@@ -8,7 +23,8 @@ function isEncoding(x: Encoding | undefined): x is BufferEncoding {
   return typeof x === "string";
 }
 
-function createPrefixedWrite(
+/** Exported for tests. */
+export function createPrefixedWrite(
   stream: NodeJS.WriteStream,
   getPrefix: () => string
 ): NodeJS.WriteStream["write"] {
@@ -47,11 +63,14 @@ function createPrefixedWrite(
 }
 
 /**
- * Wraps process.stdout and process.stderr so each line is prefixed with colored "[extenzo]".
- * Call before running rsbuild dev/build so users see that extenzo is executing.
+ * Wraps process.stdout and process.stderr so each line is prefixed with colored "[exo]".
+ * Call before running rsbuild dev/build so users see exo output.
  * Original rsbuild output is preserved line-by-line.
  */
 export function wrapExtenzoOutput(): void {
+  rawStdoutWrite = process.stdout.write.bind(process.stdout);
+  rawStderrWrite = process.stderr.write.bind(process.stderr);
+
   const prefix = () => PREFIX;
   const stdoutWrite = createPrefixedWrite(process.stdout, prefix);
   const stderrWrite = createPrefixedWrite(process.stderr, prefix);

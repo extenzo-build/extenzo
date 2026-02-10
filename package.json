@@ -14,14 +14,17 @@
   "scripts": {
     "dev": "pnpm --filter @extenzo/cli dev",
     "create": "pnpm --filter @extenzo/create-extenzo-app start",
-
     "packages:build": "pnpm -r --filter \"./packages/**\" run build",
     "packages:test": "pnpm -r --filter \"./packages/**\" run test",
     "packages:test:coverage": "pnpm -r --filter \"./packages/**\" run test:coverage",
     "test": "pnpm run packages:test",
     "test:coverage": "pnpm run packages:test:coverage",
     "test:coverage:report": "pnpm run test:coverage && node scripts/merge-coverage.mjs",
-
+    "e2e": "pnpm run packages:build && pnpm run e2e:build && pnpm run e2e:build:monitor && playwright test -c e2e",
+    "e2e:build": "pnpm --filter extenzo-example-react-template run build",
+    "e2e:build:monitor": "node scripts/build-with-monitor.mjs",
+    "e2e:ui": "playwright test -c e2e --ui",
+    "e2e:headed": "playwright test -c e2e --headed",
     "examples:build": "pnpm --filter 'extenzo-example-*' run build",
     "examples:dev": "pnpm --filter 'extenzo-example-*' run dev",
     "examples:dev:react-template": "pnpm --filter extenzo-example-react-template run dev",
@@ -34,13 +37,10 @@
     "examples:build:devtools-native-ts": "pnpm --filter extenzo-example-devtools-native-ts run build",
     "examples:build:react-shadcn": "pnpm --filter extenzo-example-react-shadcn run build",
     "examples:build:manual-install": "pnpm --filter extenzo-example-manual-install run build",
-
     "build": "pnpm run packages:build && pnpm run examples:build",
-
     "docs:dev": "pnpm --filter extenzo-docs dev",
     "docs:build": "pnpm --filter extenzo-docs build",
     "docs:preview": "pnpm --filter extenzo-docs preview",
-
     "changeset": "changeset",
     "version": "changeset version",
     "release": "pnpm run packages:build && pnpm publish -r",
@@ -48,7 +48,10 @@
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.0",
-    "lcov-result-merger": "^5.0.1"
+    "@extenzo/plugin-extension-hmr": "workspace:*",
+    "@playwright/test": "^1.58.2",
+    "lcov-result-merger": "^5.0.1",
+    "ws": "^8.18.0"
   },
   "packageManager": "pnpm@10.0.0"
 }

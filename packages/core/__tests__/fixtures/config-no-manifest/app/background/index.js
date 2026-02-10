@@ -1,0 +1,1 @@
+// entry without manifest

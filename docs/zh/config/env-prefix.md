@@ -19,7 +19,7 @@
 ### 仅暴露 PUBLIC_ 前缀（推荐）
 
 ```ts
-// ext.config.ts
+// exo.config.ts
 import { defineConfig } from "extenzo";
 
 export default defineConfig({
@@ -39,7 +39,7 @@ API_SECRET=do-not-expose
 ### 暴露多个前缀
 
 ```ts
-// ext.config.ts
+// exo.config.ts
 import { defineConfig } from "extenzo";
 
 export default defineConfig({
@@ -52,7 +52,7 @@ export default defineConfig({
 ### 默认暴露全部（不推荐含敏感信息时使用）
 
 ```ts
-// ext.config.ts
+// exo.config.ts
 import { defineConfig } from "extenzo";
 
 export default defineConfig({

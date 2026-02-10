@@ -22,7 +22,7 @@
 ### 使用默认 outputRoot
 
 ```ts
-// ext.config.ts
+// exo.config.ts
 import { defineConfig } from "extenzo";
 
 export default defineConfig({
@@ -35,7 +35,7 @@ export default defineConfig({
 ### 自定义产物根目录
 
 ```ts
-// ext.config.ts
+// exo.config.ts
 import { defineConfig } from "extenzo";
 
 export default defineConfig({

@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach, afterEach } from "@rstest/core";
-import { wrapExtenzoOutput } from "../src/prefixStream.ts";
+import { wrapExtenzoOutput, createPrefixedWrite, getRawWrites, EXO_PREFIX } from "../src/prefixStream.ts";
 
-const PREFIX = "\x1b[36m[extenzo]\x1b[0m ";
+const PREFIX = EXO_PREFIX;
 
 describe("prefixStream", () => {
   let stdoutChunks: string[];
@@ -82,5 +82,68 @@ describe("prefixStream", () => {
     const write = (process.stdout as NodeJS.WriteStream).write as { flush?: () => void };
     if (write.flush) write.flush();
     expect(stdoutChunks.join("")).toContain("no-newline");
+  });
+
+  it("exit handler invokes flush", () => {
+    wrapExtenzoOutput();
+    (process.stdout as NodeJS.WriteStream).write("pending");
+    const listeners = process.rawListeners("exit");
+    const flush = listeners[listeners.length - 1];
+    if (typeof flush === "function") {
+      process.removeListener("exit", flush);
+      (flush as (code?: number) => void)(0);
+    }
+    expect(stdoutChunks.join("")).toContain("pending");
+  });
+
+  it("createPrefixedWrite write with chunk and callback only invokes callback", () => {
+    const chunks: string[] = [];
+    const stream = {
+      write: (chunk: string | Buffer, _enc?: BufferEncoding, cb?: (err?: Error) => void) => {
+        chunks.push(typeof chunk === "string" ? chunk : chunk.toString("utf8"));
+        if (typeof cb === "function") cb();
+        return true;
+      },
+    } as unknown as NodeJS.WriteStream;
+    const write = createPrefixedWrite(stream, () => PREFIX);
+    write("line\n", () => {});
+    expect(chunks.join("")).toContain(PREFIX);
+    expect(chunks.join("")).toContain("line");
+  });
+
+  it("createPrefixedWrite write with Buffer uses encoding", () => {
+    const chunks: string[] = [];
+    const stream = {
+      write: (chunk: string | Buffer, _enc?: BufferEncoding, cb?: (err?: Error) => void) => {
+        chunks.push(typeof chunk === "string" ? chunk : chunk.toString("utf8"));
+        if (typeof cb === "function") cb();
+        return true;
+      },
+    } as unknown as NodeJS.WriteStream;
+    const write = createPrefixedWrite(stream, () => PREFIX);
+    write(Buffer.from("buf\n"));
+    expect(chunks.join("")).toContain("buf");
+  });
+
+  it("createPrefixedWrite flush when no pending buffer does not throw", () => {
+    const stream = {
+      write: (_chunk: string | Buffer, _enc?: BufferEncoding, cb?: (err?: Error) => void) => {
+        if (typeof cb === "function") cb();
+        return true;
+      },
+    } as unknown as NodeJS.WriteStream;
+    const write = createPrefixedWrite(stream, () => PREFIX);
+    const flush = (write as { flush?: () => void }).flush;
+    expect(flush).toBeDefined();
+    expect(() => flush!()).not.toThrow();
+  });
+
+  it("getRawWrites after wrap returns raw write functions", () => {
+    wrapExtenzoOutput();
+    const { stdout, stderr } = getRawWrites();
+    expect(typeof stdout).toBe("function");
+    expect(typeof stderr).toBe("function");
+    (stdout as NodeJS.WriteStream["write"])("raw\n");
+    expect(stdoutChunks.join("")).toContain("raw");
   });
 });

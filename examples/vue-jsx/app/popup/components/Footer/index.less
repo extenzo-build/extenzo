@@ -1,0 +1,50 @@
+.video-roll-footer {
+    display: flex;
+    align-items: center;
+    border-top: 1px solid var(--video-roll-border-color);
+    height: 30px;
+    color: var(--video-roll-text-color);
+    font-weight: bold;
+    padding: 0 4px;
+
+    .video-roll-github,
+    .video-roll-home,
+    .video-roll-thumbs-up {
+        width: 15px;
+        height: 15px;
+        margin: 5px;
+        cursor: pointer;
+
+        &:hover {
+            svg {
+                color: #a494c6 !important;
+            }
+        }
+    }
+
+    .text-link {
+        color:#1c70fe;
+    }
+
+    .play-icon {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    .video-control {
+        padding: 0 6px;
+    }
+
+    .video-percentage {
+        flex: 1;
+        width: 250px;
+        display: flex;
+        align-items: center;
+
+        .van-progress {
+            width: 160px;
+            margin-right: 5px;
+        }
+    }
+}

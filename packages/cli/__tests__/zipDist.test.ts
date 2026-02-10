@@ -2,7 +2,7 @@ import { describe, expect, it, beforeEach, afterEach } from "@rstest/core";
 import { mkdirSync, writeFileSync, rmSync, existsSync } from "fs";
 import { resolve } from "path";
 import { tmpdir } from "os";
-import { zipDist } from "../src/zipDist.ts";
+import { zipDist, type ZipDistDeps } from "../src/zipDist.ts";
 
 describe("zipDist", () => {
   let testRoot: string;
@@ -34,4 +34,59 @@ describe("zipDist", () => {
     expect(stat.size).toBeGreaterThan(0);
   });
 
+  it("rejects with ExtenzoError when output stream errors (Error instance)", async () => {
+    const { PassThrough } = await import("stream");
+    const deps: ZipDistDeps = {
+      createWriteStream: () => {
+        const s = new PassThrough();
+        setImmediate(() => s.emit("error", new Error("write failed")));
+        return s as never;
+      },
+    };
+    await expect(zipDist(distPath, testRoot, outDir, deps)).rejects.toThrow("Zip output stream failed");
+  });
+
+  it("rejects with ExtenzoError when output stream errors (non-Error)", async () => {
+    const { PassThrough } = await import("stream");
+    const deps: ZipDistDeps = {
+      createWriteStream: () => {
+        const s = new PassThrough();
+        setImmediate(() => s.emit("error", "string error"));
+        return s as never;
+      },
+    };
+    await expect(zipDist(distPath, testRoot, outDir, deps)).rejects.toThrow("Zip output stream failed");
+  });
+
+  it("rejects with ExtenzoError when archive errors (Error instance)", async () => {
+    const deps: ZipDistDeps = {
+      archiver: () =>
+        ({
+          on(ev: string, fn: (err?: Error) => void) {
+            if (ev === "error") setImmediate(() => fn(new Error("archive failed")));
+            return this;
+          },
+          pipe: () => this,
+          directory: () => {},
+          finalize: () => {},
+        }) as never,
+    };
+    await expect(zipDist(distPath, testRoot, outDir, deps)).rejects.toThrow("Zip archive failed");
+  });
+
+  it("rejects when archive errors with non-Error", async () => {
+    const deps: ZipDistDeps = {
+      archiver: () =>
+        ({
+          on(ev: string, fn: (err?: unknown) => void) {
+            if (ev === "error") setImmediate(() => fn("string err"));
+            return this;
+          },
+          pipe: () => this,
+          directory: () => {},
+          finalize: () => {},
+        }) as never,
+    };
+    await expect(zipDist(distPath, testRoot, outDir, deps)).rejects.toThrow("Zip archive failed");
+  });
 });

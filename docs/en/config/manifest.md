@@ -5,11 +5,11 @@
 ## Type and default behavior
 
 - **Type**: `ManifestConfig | ManifestPathConfig | undefined`
-- **Default**: When omitted, the framework loads from `srcDir` or `srcDir/manifest/`:
+- **Default**: When omitted, the framework loads from `appDir` or `appDir/manifest/`:
   - `manifest.json` (shared or single browser)
   - `manifest.chromium.json` (Chrome overrides)
   - `manifest.firefox.json` (Firefox overrides)
-- At build time, the branch is chosen by CLI `-b chrome` / `-b firefox` and merged with base, then written to `outputRoot/outDir/manifest.json`.
+- At build time, the branch is chosen by CLI `-l chrome|edge|brave|vivaldi|opera|santa|firefox` and merged with base, then written to `outputRoot/outDir/manifest.json`.
 
 ## Configuration styles
 
@@ -18,7 +18,7 @@
 All fields in one object. The framework injects entry paths for `background`, `content_scripts`, `action`, `options_ui`, `side_panel`, `devtools_page` according to the current target; other fields are output as-is.
 
 ```ts
-// ext.config.ts
+// exo.config.ts
 import { defineConfig } from "extenzo";
 
 export default defineConfig({
@@ -43,7 +43,7 @@ Entry paths (e.g. `popup/index.html`, `background/index.js`) are computed by the
 When Chrome and Firefox need different manifest fields (e.g. Chrome `action` vs Firefox `sidebar_action`, or `service_worker` vs `scripts`), use `chromium` and `firefox` branches. The framework picks the branch by current `-b` and deep-merges with base.
 
 ```ts
-// ext.config.ts
+// exo.config.ts
 import { defineConfig } from "extenzo";
 
 export default defineConfig({
@@ -66,16 +66,16 @@ export default defineConfig({
 });
 ```
 
-### 3. Path config (relative to srcDir)
+### 3. Path config (relative to appDir)
 
-To keep manifest in external JSON files, specify paths **relative to [srcDir](/config/src-dir)**.
+To keep manifest in external JSON files, specify paths **relative to [appDir](/config/app-dir)**.
 
 ```ts
-// ext.config.ts
+// exo.config.ts
 import { defineConfig } from "extenzo";
 
 export default defineConfig({
-  srcDir: "src",
+  appDir: "src",
   manifest: {
     chromium: "manifest/manifest.chromium.json",
     firefox: "manifest/manifest.firefox.json",
@@ -87,8 +87,8 @@ export default defineConfig({
 
 When `manifest` is not set, the framework looks for:
 
-1. `srcDir/manifest.json`, `srcDir/manifest.chromium.json`, `srcDir/manifest.firefox.json`
-2. `srcDir/manifest/manifest.json`, `srcDir/manifest/manifest.chromium.json`, `srcDir/manifest/manifest.firefox.json`
+1. `appDir/manifest.json`, `appDir/manifest.chromium.json`, `appDir/manifest.firefox.json`
+2. `appDir/manifest/manifest.json`, `appDir/manifest/manifest.chromium.json`, `appDir/manifest/manifest.firefox.json`
 
 Any found file is used as base and merged with chromium/firefox files in the same directory.
 
@@ -97,11 +97,11 @@ Any found file is used as base and merged with chromium/firefox files in the sam
 | Style | Description |
 |-------|-------------|
 | manifest object or paths in config | Highest |
-| manifest*.json in srcDir root | Next |
-| manifest*.json in srcDir/manifest/ | Then |
+| manifest*.json in appDir root | Next |
+| manifest*.json in appDir/manifest/ | Then |
 
 ## Related
 
 - [entry](/config/entry): Entry scripts and HTML determine manifest paths.
-- [srcDir](/config/src-dir): Path config and auto-load are relative to srcDir.
+- [appDir](/config/app-dir): Path config and auto-load are relative to appDir.
 - [outDir](/config/out-dir), [outputRoot](/config/output-root): Build output directory.

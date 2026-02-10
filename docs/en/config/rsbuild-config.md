@@ -12,7 +12,7 @@
 An object is **deep-merged** with the framework base. Use for adding or overriding fields (e.g. `source.define`, `resolve.alias`).
 
 ```ts
-// ext.config.ts
+// exo.config.ts
 import { defineConfig } from "extenzo";
 
 export default defineConfig({

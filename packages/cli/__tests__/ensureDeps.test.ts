@@ -2,12 +2,14 @@ import { describe, expect, it, beforeEach, afterEach } from "@rstest/core";
 import { mkdirSync, writeFileSync, rmSync, existsSync } from "fs";
 import { resolve } from "path";
 import { tmpdir } from "os";
-import { ensureDependencies, type PackageManager } from "../src/ensureDeps.ts";
+import { ensureDependencies, runInstall, readProjectPackageJson, type PackageManager } from "../src/ensureDeps.ts";
 import type { ExtenzoResolvedConfig } from "@extenzo/core";
+import { setExoLoggerRawWrites } from "@extenzo/core";
+
 function createMinimalResolvedConfig(plugins: unknown[] = []): ExtenzoResolvedConfig {
   return {
     root: "",
-    srcDir: "src",
+    appDir: "src",
     outDir: "dist",
     outputRoot: ".",
     manifest: {},
@@ -29,6 +31,32 @@ describe("ensureDeps", () => {
     if (existsSync(testRoot)) rmSync(testRoot, { recursive: true, force: true });
     if (origEnv !== undefined) process.env.EXTENZO_SKIP_DEPS = origEnv;
     else delete process.env.EXTENZO_SKIP_DEPS;
+  });
+
+  it("when package.json is missing still runs and uses runInstall", async () => {
+    writeFileSync(resolve(testRoot, "pnpm-lock.yaml"), "", "utf-8");
+    const config = createMinimalResolvedConfig([]);
+    let installCalled = false;
+    const result = await ensureDependencies(testRoot, config, {
+      silent: true,
+      runInstall: () => {
+        installCalled = true;
+        return true;
+      },
+    });
+    expect(installCalled).toBe(true);
+    expect(result.installed).toContain("@types/chrome");
+  });
+
+  it("when package.json is invalid JSON treats as no deps and installs", async () => {
+    writeFileSync(resolve(testRoot, "package.json"), "not json", "utf-8");
+    writeFileSync(resolve(testRoot, "pnpm-lock.yaml"), "", "utf-8");
+    const config = createMinimalResolvedConfig([]);
+    const result = await ensureDependencies(testRoot, config, {
+      silent: true,
+      runInstall: () => true,
+    });
+    expect(result.installed).toContain("@types/chrome");
   });
 
   it("when EXTENZO_SKIP_DEPS=1 returns installed []", async () => {
@@ -151,35 +179,89 @@ describe("ensureDeps", () => {
   it("when not silent and install success logs and does not warn", async () => {
     writeFileSync(resolve(testRoot, "package.json"), JSON.stringify({ name: "test" }), "utf-8");
     writeFileSync(resolve(testRoot, "pnpm-lock.yaml"), "", "utf-8");
-    let logCalls: string[] = [];
-    let warnCalls: string[] = [];
-    const origLog = console.log;
-    const origWarn = console.warn;
-    console.log = (...args: unknown[]) => { logCalls.push(String(args[0])); };
-    console.warn = (...args: unknown[]) => { warnCalls.push(String(args[0])); };
-    const config = createMinimalResolvedConfig([]);
-    await ensureDependencies(testRoot, config, {
-      silent: false,
-      runInstall: () => true,
-    });
-    expect(logCalls.some((m) => m.includes("@types/chrome"))).toBe(true);
-    expect(warnCalls.length).toBe(0);
-    console.log = origLog;
-    console.warn = origWarn;
+    const logCalls: string[] = [];
+    const warnCalls: string[] = [];
+    const mockWrite = (calls: string[]) => (chunk: unknown, _enc?: unknown, cb?: () => void) => {
+      calls.push(String(chunk));
+      if (typeof cb === "function") cb();
+      return true;
+    };
+    setExoLoggerRawWrites({ stdout: mockWrite(logCalls), stderr: mockWrite(warnCalls) });
+    try {
+      const config = createMinimalResolvedConfig([]);
+      await ensureDependencies(testRoot, config, {
+        silent: false,
+        runInstall: () => true,
+      });
+      expect(logCalls.some((m) => m.includes("@types/chrome"))).toBe(true);
+      expect(warnCalls.length).toBe(0);
+    } finally {
+      setExoLoggerRawWrites(null);
+    }
   });
 
   it("when not silent and install fail warns", async () => {
     writeFileSync(resolve(testRoot, "package.json"), JSON.stringify({ name: "test" }), "utf-8");
     writeFileSync(resolve(testRoot, "pnpm-lock.yaml"), "", "utf-8");
-    let warnCalls: string[] = [];
-    const origWarn = console.warn;
-    console.warn = (...args: unknown[]) => { warnCalls.push(String(args[0])); };
-    const config = createMinimalResolvedConfig([]);
-    await ensureDependencies(testRoot, config, {
-      silent: false,
-      runInstall: () => false,
+    const warnCalls: string[] = [];
+    const mockStderr = (chunk: unknown, _enc?: unknown, cb?: () => void) => {
+      warnCalls.push(String(chunk));
+      if (typeof cb === "function") cb();
+      return true;
+    };
+    setExoLoggerRawWrites({
+      stdout: process.stdout.write.bind(process.stdout),
+      stderr: mockStderr,
     });
-    expect(warnCalls.some((m) => m.includes("Failed to install"))).toBe(true);
-    console.warn = origWarn;
+    try {
+      const config = createMinimalResolvedConfig([]);
+      await ensureDependencies(testRoot, config, {
+        silent: false,
+        runInstall: () => false,
+      });
+      expect(warnCalls.some((m) => m.includes("Failed to install"))).toBe(true);
+    } finally {
+      setExoLoggerRawWrites(null);
+    }
+  });
+
+  it("runInstall npm with dev false uses install without -D", () => {
+    writeFileSync(resolve(testRoot, "package.json"), JSON.stringify({ name: "test" }), "utf-8");
+    const ok = runInstall(testRoot, "npm", ["no-such-pkg-xyz"], false);
+    expect(ok).toBe(false);
+  });
+
+  it("runInstall bun with dev true uses add -d", () => {
+    writeFileSync(resolve(testRoot, "package.json"), JSON.stringify({ name: "test" }), "utf-8");
+    const ok = runInstall(testRoot, "bun", ["no-such-pkg-xyz"], true);
+    expect(ok).toBe(false);
+  });
+
+  it("runInstall pnpm with dev false uses add without -D", () => {
+    writeFileSync(resolve(testRoot, "package.json"), JSON.stringify({ name: "test" }), "utf-8");
+    const ok = runInstall(testRoot, "pnpm", ["no-such-pkg-xyz"], false);
+    expect(ok).toBe(false);
+  });
+
+  it("readProjectPackageJson when package.json missing returns null", () => {
+    const dirWithNoPkg = resolve(testRoot, "no-pkg-here");
+    mkdirSync(dirWithNoPkg, { recursive: true });
+    expect(readProjectPackageJson(dirWithNoPkg)).toBe(null);
+  });
+
+  it("readProjectPackageJson when package.json present returns parsed content", () => {
+    writeFileSync(
+      resolve(testRoot, "package.json"),
+      JSON.stringify({ name: "pkg", devDependencies: { "@types/chrome": "0.0.1" } }),
+      "utf-8"
+    );
+    const pkg = readProjectPackageJson(testRoot);
+    expect(pkg).not.toBe(null);
+    expect(pkg?.devDependencies?.["@types/chrome"]).toBe("0.0.1");
+  });
+
+  it("readProjectPackageJson when package.json is invalid JSON returns null", () => {
+    writeFileSync(resolve(testRoot, "package.json"), "{ broken json", "utf-8");
+    expect(readProjectPackageJson(testRoot)).toBe(null);
   });
 });

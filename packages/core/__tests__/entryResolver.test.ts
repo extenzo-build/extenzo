@@ -104,5 +104,127 @@ describe("EntryResolver", () => {
       expect(entries.some((e) => e.name === "custom")).toBe(false);
       rmSync(emptyDir, { recursive: true, force: true });
     });
+
+    it("finds script via index in dir when html stem has no matching script", () => {
+      const baseDir = path.join(__dirname, "fixtures", "entry-discovery");
+      const entries = resolveEntries(
+        { entry: { devtools: "devtools/index.html" } },
+        "/root",
+        baseDir
+      );
+      const dev = entries.find((e) => e.name === "devtools");
+      expect(dev).toBeDefined();
+      expect(dev?.scriptPath).toMatch(/devtools[\\/]index\.(ts|js)$/);
+      expect(dev?.htmlPath).toMatch(/devtools[\\/]index\.html$/);
+    });
+
+    it("resolves html path when path is directory (resolveScriptFromHtml throws, findScriptForHtmlDir used)", async () => {
+      const { mkdirSync, writeFileSync, rmSync } = await import("fs");
+      const { join } = await import("path");
+      const { tmpdir } = await import("os");
+      const baseDir = join(tmpdir(), `extenzo-entry-html-dir-${Date.now()}`);
+      mkdirSync(baseDir, { recursive: true });
+      mkdirSync(join(baseDir, "popup.html"));
+      writeFileSync(join(baseDir, "popup.ts"), "// script", "utf-8");
+      const entries = resolveEntries(
+        { entry: { popup: "popup.html" } },
+        "/root",
+        baseDir
+      );
+      const popup = entries.find((e) => e.name === "popup");
+      expect(popup).toBeDefined();
+      expect(popup?.scriptPath).toMatch(/popup\.ts$/);
+      rmSync(baseDir, { recursive: true, force: true });
+    });
+
+    it("finds script via findScriptInDir (index) when html stem has no matching script file", () => {
+      const baseDir = path.join(__dirname, "fixtures", "entry-discovery");
+      const entries = resolveEntries(
+        { entry: { options: "script-via-index/page.html" } },
+        "/root",
+        baseDir
+      );
+      const opt = entries.find((e) => e.name === "options");
+      expect(opt).toBeDefined();
+      expect(opt?.scriptPath).toMatch(/script-via-index[\\/]index\.ts$/);
+      expect(opt?.htmlPath).toMatch(/script-via-index[\\/]page\.html$/);
+    });
+
+    it("finds script via data-extenzo-entry in html template", () => {
+      const baseDir = path.join(__dirname, "fixtures", "entry-discovery");
+      const entries = resolveEntries(
+        { entry: { sidepanel: "sidepanel/index.html" } },
+        "/root",
+        baseDir
+      );
+      const sidepanel = entries.find((e) => e.name === "sidepanel");
+      expect(sidepanel).toBeDefined();
+      expect(sidepanel?.scriptPath).toMatch(/sidepanel[\\/]main\.ts$/);
+      expect(sidepanel?.htmlPath).toMatch(/sidepanel[\\/]index\.html$/);
+      expect(sidepanel?.scriptInject).toBe("body");
+    });
+
+    it("infers same-dir index.html as template and scriptInject when entry is script path (directory form)", () => {
+      const baseDir = path.join(__dirname, "fixtures", "entry-discovery");
+      const entries = resolveEntries(
+        { entry: { sidepanel: "sidepanel/main.ts" } },
+        "/root",
+        baseDir
+      );
+      const sidepanel = entries.find((e) => e.name === "sidepanel");
+      expect(sidepanel).toBeDefined();
+      expect(sidepanel?.scriptPath).toMatch(/sidepanel[\\/]main\.ts$/);
+      expect(sidepanel?.htmlPath).toMatch(/sidepanel[\\/]index\.html$/);
+      expect(sidepanel?.scriptInject).toBe("body");
+    });
+
+    it("skips html entry when no script exists in dir", () => {
+      const baseDir = path.join(__dirname, "fixtures", "entry-discovery");
+      const entries = resolveEntries(
+        { entry: { popup: "only-html/index.html" } },
+        "/root",
+        baseDir
+      );
+      const popup = entries.find((e) => e.name === "popup");
+      expect(popup).toBeUndefined();
+    });
+
+    it("supports object entry config with html flag", () => {
+      const entries = resolveEntries(
+        { entry: { popup: { src: "popup/index.ts", html: true } } },
+        "/root",
+        fixtureDir
+      );
+      const popup = entries.find((e) => e.name === "popup");
+      expect(popup).toBeDefined();
+      expect(popup?.scriptPath).toMatch(/popup[\\/]index\.ts$/);
+      expect(popup?.html).toBe(true);
+    });
+
+    it("supports object entry config with html template path", () => {
+      const entries = resolveEntries(
+        { entry: { popup: { src: "popup/index.ts", html: "popup/index.html" } } },
+        "/root",
+        fixtureDir
+      );
+      const popup = entries.find((e) => e.name === "popup");
+      expect(popup).toBeDefined();
+      expect(popup?.htmlPath).toMatch(/popup[\\/]index\.html$/);
+      expect(popup?.html).toBe(true);
+    });
+
+    it("applies scriptInject when user specifies html template path and it has data-extenzo-entry", () => {
+      const baseDir = path.join(__dirname, "fixtures", "entry-discovery");
+      const entries = resolveEntries(
+        { entry: { sidepanel: { src: "sidepanel/main.ts", html: "sidepanel/index.html" } } },
+        "/root",
+        baseDir
+      );
+      const sidepanel = entries.find((e) => e.name === "sidepanel");
+      expect(sidepanel).toBeDefined();
+      expect(sidepanel?.scriptPath).toMatch(/sidepanel[\\/]main\.ts$/);
+      expect(sidepanel?.htmlPath).toMatch(/sidepanel[\\/]index\.html$/);
+      expect(sidepanel?.scriptInject).toBe("body");
+    });
   });
 });

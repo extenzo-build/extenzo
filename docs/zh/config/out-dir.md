@@ -19,7 +19,7 @@
 ### 使用默认 outDir
 
 ```ts
-// ext.config.ts
+// exo.config.ts
 import { defineConfig } from "extenzo";
 
 export default defineConfig({
@@ -31,7 +31,7 @@ export default defineConfig({
 ### 自定义目录名
 
 ```ts
-// ext.config.ts
+// exo.config.ts
 import { defineConfig } from "extenzo";
 
 export default defineConfig({

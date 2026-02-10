@@ -1,24 +1,19 @@
-# Build watch and HMR (Tailwind / PostCSS)
+# Dev server and HMR (Tailwind / PostCSS)
 
-When using **build watch** (`extenzo dev` → `rsbuild.build({ watch: true })`) with **Tailwind v4** or other PostCSS setups (e.g. `@tailwindcss/postcss` in `postcss.config.mjs`), the bundler may otherwise emit `*.hot-update.js` / `*.hot-update.json` into the output directory and trigger a rebuild loop. The framework writes build output under **`.extenzo/<outDir>`** (default `outDir` is `dist`, so `.extenzo/dist`). The user can still customize `outDir`; that directory is created inside `.extenzo`. Watch and browser reload target this path (`.extenzo/outDir`), not `.extenzo` itself. This reduces the chance that Tailwind v4’s automatic content detection scans the build output. This doc explains why and how the framework prevents loops.
+`extenzo dev` uses **rsbuild dev** (`rsbuild.startDevServer()`) with **writeToDisk** so the extension can load from **`.extenzo/<outDir>`** (e.g. `.extenzo/dist`). Rsbuild’s built-in HMR is **disabled** (`dev.hmr: false`, `dev.liveReload: false`) because the extension runs from disk and from `chrome-extension://` or page origins; the default HMR WebSocket URL would be wrong and cause connection errors. Reload is handled by **plugin-extension-hmr** (full extension reload when build output changes).
 
-## Why it happens
+## Config in dev
 
-- **Tailwind / PostCSS**: PostCSS expands the CSS dependency graph (e.g. `@import "tailwindcss"`, content scanning). In watch mode, more file changes trigger more incremental builds.
-- **Rsbuild / Rspack**: In dev + watch, Rsbuild may still inject `HotModuleReplacementPlugin` or enable `devServer.hot`. Each incremental build then writes hot-update files to the output directory.
-- **Extension context**: Extensions load from the output directory (`.extenzo/<outDir>`, e.g. `.extenzo/dist`); they do not use Rspack’s HMR runtime. Those hot-update files are unnecessary and, if the watcher does not ignore that directory, changes there trigger another build → loop and many useless JS files.
+| Option | Where | What it does |
+|--------|--------|----------------|
+| **dev + writeToDisk** | [src/pipeline.ts](../src/pipeline.ts) – `buildHmrOverrides` | Sets `dev.hmr: false`, `dev.liveReload: false`, and `dev.writeToDisk: (filename) => !filename.includes('.hot-update.')` so no Rsbuild HMR client is injected (no WebSocket errors in extension); normal assets are still written to disk for the extension. |
+| **Extension reload** | Same file – `tools.rspack` | Injects plugin-extension-hmr so the extension reloads when build output changes. |
+| **Watch ignore output** | [@extenzo/plugin-extension-entry](../../plugins/plugin-entry/src/index.ts) – `onBeforeCreateCompiler` | Adds the build output path (`distPath` = `.extenzo/<outDir>`) to Rspack’s `watchOptions.ignored`, so file changes in the output directory do not trigger another build. |
 
-## How the framework fixes it (three layers)
+## Why filter writeToDisk
 
-The CLI applies three safeguards so that **no extra project config** is needed when using Tailwind/PostCSS with `extenzo dev`:
-
-| Layer | Where | What it does |
-|-------|--------|----------------|
-| **Rsbuild dev** | [src/pipeline.ts](../src/pipeline.ts) – `injectHmrForDev` | Sets `dev.hmr: false` and `dev.liveReload: false` so Rsbuild does not enable HMR or full-page reload. |
-| **Rspack HMR** | Same file – `disableRspackHmr()` inside `tools.rspack` | Sets `devServer.hot = false` and removes `HotModuleReplacementPlugin` from Rspack’s `plugins`, so no hot-update files are written to the output directory. |
-| **Watch ignore output** | [@extenzo/plugin-entry](../../plugins/plugin-entry/src/index.ts) – `onBeforeCreateCompiler` | Adds the build output path (`distPath` = `.extenzo/<outDir>`) to Rspack’s `watchOptions.ignored`, so file changes there do not trigger another build. |
-
-These run only when `command === "dev"` (build watch). For `extenzo build`, watch is off and the issue does not occur.
+- **Tailwind / PostCSS**: PostCSS (e.g. `@tailwindcss/postcss`) expands the CSS dependency graph; in watch mode, more file changes mean more incremental builds.
+- **Filter**: `writeToDisk: (filename) => !filename.includes('.hot-update.')` writes normal build output to disk for the extension but skips hot-update files. Together with `watchOptions.ignored` on the output path, this keeps dev stable with Tailwind/PostCSS.
 
 ## If you still see rebuild loops or hot-update files
 

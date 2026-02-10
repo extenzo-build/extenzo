@@ -26,17 +26,17 @@ yarn add -D extenzo
 
 ### 2. Add config file
 
-Create `ext.config.ts` (or `ext.config.js`) at the project root, and ensure you have `background`, `content`, `popup`, `options`, `sidepanel` entries under the root or under `srcDir`.
+Create `exo.config.ts` (or `exo.config.js`) at the project root, and ensure you have `background`, `content`, `popup`, `options`, `sidepanel` entries under the root or under `appDir`.
 
 ### 3. Minimal config example
 
 ```ts
-// ext.config.ts
+// exo.config.ts
 import { defineConfig } from "extenzo";
 import { pluginReact } from "@rsbuild/plugin-react"; // or vue from "@extenzo/plugin-vue"
 
 export default defineConfig({
-  srcDir: "src",
+  appDir: "src",
   outDir: "dist",
   manifest: {
     name: "My Extension",
@@ -54,18 +54,18 @@ export default defineConfig({
 ### 4. Packages and imports
 
 - **Core**: `defineConfig`, types, entry discovery, manifest helpers are exported from `extenzo`. Use: `import { defineConfig } from "extenzo"`.
-- **Runtime**: e.g. [webextension-polyfill](https://github.com/mozilla/webextension-polyfill) from `@extenzo/utils`. After installing `@extenzo/utils`: `import browser from "@extenzo/utils/webextension-polyfill"`.
+- **Runtime**: For the `browser` API (Chrome/Firefox), install [webextension-polyfill](https://github.com/mozilla/webextension-polyfill) and use `import browser from "webextension-polyfill"`. **Content UI**: `@extenzo/utils` provides `defineContentUI` / `mountContentUI` for injecting UI in content scripts; use `import { defineContentUI, mountContentUI } from "@extenzo/utils"`.
 
 ### 5. Run commands
 
 - **Dev**: `extenzo dev` or `pnpm dev` (if `"dev": "extenzo dev"` in package.json).
 - **Build**: `extenzo build`; output goes to `outputRoot/outDir` (default `.extenzo/dist`).
 
-Use `-b chrome` or `-b firefox` for target browser:
+Use `-l chrome|edge|brave|vivaldi|opera|santa|firefox` for target browser:
 
 ```bash
-extenzo dev -b chrome
-extenzo build -b firefox
+extenzo dev -l chrome
+extenzo build -l firefox
 ```
 
 Default is Chrome when not specified.

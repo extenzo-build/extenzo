@@ -1,6 +1,6 @@
 # Examples
 
-This page lists extension examples in the extenzo repo. Each example is a separate directory with its own `package.json` and `ext.config.ts`. Run `pnpm install` in the repo root, then `pnpm dev` / `pnpm build` in the example directory.
+This page lists extension examples in the extenzo repo. Each example is a separate directory with its own `package.json` and `exo.config.ts`. Run `pnpm install` in the repo root, then `pnpm dev` / `pnpm build` in the example directory.
 
 | Example | Description | Repo link |
 |---------|-------------|-----------|

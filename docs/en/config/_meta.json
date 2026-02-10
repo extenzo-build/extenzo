@@ -1,7 +1,7 @@
 [
   { "type": "file", "name": "manifest", "label": "manifest" },
   { "type": "file", "name": "entry", "label": "entry" },
-  { "type": "file", "name": "src-dir", "label": "srcDir" },
+  { "type": "file", "name": "app-dir", "label": "appDir" },
   { "type": "file", "name": "out-dir", "label": "outDir" },
   { "type": "file", "name": "output-root", "label": "outputRoot" },
   { "type": "file", "name": "zip", "label": "zip" },

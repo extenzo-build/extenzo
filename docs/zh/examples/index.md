@@ -1,6 +1,6 @@
 # 示例
 
-本页列出 extenzo 仓库中的扩展示例，每个示例均为独立目录，含 `package.json` 与 `ext.config.ts`，可在对应目录执行 `pnpm install` 后使用 `pnpm dev` / `pnpm build` 运行或构建。
+本页列出 extenzo 仓库中的扩展示例，每个示例均为独立目录，含 `package.json` 与 `exo.config.ts`，可在对应目录执行 `pnpm install` 后使用 `pnpm dev` / `pnpm build` 运行或构建。
 
 | 示例 | 描述 | 仓库链接 |
 |------|------|----------|

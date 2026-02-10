@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Extenzo Monitor</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --monitor-bg: #fff;
+        --monitor-text: #111827;
+        --monitor-border: #e5e7eb;
+        --monitor-tab-bg: #f3f4f6;
+        --monitor-tab-text: #111827;
+        --monitor-tab-hover: #e5e7eb;
+        --monitor-tab-active-bg: #111827;
+        --monitor-tab-active-text: #fff;
+        --monitor-time: #2563eb;
+        --monitor-message: #dc2626;
+        --monitor-meta: #ca8a04;
+        --monitor-copy-bg: #f9fafb;
+        --monitor-copy-text: #374151;
+        --monitor-copy-border: #9ca3af;
+        --monitor-copy-hover: #e5e7eb;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --monitor-bg: #1f2937;
+          --monitor-text: #f9fafb;
+          --monitor-border: #4b5563;
+          --monitor-tab-bg: #374151;
+          --monitor-tab-text: #e5e7eb;
+          --monitor-tab-hover: #4b5563;
+          --monitor-tab-active-bg: #60a5fa;
+          --monitor-tab-active-text: #111827;
+          --monitor-time: #93c5fd;
+          --monitor-message: #f87171;
+          --monitor-meta: #fcd34d;
+          --monitor-copy-bg: #374151;
+          --monitor-copy-text: #e5e7eb;
+          --monitor-copy-border: #6b7280;
+          --monitor-copy-hover: #4b5563;
+        }
+      }
+      html, body { margin: 0; overflow: hidden; height: 100%; }
+      body { font-family: ui-sans-serif, system-ui, sans-serif; background: var(--monitor-bg); color: var(--monitor-text); display: flex; flex-direction: column; }
+      #tabs { flex-shrink: 0; display: flex; gap: 8px; padding: 12px; border-bottom: 1px solid var(--monitor-border); }
+      .tab { border: 1px solid var(--monitor-border); background: var(--monitor-tab-bg); color: var(--monitor-tab-text); padding: 6px 10px; border-radius: 6px; cursor: pointer; }
+      .tab:hover { background: var(--monitor-tab-hover); }
+      .tab.active { background: var(--monitor-tab-active-bg); color: var(--monitor-tab-active-text); border-color: var(--monitor-tab-active-bg); }
+      .tab .count { margin-left: 6px; opacity: 0.7; }
+      #content { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; padding: 12px; }
+      #header { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+      #header-title { font-weight: 600; }
+      #clear-btn { font-size: 12px; padding: 4px 10px; cursor: pointer; border: 1px solid var(--monitor-border); border-radius: 4px; background: var(--monitor-tab-bg); color: var(--monitor-text); }
+      #clear-btn:hover { background: var(--monitor-tab-hover); }
+      #list-wrapper { flex: 1; min-height: 0; overflow: auto; }
+      #list-inner { position: relative; list-style: none; padding: 0; margin: 0; }
+      .item { position: absolute; left: 0; right: 0; height: 140px; box-sizing: border-box; border: 1px solid var(--monitor-border); border-radius: 6px; padding: 10px; overflow: hidden; display: flex; flex-direction: column; }
+      .item-body { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; }
+      .item-header { flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+      .item .item-time { color: var(--monitor-time); font-weight: 500; }
+      .item .item-message { color: var(--monitor-message); font-weight: 600; }
+      .item .item-meta, .item .item-file, .item .item-stack { color: var(--monitor-meta); }
+      .item .meta { font-size: 12px; }
+      .item pre { margin: 6px 0 0; white-space: pre-wrap; }
+      .item .file { font-size: 12px; }
+      .item .item-copy { opacity: 0; pointer-events: none; transition: opacity 0.15s ease; }
+      .item:hover .item-copy { opacity: 1; pointer-events: auto; }
+      .item-copy { font-size: 11px; padding: 4px 8px; cursor: pointer; border: 1px solid var(--monitor-copy-border); border-radius: 4px; background: var(--monitor-copy-bg); color: var(--monitor-copy-text); }
+      .item-copy:hover { background: var(--monitor-copy-hover); }
+      .empty { opacity: 0.6; }
+    </style>
+  </head>
+  <body>
+    <div id="tabs"></div>
+    <div id="content">
+      <div id="header">
+        <span id="header-title"></span>
+        <button type="button" id="clear-btn">Clear</button>
+      </div>
+      <div id="list-wrapper">
+        <ul id="list-inner"></ul>
+      </div>
+    </div>
+    <script type="module" src="__MONITOR_SCRIPT_SRC__"></script>
+  </body>
+</html>

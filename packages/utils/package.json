@@ -1,12 +1,12 @@
 {
   "name": "@extenzo/utils",
   "version": "0.1.0-alpha.0",
-  "description": "Extension runtime: webextension-polyfill wrapper for unified browser API",
+  "description": "Extension utils: content UI (defineContentUI / mountContentUI) for content scripts",
   "type": "module",
   "exports": {
-    "./webextension-polyfill": {
-      "types": "./dist/webextension-polyfill.d.ts",
-      "import": "./dist/webextension-polyfill.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     }
   },
   "files": ["dist"],
@@ -16,15 +16,11 @@
     "test": "rstest run",
     "test:coverage": "rstest run --coverage"
   },
-  "dependencies": {
-    "webextension-polyfill": "^0.10.0"
-  },
   "devDependencies": {
     "@rslib/core": "^0.19.0",
     "@rstest/core": "^0.8.1",
     "@rstest/coverage-istanbul": "^0.2.0",
     "@types/node": "^20.0.0",
-    "@types/webextension-polyfill": "^0.10.0",
     "typescript": "^5.0.0"
   }
 }

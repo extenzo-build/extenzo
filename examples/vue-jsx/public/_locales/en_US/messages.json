@@ -1,0 +1,718 @@
+{
+   "extension_name": {
+      "message": "Video Roll - All-in-One Video Enhancements"
+   },
+   "extension_des": {
+      "message": "Video Enhancements: rotate, zoom, download, record, VR mode, AI summarization, PiP, screenshot, focus, speed, volume and more"
+   },
+   "tabs_video": {
+      "message": "Video"
+   },
+   "tabs_audio": {
+      "message": "Audio"
+   },
+   "tabs_list": {
+      "message": "Video List"
+   },
+   "tabs_more": {
+      "message": "More Settings"
+   },
+   "video_rotate": {
+      "message": "Rotate"
+   },
+   "video_loop": {
+      "message": "Loop"
+   },
+   "video_pic": {
+      "message": "Pic in Pic"
+   },
+   "video_download": {
+      "message": "Download"
+   },
+   "video_left": {
+      "message": "Left"
+   },
+   "video_right": {
+      "message": "Right"
+   },
+   "video_up": {
+      "message": "Up"
+   },
+   "video_down": {
+      "message": "Down"
+   },
+   "video_unset": {
+      "message": "Unset"
+   },
+   "video_custom": {
+      "message": "Custom"
+   },
+   "video_horizental": {
+      "message": "Horizontal"
+   },
+   "video_vertical": {
+      "message": "Vertical"
+   },
+   "video_reposition": {
+      "message": "Reposition"
+   },
+   "video_stretch": {
+      "message": "Stretch"
+   },
+   "video_flip": {
+      "message": "Flip"
+   },
+   "video_focus": {
+      "message": "Focus"
+   },
+   "video_filter": {
+      "message": "Filter"
+   },
+   "video_screenshot": {
+      "message": "Screenshot"
+   },
+   "video_speed": {
+      "message": "Speed"
+   },
+   "video_zoom": {
+      "message": "Zoom"
+   },
+   "audio_muted": {
+      "message": "Muted"
+   },
+   "audio_volume": {
+      "message": "Volume"
+   },
+   "audio_pitch": {
+      "message": "Pitch"
+   },
+   "audio_surround": {
+      "message": "Surround Sound"
+   },
+   "list_main": {
+      "message": "Main Video"
+   },
+   "more_save_preferences": {
+      "message": "Save current preferences"
+   },
+   "more_auto_resize": {
+      "message": "Auto-resize when rotated"
+   },
+   "action_reset": {
+      "message": "Reset"
+   },
+   "tips_disabled": {
+      "message": "Disabled on this Site"
+   },
+   "tips_enabled": {
+      "message": "Enabled on this Site"
+   },
+   "tips_setting": {
+      "message": "Settings"
+   },
+   "tips_rating": {
+      "message": "Five Star Rating"
+   },
+   "tips_donate": {
+      "message": "Buy Me a Coffee"
+   },
+   "tips_wechat": {
+      "message": "WeChat"
+   },
+   "tips_alipay": {
+      "message": "Alipay"
+   },
+   "tips_afdian": {
+      "message": "Afdian"
+   },
+   "tips_clearAll": {
+      "message": "Clear All"
+   },
+   "tips_empty": {
+      "message": "No Video Detected"
+   },
+   "tips_feedback": {
+      "message": "Feedback"
+   },
+   "options_general": {
+      "message": "General"
+   },
+   "options_shortcuts": {
+      "message": "Shortcuts"
+   },
+   "options_cache_list": {
+      "message": "Cache List"
+   },
+   "options_disabled_list": {
+      "message": "Disabled List"
+   },
+   "options_contact": {
+      "message": "Contact"
+   },
+   "options_donate": {
+      "message": "Donate"
+   },
+   "options_layout": {
+      "message": "Layout"
+   },
+   "options_shortcuts_rotate_left": {
+      "message": "Rotate Left"
+   },
+   "options_shortcuts_rotate_right": {
+      "message": "Rotate Right"
+   },
+   "options_shortcuts_rotate_90": {
+      "message": "Rotate 90 Degrees"
+   },
+   "options_shortcuts_rotate_180": {
+      "message": "Rotate 180 Degrees"
+   },
+   "options_shortcuts_rotate_270": {
+      "message": "Rotate 270 Degrees"
+   },
+   "options_shortcuts_rotate_0": {
+      "message": "Rotate 0 Degrees"
+   },
+   "options_shortcuts_flip_horizontally": {
+      "message": "Flip Horizontally"
+   },
+   "options_shortcuts_vertically": {
+      "message": "Flip Vertically"
+   },
+   "options_shortcuts_flip_reset": {
+      "message": "Reset Flip"
+   },
+   "options_shortcuts_zoomin": {
+      "message": "Zoom In"
+   },
+   "options_shortcuts_zoomout": {
+      "message": "Zoom Out"
+   },
+   "options_shortcut_stretch_horizontally_p": {
+      "message": "Stretch Horizontally +"
+   },
+   "options_shortcut_stretch_horizontally_r": {
+      "message": "Stretch Horizontally -"
+   },
+   "options_shortcut_stretch_vertically_p": {
+      "message": "Stretch Vertically +"
+   },
+   "options_shortcut_stretch_vertically_r": {
+      "message": "Stretch Vertically -"
+   },
+   "options_shortcut_stretch_reset": {
+      "message": "Reset Stretch"
+   },
+   "options_shortcut_move_right": {
+      "message": "Move Right"
+   },
+   "options_shortcut_move_left": {
+      "message": "Move Left"
+   },
+   "options_shortcut_move_up": {
+      "message": "Move Up"
+   },
+   "options_shortcut_move_down": {
+      "message": "Move Down"
+   },
+   "options_shortcut_play_pause": {
+      "message": "Play/Pause"
+   },
+   "options_shortcut_pip": {
+      "message": "Picture in Picture"
+   },
+   "options_shortcut_summarizer": {
+      "message": "Toggle Summarizer"
+   },
+   "options_shortcut_vr": {
+      "message": "Toggle VR Mode"
+   },
+   "options_shortcut_advanced_pip": {
+      "message": "Toggle Advanced Picture in Picture"
+   },
+   "options_shortcut_volume_p": {
+      "message": "Volume +"
+   },
+   "options_shortcut_volume_r": {
+      "message": "Volume -"
+   },
+   "options_shortcut_speed_p": {
+      "message": "Speed +"
+   },
+   "options_shortcut_speed_r": {
+      "message": "Speed -"
+   },
+   "options_shortcut_screenshot": {
+      "message": "Screenshot"
+   },
+   "options_shortcut_focus": {
+      "message": "Focus Mode"
+   },
+   "options_general_focus": {
+      "message": "Focus Mode"
+   },
+   "options_general_focus_backgroundColor": {
+      "message": "Background Color"
+   },
+   "options_general_focus_backgroundBlur": {
+      "message": "Background Blur"
+   },
+   "options_general_focus_rounded": {
+      "message": "Video Rounded Corners"
+   },
+   "options_general_audio_capture_type": {
+      "message": "Audio capture mode"
+   },
+   "options_general_audio_capture_page": {
+      "message": "Entire page"
+   },
+   "options_general_audio_capture_element": {
+      "message": "Video elements"
+   },
+   "options_ad": {
+      "message": "Ad Cooperation"
+   },
+   "tips_mail": {
+      "message": "Contact Email: gxy880520@gmail.com"
+   },
+   "tips_wechatGroup": {
+      "message": "WeChat Group"
+   },
+   "download_no_segments": {
+      "message": "No segments available to download!"
+   },
+   "download_size": {
+      "message": "Size"
+   },
+   "download_segments": {
+      "message": "Segments"
+   },
+   "download_format": {
+      "message": "Download format"
+   },
+   "format_hint_mp4_detected": {
+      "message": "MP4 segments detected, MP4 format is recommended"
+   },
+   "download_video_btn": {
+      "message": "Download Video"
+   },
+   "preview_btn": {
+      "message": "Preview"
+   },
+   "download_ts": {
+      "message": "Download TS"
+   },
+   "download_mp4": {
+      "message": "Download MP4"
+   },
+   "abloop_enable": {
+      "message": "Enable AB Loop"
+   },
+   "abloop_a": {
+      "message": "A"
+   },
+   "abloop_b": {
+      "message": "B"
+   },
+   "player_local_file": {
+      "message": "Local File"
+   },
+   "player_stream_url": {
+      "message": "Stream URL"
+   },
+   "player_mp4_url": {
+      "message": "MP4 URL"
+   },
+   "player_enter_stream_url": {
+      "message": "Enter stream URL"
+   },
+   "player_enter_mp4_url": {
+      "message": "Enter MP4 URL"
+   },
+   "player_upload_or_drag": {
+      "message": "+Click to upload or drag"
+   },
+   "tab_download": {
+      "message": "Download"
+   },
+   "tab_qr": {
+      "message": "QR"
+   },
+   "tab_player": {
+      "message": "Player"
+   },
+   "tab_abloop": {
+      "message": "A-B Loop"
+   },
+   "tab_vr": {
+      "message": "VR"
+   },
+   "tab_record": {
+      "message": "Record"
+   },
+   "stop_record": {
+      "message": "Stop Recording"
+   },
+   "tips_user_center": {
+      "message": "User Center",
+      "description": "Tooltip: user center"
+   },
+   "tips_login": {
+      "message": "Login",
+      "description": "Tooltip: login"
+   },
+   "layout_title": {
+      "message": "Layout Configuration"
+   },
+   "layout_description": {
+      "message": "Customize the popup interface layout by toggling components, reordering tabs, and adjusting layout settings."
+   },
+   "layout_components": {
+      "message": "Components"
+   },
+   "layout_tabs": {
+      "message": "Tabs"
+   },
+   "layout_settings": {
+      "message": "Layout Settings"
+   },
+   "layout_preset": {
+      "message": "Preset Layouts"
+   },
+   "layout_preset_compact": {
+      "message": "Compact"
+   },
+   "layout_preset_spacious": {
+      "message": "Spacious"
+   },
+   "layout_preset_single_column": {
+      "message": "Single Column"
+   },
+   "layout_export": {
+      "message": "Export Configuration"
+   },
+   "layout_import": {
+      "message": "Import Configuration"
+   },
+   "layout_reset": {
+      "message": "Reset to Default"
+   },
+   "layout_columns": {
+      "message": "Columns per Row"
+   },
+   "layout_spacing": {
+      "message": "Component Spacing"
+   },
+   "layout_save": {
+      "message": "Save Layout"
+   },
+   "layout_saved": {
+      "message": "Layout saved successfully!"
+   },
+   "layout_import_success": {
+      "message": "Layout imported successfully!"
+   },
+   "layout_import_error": {
+      "message": "Error importing layout configuration"
+   },
+   "layout_reset_confirm": {
+      "message": "Are you sure you want to reset to default layout?"
+   },
+   "layout_unsaved_changes": {
+      "message": "Unsaved"
+   },
+   "layout_save_reminder": {
+      "message": "· Please remember to save changes"
+   },
+   "layout_component_hidden": {
+      "message": "Hidden"
+   },
+   "layout_config_saved": {
+      "message": "Configuration saved successfully!"
+   },
+   "layout_config_reset": {
+      "message": "Reset to default layout successfully!"
+   },
+   "layout_unsaved_warning": {
+      "message": "You have unsaved changes. Are you sure you want to leave?"
+   },
+   "clear_shortcut": {
+      "message": "Clear shortcut"
+   },
+   "shortcut_cleared": {
+      "message": "Shortcut cleared successfully"
+   },
+   "layout_visibility": {
+      "message": "Component Visibility"
+   },
+   "layout_arrangement": {
+      "message": "Layout Arrangement"
+   },
+   "layout_preset_layouts": {
+      "message": "Preset Layouts"
+   },
+   "layout_compact": {
+      "message": "Compact Layout"
+   },
+   "layout_spacious": {
+      "message": "Spacious Layout"
+   },
+   "layout_single_column": {
+      "message": "Single Column Layout"
+   },
+   "layout_apply": {
+      "message": "Apply"
+   },
+   "layout_rows_per_tab": {
+      "message": "Rows per Tab"
+   },
+   "layout_columns_per_row": {
+      "message": "Columns per Row"
+   },
+   "layout_drag_hint": {
+      "message": "Drag components to rearrange"
+   },
+   "layout_config_title": {
+      "message": "Interface Layout Configuration"
+   },
+   "layout_config_desc": {
+      "message": "Customize popup interface component layout and display"
+   },
+   "layout_tabs_config": {
+      "message": "Tabs Configuration"
+   },
+   "layout_row_title": {
+      "message": "Row {0}"
+   },
+   "layout_max_columns": {
+      "message": "Display per row"
+   },
+   "layout_items": {
+      "message": "items"
+   },
+   "layout_add_row": {
+      "message": "Add Row"
+   },
+   "layout_remove_row": {
+      "message": "Remove Row"
+   },
+   "layout_add_new_row": {
+      "message": "Add New Row"
+   },
+   "layout_hide_component": {
+      "message": "Hide Component"
+   },
+   "layout_show_component": {
+      "message": "Show Component"
+   },
+   "layout_width": {
+      "message": "Width"
+   },
+   "layout_config_import_error": {
+      "message": "Failed to import configuration file"
+   },
+   "layout_config_reset_confirm": {
+      "message": "Are you sure you want to reset to default layout?"
+   },
+   "summary_type_key_points": {
+      "message": "Key Points Summary"
+   },
+   "summary_type_teaser": {
+      "message": "Highlight Summary"
+   },
+   "summary_type_headline": {
+      "message": "Headline Summary"
+   },
+   "summary_type_tldr": {
+      "message": "Brief Summary"
+   },
+   "summary_length_short": {
+      "message": "Short"
+   },
+   "summary_length_medium": {
+      "message": "Medium"
+   },
+   "summary_length_long": {
+      "message": "Detailed"
+   },
+   "summary_type_label": {
+      "message": "Summary Type"
+   },
+   "summary_length_label": {
+      "message": "Length"
+   },
+   "input_size_label": {
+      "message": "Input Size"
+   },
+   "summary_btn": {
+      "message": "Generate Summary"
+   },
+   "error_no_tab": {
+      "message": "Unable to get current tab"
+   },
+   "error_no_subtitle": {
+      "message": "Subtitles not found, please enable YouTube subtitles"
+   },
+   "summary_title": {
+      "message": "Video Summary"
+   },
+   "error_summary_failed": {
+      "message": "Summary generation failed"
+   },
+   "error_request_failed": {
+      "message": "Request failed"
+   },
+   "subtitle_dialog_title": {
+      "message": "Subtitle Content"
+   },
+   "subtitle_dialog_empty": {
+      "message": "No subtitle content"
+   },
+   "notify_copied": {
+      "message": "Copied successfully"
+   },
+   "chrome_version_tip": {
+      "message": "Requires Chrome 138 beta or higher"
+   },
+   "model_checking": {
+      "message": "Checking if model is available..."
+   },
+   "model_ready": {
+      "message": "Model is ready"
+   },
+   "model_downloadable": {
+      "message": "Browser model is downloadable"
+   },
+   "model_download_btn": {
+      "message": "Click to download model"
+   },
+   "model_downloading": {
+      "message": "Model downloading..."
+   },
+   "model_unavailable": {
+      "message": "Model is not available on this device"
+   },
+   "subtitle_optimized": {
+      "message": "Subtitles obtained, optimized subtitles have "
+   },
+   "subtitle_chars": {
+      "message": " characters"
+   },
+   "summary_generating": {
+      "message": "Generating summary..."
+   },
+   "summary_done": {
+      "message": "Summary generation completed"
+   },
+   "video_summarizer": {
+      "message": "Summary"
+   },
+   "video_separate": {
+      "message": "Separation"
+   },
+   "audio_stereo": {
+      "message": "Stereo"
+   },
+   "audio_delay": {
+      "message": "Audio Delay"
+   },
+   "head_iframes_found": {
+      "message": "Found Iframes"
+   },
+   "head_no_videos_iframes": {
+      "message": "No Videos and Iframes Found"
+   },
+   "head_dialog_close": {
+      "message": "Close"
+   },
+   "head_tooltip_detect_iframe": {
+      "message": "No video detected, click to detect embedded videos"
+   },
+   "head_tooltip_rating": {
+      "message": "Rate this extension"
+   },
+   "head_tooltip_help": {
+      "message": "Help"
+   },
+   "more_auto_skip_youtube_ad": {
+      "message": "Auto speed up YouTube ads"
+   },
+   "contact_wechat": {
+      "message": "WeChat: gxy880520"
+   },
+   "contact_email": {
+      "message": "Email: gxy880520@gmail.com"
+   },
+   "contact_wechat_copied": {
+      "message": "WeChat ID copied to clipboard"
+   },
+   "contact_wechat_copy_failed": {
+      "message": "Copy failed, WeChat ID: gxy880520"
+   },
+   "contact_email_copied": {
+      "message": "Email copied to clipboard"
+   },
+   "contact_email_copy_failed": {
+      "message": "Copy failed, Email: gxy880520@gmail.com"
+   },
+   "recorder_back_to_tab": {
+      "message": "back to tab"
+   },
+   "recorder_no_video_detected": {
+      "message": "No video detected"
+   },
+   "recorder_video_state_invalid": {
+      "message": "Current video state cannot be recorded"
+   },
+   "recorder_recording_completed": {
+      "message": "Video recording completed"
+   },
+   "videolist_no_video_detected": {
+      "message": "Can't find the video you want to download? Try this~"
+   },
+   "videolist_video_download": {
+      "message": "Video Download"
+   },
+   "videolist_copy_success": {
+      "message": "Copied successfully"
+   },
+   "rating_dialog_title": {
+      "message": "Do you like this extension?"
+   },
+   "rating_submit_button": {
+      "message": "Submit Rating"
+   },
+   "rating_close_button": {
+      "message": "Close"
+   },
+   "rating_no_show_again": {
+      "message": "Don't show again"
+   },
+   "press_keyboard_to_reset": {
+      "message": "Press the keyboard to reset"
+   },
+   "click_to_update": {
+      "message": "Click to update"
+   },
+   "force_lock_video_config": {
+      "message": "Force lock video configuration"
+   },
+   "others": {
+      "message": "Others"
+   },
+   "site_specific_settings": {
+      "message": "Site-specific settings"
+   },
+   "global_configuration": {
+      "message": "Global configuration"
+   },
+   "more_settings": {
+      "message": "More settings"
+   },
+   "dark_mode": {
+      "message": "Dark mode"
+   },
+   "light_mode": {
+      "message": "Light mode"
+   }
+}

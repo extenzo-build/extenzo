@@ -211,7 +211,7 @@ async function main() {
   }
 
   writeFileSync(
-    join(root, `ext.config.${configExt}`),
+    join(root, `exo.config.${configExt}`),
     getConfigContent(framework, lang)
   );
   writeFileSync(join(root, "package.json"), getPackageJson(framework, lang, targetDir));

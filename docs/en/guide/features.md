@@ -4,23 +4,23 @@ A short overview of what Extenzo provides.
 
 ## Build and output
 
-- **One config, multiple browsers**: One `ext.config.ts`; use CLI `-b chrome` / `-b firefox` to build; manifest can be split by `chromium` / `firefox`.
+- **One config, multiple browsers**: One `exo.config.ts`; use CLI `-l chrome|edge|brave|vivaldi|opera|santa|firefox` to build; manifest can be split by `chromium` / `firefox`.
 - **Output**: Default output under `.extenzo/dist` (controlled by `outputRoot`, `outDir`); optional zip after build (`zip: true`, default on).
 
 ## Entry and directory
 
-- **Convention**: Auto-discover `background`, `content`, `popup`, `options`, `sidepanel`, `devtools` under root or `srcDir`.
+- **Convention**: Auto-discover `background`, `content`, `popup`, `options`, `sidepanel`, `devtools` under root or `appDir`.
 - **Custom entry**: Use `entry` to specify paths; reserved names are fixed, others can be custom (e.g. `capture`, `offscreen`).
-- **See**: [entry](/config/entry), [srcDir](/config/src-dir).
+- **See**: [entry](/config/entry), [appDir](/config/app-dir).
 
 ## Manifest
 
-- **Three options**: Inline manifest object in config, path per browser (`manifest.chromium` / `manifest.firefox` as string paths), or omit to auto-load `manifest.json`, `manifest.chromium.json`, `manifest.firefox.json` from `srcDir`.
+- **Three options**: Inline manifest object in config, path per browser (`manifest.chromium` / `manifest.firefox` as string paths), or omit to auto-load `manifest.json`, `manifest.chromium.json`, `manifest.firefox.json` from `appDir`.
 - **See**: [manifest](/config/manifest).
 
 ## Plugins and Rsbuild
 
-- **Built-in**: plugin-entry (entry + HTML), plugin-extension (write manifest), plugin-hmr (dev HMR); no need to declare in config.
+- **Built-in**: plugin-extension-entry (entry + HTML), plugin-extension-manifest (write manifest), plugin-extension-hmr (dev HMR); no need to declare in config.
 - **User plugins**: `plugins: [vue()]`, `plugins: [react()]`, or other Rsbuild plugins.
 - **Rsbuild extension**: `rsbuildConfig` object is deep-merged, or use function `(base, helpers)` for full control; define, alias, extra plugins, etc.
 - **See**: [plugins](/config/plugins), [rsbuildConfig](/config/rsbuild-config).

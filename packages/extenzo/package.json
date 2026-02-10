@@ -14,6 +14,11 @@
       "types": "./index.d.ts",
       "import": "./index.mjs",
       "default": "./index.mjs"
+    },
+    "./monitor": {
+      "types": "./monitor.d.ts",
+      "import": "./monitor.mjs",
+      "default": "./monitor.mjs"
     }
   },
   "files": ["bin", "index.mjs", "index.d.ts"],
@@ -24,6 +29,7 @@
   },
   "dependencies": {
     "@extenzo/cli": "workspace:*",
-    "@extenzo/core": "workspace:*"
+    "@extenzo/core": "workspace:*",
+    "@extenzo/plugin-extension-monitor": "workspace:*"
   }
 }

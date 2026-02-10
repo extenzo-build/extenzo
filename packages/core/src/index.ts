@@ -11,7 +11,9 @@ export {
   ManifestBuilder,
   resolveManifestChromium,
   resolveManifestFirefox,
+  resolveManifestForTarget,
 } from "./manifestBuilder.ts";
+export type { ContentScriptOutput } from "./manifestBuilder.ts";
 export { mergeRsbuildConfig } from "@rsbuild/core";
 export { CliParser, parseCliArgs, assertSupportedBrowser } from "./cliParser.ts";
 export type { CliParseResult } from "./cliParser.ts";
@@ -21,6 +23,7 @@ export {
   createConfigNotFoundError,
   createConfigLoadError,
   createManifestMissingError,
+  createAppDirMissingError,
   createNoEntriesError,
   createInvalidBrowserError,
   createUnknownCommandError,
@@ -29,13 +32,15 @@ export {
 export type { ExtenzoErrorCode } from "./errors.ts";
 export {
   DEFAULT_OUT_DIR,
-  DEFAULT_SRC_DIR,
+  DEFAULT_APP_DIR,
   EXTENZO_OUTPUT_ROOT,
   HMR_WS_PORT,
   DEFAULT_BROWSER,
   SUPPORTED_BROWSERS,
+  SUPPORTED_LAUNCH_TARGETS,
   CLI_COMMANDS,
   MANIFEST_ENTRY_PATHS,
+  MANIFEST_ENTRY_KEYS,
   MANIFEST_DIR,
   MANIFEST_FILE_NAMES,
   CONFIG_FILES,
@@ -45,14 +50,27 @@ export {
   RESERVED_ENTRY_NAMES,
 } from "./constants.ts";
 export { ManifestLoader, resolveManifestInput } from "./manifestLoader.ts";
-export type { BrowserTarget, CliCommand } from "./constants.ts";
+export type { ManifestValidationTarget } from "./manifestLoader.ts";
+export type {
+  BrowserTarget,
+  CliCommand,
+  LaunchTarget,
+  EntryKey,
+  ChromiumLaunchTarget,
+} from "./constants.ts";
 export type {
   ExtenzoUserConfig,
   ExtenzoResolvedConfig,
   ManifestConfig,
+  ManifestRecord,
+  ChromiumFirefoxManifest,
   ManifestPathConfig,
   RsbuildConfigHelpers,
   EntryInfo,
   LifecycleHooks,
   PipelineContext,
+  ScriptInjectPosition,
 } from "./types.ts";
+export { parseExtenzoEntryFromHtml } from "./htmlEntry.ts";
+export type { ExtenzoEntryScriptResult } from "./htmlEntry.ts";
+export { log, logDone, warn, error, setExoLoggerRawWrites } from "./logger.ts";

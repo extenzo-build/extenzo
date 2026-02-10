@@ -1,4 +1,5 @@
 import { describe, expect, it } from "@rstest/core";
+import { setExoLoggerRawWrites } from "../src/logger.ts";
 import {
   ExtenzoError,
   EXTENZO_ERROR_CODES,
@@ -41,9 +42,9 @@ describe("errors", () => {
 
   describe("createConfigLoadError", () => {
     it("returns error with CONFIG_LOAD_FAILED code", () => {
-      const err = createConfigLoadError("/ext.config.ts", new Error("syntax"));
+      const err = createConfigLoadError("/exo.config.ts", new Error("syntax"));
       expect(err.code).toBe(EXTENZO_ERROR_CODES.CONFIG_LOAD_FAILED);
-      expect(err.details).toContain("/ext.config.ts");
+      expect(err.details).toContain("/exo.config.ts");
     });
     it("accepts non-Error cause as string", () => {
       const err = createConfigLoadError("/x", "string cause");
@@ -140,6 +141,30 @@ describe("errors", () => {
       } finally {
         process.exit = exit;
         console.error = logErr;
+      }
+    });
+
+    it("formats ExtenzoError with details and hint in output", () => {
+      const exit = process.exit;
+      let logged = "";
+      setExoLoggerRawWrites({
+        stdout: process.stdout.write.bind(process.stdout),
+        stderr: (chunk: unknown, _enc?: unknown, cb?: () => void) => {
+          logged += String(chunk);
+          if (typeof cb === "function") cb();
+          return true;
+        },
+      });
+      process.exit = (() => {
+        throw new Error("exit");
+      }) as typeof process.exit;
+      try {
+        expect(() => exitWithError(createConfigNotFoundError("/root"))).toThrow("exit");
+        expect(logged).toContain("Details:");
+        expect(logged).toContain("Hint:");
+      } finally {
+        process.exit = exit;
+        setExoLoggerRawWrites(null);
       }
     });
   });

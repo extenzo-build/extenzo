@@ -41,20 +41,16 @@ npm install -D extenzo
 yarn add -D extenzo
 ```
 
-Create `ext.config.ts` (or `ext.config.js`) in the project root and configure it as below. Your layout must include entries such as `background`, `content`, `popup`, `options`, `sidepanel` (either at root or under a dir set via `srcDir`).
+Create `exo.config.ts` (or `exo.config.js`) in the project root and configure it as below. Your layout must include entries such as `background`, `content`, `popup`, `options`, `sidepanel` (under `app/` by default or under a dir set via `srcDir`).
 
 ### Packages and imports
 
 - **Core** (`defineConfig`, types, discovery, manifest, etc.) is exported from **extenzo**. In config use: `import { defineConfig } from "extenzo"`.
-- **Runtime utilities** (e.g. [webextension-polyfill](https://github.com/mozilla/webextension-polyfill)) are exported from **`@extenzo/utils`**. Install `@extenzo/utils` and use:
-
-```ts
-import browser from "@extenzo/utils/webextension-polyfill";
-```
+- **Content UI** is in **`@extenzo/utils`**: `import { defineContentUI, mountContentUI } from "@extenzo/utils"` for injecting UI in content scripts. For the `browser` API, install [webextension-polyfill](https://github.com/mozilla/webextension-polyfill) and use `import browser from "webextension-polyfill"`.
 
 ## Config
 
-Config file: `ext.config.ts` or `ext.config.js`.
+Config file: `exo.config.ts` or `exo.config.js`.
 
 Return a config object from `defineConfig`. Supported fields:
 
@@ -64,12 +60,12 @@ Return a config object from `defineConfig`. Supported fields:
 | **plugins** | Rsbuild plugins array (like Vite). Use function calls, e.g. `plugins: [vue()]` (from `@extenzo/plugin-vue`) or `plugins: [pluginReact()]` (from `@rsbuild/plugin-react`) |
 | **rsbuildConfig** | Override or extend Rsbuild config (like Vite’s build options). **Object**: deep-merged with base. **Function**: `(base) => config` for full control |
 | **entry** | Custom entries: object, key = entry name (reserved: popup, options, sidepanel, background, devtools, content; others custom), value = path string relative to baseDir (e.g. `'content/index.ts'`). Omit to use default discovery from baseDir |
-| **srcDir** | Source directory; default is project root. Also the base for **entry** paths |
+| **srcDir** | Source directory; default is `app/`. Also the base for **entry** paths |
 | **outDir** | Output directory; default `"dist"` |
 | **launch** | Dev browser paths. `launch.chrome`, `launch.firefox` for Chrome/Firefox executables; used when running `extenzo dev`. If unset, tries OS default install paths (see [launch](/config/launch)) |
 | **hooks** | Lifecycle hooks at “parse CLI → load config → build Rsbuild config → run build”. See “Lifecycle hooks” below |
 
-**Manifest from files:** Priority: (1) manifest in ext.config, (2) files in **srcDir** (`manifest.json`, `manifest.chromium.json`, `manifest.firefox.json`), (3) files in **srcDir/manifest/** if none in srcDir. Base and overrides are deep-merged per browser. You can also set paths in config: `manifest: { chromium: 'src/manifest/manifest.json', firefox: '...' }`; paths are resolved from srcDir.
+**Manifest from files:** Priority: (1) manifest in exo.config, (2) files in **srcDir** (`manifest.json`, `manifest.chromium.json`, `manifest.firefox.json`), (3) files in **srcDir/manifest/** if none in srcDir. Base and overrides are deep-merged per browser. You can also set paths in config: `manifest: { chromium: 'src/manifest/manifest.json', firefox: '...' }`; paths are resolved from srcDir.
 
 ### Lifecycle hooks
 
@@ -112,7 +108,7 @@ export default defineConfig({
 
 ## Directory and entry convention
 
-- By default, entries are discovered under the **project root** or **srcDir** (baseDir). You can override with **entry**:
+- By default, entries are discovered under **app/** or **srcDir** (baseDir). You can override with **entry**:
   - **background**, **content**: script only
   - **popup**, **options**, **sidepanel**, **devtools**: HTML entry (e.g. `index.html`); scripts, if any, are included in the HTML
   - Reserved names (fixed): popup, options, sidepanel, background, devtools, content; other names are custom
@@ -144,7 +140,7 @@ The following diagram shows how extenzo goes from your config to a built extensi
 
 
 
-**Summary:** CLI loads `ext.config`, resolves manifest (from config or `srcDir` / `srcDir/manifest`), discovers and resolves entries, then builds an Rsbuild config with **plugin-entry** (entries + HTML), your **plugins** (e.g. Vue/React), and **plugin-extension** (writes `manifest.json` after build). In **dev**, **plugin-hmr** starts a WebSocket server and opens the browser; each rebuild triggers a reload. In **build**, the output is written and optionally zipped.
+**Summary:** CLI loads `exo.config`, resolves manifest (from config or `srcDir` / `srcDir/manifest`), discovers and resolves entries, then builds an Rsbuild config with **plugin-extension-entry** (entries + HTML), your **plugins** (e.g. Vue/React), and **plugin-extension-manifest** (writes `manifest.json` after build). In **dev**, **plugin-hmr** starts a WebSocket server and opens the browser; each rebuild triggers a reload. In **build**, the output is written and optionally zipped.
 
 ## Dependencies
 
@@ -169,13 +165,13 @@ Browser paths: set **launch** in config to override; otherwise the framework tri
 - `packages/cli`: **@extenzo/cli** – CLI entry and **Pipeline** (parse → config → Rsbuild config → hooks; injects ConfigLoader / CliParser)
 - `packages/core`: Core modules; filenames match class names (camelCase): **ConfigLoader** (configLoader.ts), **CliParser** (cliParser.ts), **EntryDiscoverer** (entryDiscoverer.ts), **EntryResolver** (entryResolver.ts), **ManifestBuilder** (manifestBuilder.ts); constants, ExtenzoError, mergeRsbuildConfig, defineConfig, types
 - `packages/utils`: Utilities (webextension-polyfill etc.); use `@extenzo/utils` as needed
-- `packages/plugins/plugin-entry**: **Internal** – resolves dirs and entries, sets entry/html/output
-- `packages/plugins/plugin-extension`: **Internal** – writes manifest.json
+- `packages/plugins/plugin-entry**: **Internal** – resolves dirs and entries, sets entry/html/output (package: `@extenzo/plugin-extension-entry`)
+- `packages/plugins/plugin-extension`: **Internal** – writes manifest.json (package: `@extenzo/plugin-extension-manifest`)
 - `packages/plugins/plugin-hmr**: **Internal** – dev HMR and browser launch
 - `packages/plugins/plugin-vue`: Vue 3 + Vue JSX + Less + Babel; use `plugins: [vue()]`
 - `packages/create-extenzo-app`: Scaffold CLI; generates project with `plugins: [vue()]` or `plugins: [pluginReact()]` (use `@rsbuild/plugin-react` for React)
 
-The framework runs plugin-entry, plugin-extension and plugin-hmr by default. Users add framework plugins via `plugins: [vue()]` etc. and override Rsbuild via `rsbuildConfig`.
+The framework runs plugin-extension-entry, plugin-extension-manifest and plugin-hmr by default. Users add framework plugins via `plugins: [vue()]` etc. and override Rsbuild via `rsbuildConfig`.
 
 ## Test coverage & Codecov
 

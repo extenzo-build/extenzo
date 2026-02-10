@@ -12,7 +12,7 @@
 传入对象时，会与框架 base 配置**深度合并**。适合追加或覆盖部分字段（如 `source.define`、`resolve.alias`），而无需关心 base 结构。
 
 ```ts
-// ext.config.ts
+// exo.config.ts
 import { defineConfig } from "extenzo";
 
 export default defineConfig({
@@ -36,7 +36,7 @@ export default defineConfig({
 适合需要根据环境、异步逻辑或复杂条件生成配置的场景。
 
 ```ts
-// ext.config.ts
+// exo.config.ts
 import { defineConfig } from "extenzo";
 
 export default defineConfig({

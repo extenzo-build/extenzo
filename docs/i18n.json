@@ -43,9 +43,9 @@
     "en": "entry",
     "zh": "entry"
   },
-  "srcDir": {
-    "en": "srcDir",
-    "zh": "srcDir"
+  "appDir": {
+    "en": "appDir",
+    "zh": "appDir"
   },
   "outDir": {
     "en": "outDir",

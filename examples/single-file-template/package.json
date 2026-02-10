@@ -1,0 +1,16 @@
+{
+  "name": "extenzo-example-single-file-template",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Single-file entries template: popup.html, options.html, background.ts, content.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "extenzo dev -l firefox",
+    "build": "extenzo build -t firefox"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.326",
+    "extenzo": "workspace:*",
+    "typescript": "^5.0.0"
+  }
+}

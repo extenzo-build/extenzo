@@ -2,7 +2,7 @@
 
 纯原生 TypeScript 的 Chrome DevTools 扩展示例：仅 background + devtools，无 React/Vue。
 
-**配置关系**（在 `ext.config.ts` 中一目了然）：
+**配置关系**（在 `exo.config.ts` 中一目了然）：
 
 - `manifest.devtools_page: "devtools/index.html"` 即 devtools 入口的 HTML
 - 该 HTML 就是 F12 里「Native TS」Tab 中展示的页面，无需再配置其它路径

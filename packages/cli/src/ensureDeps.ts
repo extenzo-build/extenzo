@@ -2,11 +2,12 @@ import { resolve } from "path";
 import { existsSync, readFileSync } from "fs";
 import { spawnSync } from "child_process";
 import type { ExtenzoResolvedConfig } from "@extenzo/core";
+import { log, warn } from "@extenzo/core";
 
-/** 扩展开发推荐/必选 devDependencies：未安装时由框架自动安装（业界常见：按需补齐） */
+/** Recommended/required devDependencies for extension dev; auto-installed by framework when missing */
 const EXTENSION_DEV_DEPS = ["@types/chrome"] as const;
 
-/** 框架插件名 → 用户项目需安装的运行时依赖（peer 概念，未装则自动安装） */
+/** Plugin name → runtime deps required in user project (peer style; auto-install when missing) */
 const PLUGIN_PEER_DEPS: Record<string, readonly string[]> = {
   "extenzo-vue": ["vue"],
 };
@@ -21,7 +22,8 @@ function detectPackageManager(root: string): PackageManager {
   return "pnpm";
 }
 
-function readProjectPackageJson(root: string): { dependencies?: Record<string, string>; devDependencies?: Record<string, string> } | null {
+/** Exported for tests. */
+export function readProjectPackageJson(root: string): { dependencies?: Record<string, string>; devDependencies?: Record<string, string> } | null {
   const p = resolve(root, "package.json");
   if (!existsSync(p)) return null;
   try {
@@ -66,7 +68,8 @@ function collectPackagesToInstall(root: string, config: ExtenzoResolvedConfig): 
   return [...new Set(toInstall)];
 }
 
-function runInstall(root: string, pm: PackageManager, packages: string[], dev: boolean): boolean {
+/** Exported for tests. Runs package manager install. */
+export function runInstall(root: string, pm: PackageManager, packages: string[], dev: boolean): boolean {
   let cmd: string;
   let args: string[];
   if (pm === "npm") {
@@ -95,9 +98,9 @@ export type RunInstallFn = (
 ) => boolean;
 
 /**
- * 按业界常见方式：检查项目是否已安装扩展开发与插件所需的依赖，缺失则用当前包管理器自动安装。
- * 可通过环境变量 EXTENZO_SKIP_DEPS=1 跳过（如 CI 或用户已统一管理依赖）。
- * 测试时可传入 runInstall 以替代真实 spawn，便于单测覆盖。
+ * Check that extension dev and plugin deps are installed; install via current package manager if missing.
+ * Set EXTENZO_SKIP_DEPS=1 to skip (e.g. CI or user-managed deps).
+ * Tests can pass runInstall to avoid real spawn.
  */
 export async function ensureDependencies(
   root: string,
@@ -110,13 +113,13 @@ export async function ensureDependencies(
   if (toInstall.length === 0) return { installed: [] };
 
   if (!options?.silent) {
-    console.log(`[extenzo] Ensuring dev dependencies: ${toInstall.join(", ")}`);
+    log("Ensuring dev dependencies:", toInstall.join(", "));
   }
   const pm = detectPackageManager(root);
   const installFn = options?.runInstall ?? runInstall;
   const ok = installFn(root, pm, toInstall, true);
   if (!ok && !options?.silent) {
-    console.warn(`[extenzo] Failed to install some dependencies. You may run: ${pm} add -D ${toInstall.join(" ")}`);
+    warn("Failed to install some dependencies. You may run:", pm, "add -D", toInstall.join(" "));
   }
   return { installed: ok ? toInstall : [] };
 }

@@ -11,6 +11,12 @@ const ZIP_ARCHIVE_CODE = "EXTENZO_ZIP_ARCHIVE" as ExtenzoErrorCode;
 /** Default zlib level for zip compression */
 const ZIP_LEVEL = 9;
 
+/** Optional for tests: inject stream/archiver to trigger error paths */
+export type ZipDistDeps = {
+  createWriteStream?: typeof createWriteStream;
+  archiver?: typeof archiver;
+};
+
 /**
  * Packs the built output directory into a zip file at project root.
  * Zip contents are the files inside distPath (no extra top-level folder).
@@ -18,11 +24,14 @@ const ZIP_LEVEL = 9;
 export function zipDist(
   distPath: string,
   root: string,
-  outDir: string
+  outDir: string,
+  deps?: ZipDistDeps
 ): Promise<string> {
+  const createStream = deps?.createWriteStream ?? createWriteStream;
+  const archiverFn = deps?.archiver ?? archiver;
   const zipPath = resolve(root, `${outDir}.zip`);
-  const output = createWriteStream(zipPath);
-  const archive = archiver("zip", { zlib: { level: ZIP_LEVEL } });
+  const output = createStream(zipPath);
+  const archive = archiverFn("zip", { zlib: { level: ZIP_LEVEL } });
 
   return new Promise((resolvePromise, reject) => {
     output.on("error", (err) =>

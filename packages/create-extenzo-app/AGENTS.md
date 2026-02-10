@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Interactive project creation for extenzo: generates initial dirs, package.json, ext.config, entry skeletons, etc.
+Interactive project creation for extenzo: generates initial dirs, package.json, exo.config, entry skeletons, etc.
 
 ## When to use
 
@@ -11,4 +11,4 @@ Interactive project creation for extenzo: generates initial dirs, package.json, 
 
 ## When changing this package
 
-- Templates and interactive logic live in `src/cli.ts`; when adding templates or options, keep them aligned with extenzo’s ext.config and entry conventions
+- Templates and interactive logic live in `src/cli.ts`; when adding templates or options, keep them aligned with extenzo’s exo.config and entry conventions

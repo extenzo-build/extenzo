@@ -6,7 +6,7 @@ import {
   HTML_ENTRY_NAMES,
   SCRIPT_ONLY_ENTRY_NAMES,
   DEFAULT_OUT_DIR,
-  DEFAULT_SRC_DIR,
+  DEFAULT_APP_DIR,
   EXTENZO_OUTPUT_ROOT,
   CLI_COMMANDS,
   SUPPORTED_BROWSERS,
@@ -14,9 +14,9 @@ import {
 } from "../src/constants.ts";
 
 describe("constants", () => {
-  it("CONFIG_FILES includes ext.config.ts and ext.config.js", () => {
-    expect(CONFIG_FILES).toContain("ext.config.ts");
-    expect(CONFIG_FILES).toContain("ext.config.js");
+  it("CONFIG_FILES includes exo.config.ts and exo.config.js", () => {
+    expect(CONFIG_FILES).toContain("exo.config.ts");
+    expect(CONFIG_FILES).toContain("exo.config.js");
   });
 
   it("SCRIPT_EXTS prefers .js before .ts", () => {
@@ -46,8 +46,8 @@ describe("constants", () => {
     expect(EXTENZO_OUTPUT_ROOT).toBe(".extenzo");
   });
 
-  it("DEFAULT_SRC_DIR is .", () => {
-    expect(DEFAULT_SRC_DIR).toBe(".");
+  it("DEFAULT_APP_DIR is app", () => {
+    expect(DEFAULT_APP_DIR).toBe("app");
   });
 
   it("CLI_COMMANDS includes dev and build", () => {

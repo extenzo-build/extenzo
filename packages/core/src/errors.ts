@@ -1,11 +1,14 @@
+import { error as exoError } from "./logger.ts";
+
 /**
- * 统一错误类型与错误输出，便于定位问题。
+ * Unified error type and error output for easier debugging.
  */
 
 export const EXTENZO_ERROR_CODES = {
   CONFIG_NOT_FOUND: "EXTENZO_CONFIG_NOT_FOUND",
   CONFIG_LOAD_FAILED: "EXTENZO_CONFIG_LOAD_FAILED",
   MANIFEST_MISSING: "EXTENZO_MANIFEST_MISSING",
+  APP_DIR_MISSING: "EXTENZO_APP_DIR_MISSING",
   NO_ENTRIES: "EXTENZO_NO_ENTRIES",
   INVALID_BROWSER: "EXTENZO_INVALID_BROWSER",
   UNKNOWN_COMMAND: "EXTENZO_UNKNOWN_COMMAND",
@@ -38,8 +41,8 @@ export class ExtenzoError extends Error {
 function formatError(err: unknown): string {
   if (err instanceof ExtenzoError) {
     const parts = [`[${err.code}] ${err.message}`];
-    if (err.details) parts.push(`  详情: ${err.details}`);
-    if (err.hint) parts.push(`  建议: ${err.hint}`);
+    if (err.details) parts.push(`  Details: ${err.details}`);
+    if (err.hint) parts.push(`  Hint: ${err.hint}`);
     return parts.join("\n");
   }
   if (err instanceof Error) return err.stack ?? err.message;
@@ -47,62 +50,71 @@ function formatError(err: unknown): string {
 }
 
 /**
- * 向 stderr 输出错误信息并退出进程。
- * 用于 CLI 顶层 catch，保证错误原因清晰。
+ * Print error to stderr and exit process.
+ * Used in CLI top-level catch for clear error reporting.
  */
 export function exitWithError(err: unknown, exitCode = 1): never {
-  console.error("\n" + formatError(err));
+  exoError("\n" + formatError(err));
   process.exit(exitCode);
 }
 
 export function createConfigNotFoundError(root: string): ExtenzoError {
-  return new ExtenzoError("未找到 extenzo 配置文件", {
+  return new ExtenzoError("Extenzo config file not found", {
     code: EXTENZO_ERROR_CODES.CONFIG_NOT_FOUND,
-    details: `在目录 ${root} 下未找到 ext.config.ts、ext.config.js 或 ext.config.mjs`,
-    hint: "请在项目根目录执行命令，或新建 ext.config.ts / ext.config.js",
+    details: `No exo.config.ts, exo.config.js or exo.config.mjs found under ${root}`,
+    hint: "Run the command from project root or create exo.config.ts / exo.config.js",
   });
 }
 
 export function createConfigLoadError(filePath: string, cause: unknown): ExtenzoError {
   const message = cause instanceof Error ? cause.message : String(cause);
-  return new ExtenzoError("加载配置文件失败", {
+  return new ExtenzoError("Failed to load config file", {
     code: EXTENZO_ERROR_CODES.CONFIG_LOAD_FAILED,
-    details: `文件: ${filePath}，错误: ${message}`,
-    hint: "检查 ext.config 语法与依赖是否正确",
+    details: `File: ${filePath}, error: ${message}`,
+    hint: "Check exo.config syntax and dependencies",
     cause: cause instanceof Error ? cause : undefined,
   });
 }
 
 export function createManifestMissingError(): ExtenzoError {
-  return new ExtenzoError("未找到 manifest 配置或文件", {
+  return new ExtenzoError("Manifest config or file not found", {
     code: EXTENZO_ERROR_CODES.MANIFEST_MISSING,
     details:
-      "请在 ext.config 中配置 manifest，或于 srcDir 或 srcDir/manifest 下放置 manifest.json / manifest.chromium.json / manifest.firefox.json",
+      "Configure manifest in exo.config, or place manifest.json / manifest.chromium.json / manifest.firefox.json under appDir or appDir/manifest",
     hint:
-      "方式一：ext.config 中 manifest: { name, version, ... }；方式二：srcDir 或 srcDir/manifest 下放 manifest.json；方式三：manifest: { chromium: 'path/to/manifest.json' }（路径相对 srcDir）",
+      "Option 1: manifest: { name, version, ... } in exo.config; Option 2: manifest.json under appDir or appDir/manifest; Option 3: manifest: { chromium: 'path/to/manifest.json' } (path relative to appDir)",
   });
 }
 
-export function createNoEntriesError(srcDir: string): ExtenzoError {
-  return new ExtenzoError("未发现任何入口", {
+export function createAppDirMissingError(appDir: string): ExtenzoError {
+  return new ExtenzoError("App directory not found", {
+    code: EXTENZO_ERROR_CODES.APP_DIR_MISSING,
+    details: `Missing appDir: ${appDir}`,
+    hint: "Create the directory or set appDir to an existing folder (default is app/)",
+  });
+}
+
+export function createNoEntriesError(appDir: string): ExtenzoError {
+  return new ExtenzoError("No entries discovered", {
     code: EXTENZO_ERROR_CODES.NO_ENTRIES,
-    details: `在 ${srcDir} 下未找到 background、content、popup、options 或 sidepanel 任一入口`,
-    hint: "至少需要其一目录，且包含 index.ts / index.js 等入口文件",
+    details: `No background, content, popup, options or sidepanel entry found under ${appDir}`,
+    hint: "At least one such directory with index.ts / index.js etc. is required",
   });
 }
 
 export function createInvalidBrowserError(value: string): ExtenzoError {
-  return new ExtenzoError("不支持的浏览器参数", {
+  return new ExtenzoError("Unsupported browser argument", {
     code: EXTENZO_ERROR_CODES.INVALID_BROWSER,
-    details: `当前值: "${value}"`,
-    hint: "请使用 -b chrome 或 -b firefox，不传时默认 chrome",
+    details: `Current value: "${value}"`,
+    hint:
+      "Use -l chrome/edge/brave/vivaldi/opera/santa/firefox or --launch=chrome/edge/brave/vivaldi/opera/santa/firefox; default is chrome when omitted",
   });
 }
 
 export function createUnknownCommandError(cmd: string): ExtenzoError {
-  return new ExtenzoError("未知命令", {
+  return new ExtenzoError("Unknown command", {
     code: EXTENZO_ERROR_CODES.UNKNOWN_COMMAND,
-    details: `命令: "${cmd}"`,
-    hint: "支持: extenzo dev | extenzo build [-b chrome|firefox]",
+    details: `Command: "${cmd}"`,
+    hint: "Supported: extenzo dev | extenzo build [-l chrome|edge|brave|vivaldi|opera|santa|firefox]",
   });
 }

@@ -26,17 +26,17 @@ yarn add -D extenzo
 
 ### 2. 添加配置文件
 
-在项目根目录创建 `ext.config.ts`（或 `ext.config.js`），并确保项目中有 `background`、`content`、`popup`、`options`、`sidepanel` 等入口（在根目录或由 `srcDir` 指定的目录下）。
+在项目根目录创建 `exo.config.ts`（或 `exo.config.js`），并确保项目中有 `background`、`content`、`popup`、`options`、`sidepanel` 等入口（在根目录或由 `appDir` 指定的目录下）。
 
 ### 3. 最小配置示例
 
 ```ts
-// ext.config.ts
+// exo.config.ts
 import { defineConfig } from "extenzo";
 import { pluginReact } from "@rsbuild/plugin-react"; // 或 vue from "@extenzo/plugin-vue"
 
 export default defineConfig({
-  srcDir: "src",
+  appDir: "src",
   outDir: "dist",
   manifest: {
     name: "My Extension",
@@ -54,18 +54,18 @@ export default defineConfig({
 ### 4. 包与导入
 
 - **Core**：`defineConfig`、类型、入口发现与 manifest 等从 extenzo 导出。配置中请使用：`import { defineConfig } from "extenzo"`。
-- **运行时**：如 [webextension-polyfill](https://github.com/mozilla/webextension-polyfill) 可从 `@extenzo/utils` 导出。安装 `@extenzo/utils` 后：`import browser from "@extenzo/utils/webextension-polyfill"`。
+- **运行时**：需要 `browser` API 时请自行安装 [webextension-polyfill](https://github.com/mozilla/webextension-polyfill)，使用 `import browser from "webextension-polyfill"`。**Content UI**：`@extenzo/utils` 提供 `defineContentUI` / `mountContentUI`，用于在 content script 中注入 UI，使用 `import { defineContentUI, mountContentUI } from "@extenzo/utils"`。
 
 ### 5. 运行命令
 
 - **开发**：`extenzo dev` 或 `pnpm dev`（若在 package.json 中配置了 `"dev": "extenzo dev"`）。
 - **构建**：`extenzo build`，产物输出到 `outputRoot/outDir`（默认 `.extenzo/dist`）。
 
-使用 `-b chrome` 或 `-b firefox` 指定目标浏览器，例如：
+使用 `-l chrome|edge|brave|vivaldi|opera|santa|firefox` 指定目标浏览器，例如：
 
 ```bash
-extenzo dev -b chrome
-extenzo build -b firefox
+extenzo dev -l chrome
+extenzo build -l firefox
 ```
 
 未指定时默认为 Chrome。

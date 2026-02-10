@@ -13,16 +13,16 @@ These are injected by **@extenzo/cli**; do **not** add them in config:
 
 | Plugin | Role |
 |--------|------|
-| **plugin-entry** | Resolves [entry](/config/entry) and [srcDir](/config/src-dir), sets Rsbuild entry, HTML templates, output paths, public copy |
-| **plugin-extension** | After build, writes resolved [manifest](/config/manifest) to `manifest.json` in the output dir (chromium/firefox by `-b`) |
-| **plugin-hmr** | Dev only: WebSocket and browser reload |
+| **plugin-extension-entry** | Resolves [entry](/config/entry) and [appDir](/config/app-dir), sets Rsbuild entry, HTML templates, output paths, public copy |
+| **plugin-extension-manifest** | After build, writes resolved [manifest](/config/manifest) to `manifest.json` in the output dir (chromium/firefox by `-b`) |
+| **plugin-extension-hmr** | Dev only: WebSocket and browser reload |
 
 ## User plugins: Vue / React
 
 Add the framework Vue or React plugin to enable that stack:
 
 ```ts
-// ext.config.ts
+// exo.config.ts
 import { defineConfig } from "extenzo";
 import vue from "@extenzo/plugin-vue";
 // or for React:
@@ -50,7 +50,7 @@ export default defineConfig({
 
 ## Plugin order
 
-The framework assembles: **plugin-entry** → user **plugins** (with Vue/React expanded) → **plugin-extension**. Do not add plugin-entry, plugin-extension, or plugin-hmr manually.
+The framework assembles: **plugin-extension-entry** → user **plugins** (with Vue/React expanded) → **plugin-extension-manifest**. Do not add plugin-extension-entry, plugin-extension-manifest, or plugin-extension-hmr manually.
 
 ## Single plugin
 

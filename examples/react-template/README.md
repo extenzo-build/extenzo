@@ -2,7 +2,7 @@
 
 Minimal browser extension template with React: **popup**, **options**, **content script**, **background** and simple messaging.
 
-**Dependencies**: Add **react**, **react-dom** and **@rsbuild/plugin-react** to your project; use `plugins: [pluginReact()]` in ext.config (import from `@rsbuild/plugin-react`).
+**Dependencies**: Add **react**, **react-dom** and **@rsbuild/plugin-react** to your project; use `plugins: [pluginReact()]` in exo.config (import from `@rsbuild/plugin-react`).
 
 ## Structure
 

@@ -22,9 +22,9 @@ export function getConfigContent(framework: Framework, lang: Language): string {
 ${importLine}
 
 export default defineConfig({
-  srcDir: "src",
+  appDir: "src",
   outDir: "dist",
-  // outputRoot 默认 ".extenzo"，构建产物在 .extenzo/dist
+  // outputRoot defaults to ".extenzo"; build output goes to .extenzo/dist
   manifest: {
     name: "My Extension",
     version: "1.0.0",
@@ -33,7 +33,7 @@ export default defineConfig({
     permissions: ["storage", "activeTab"],
   },
   ${pluginsLine}
-  // 需要覆盖 Rsbuild 配置时使用 rsbuildConfig（对象会深度合并，函数则完全控制）
+  // Use rsbuildConfig to override Rsbuild (object = deep-merge, function = full control)
   // rsbuildConfig: (config) => config,
 });
 `;

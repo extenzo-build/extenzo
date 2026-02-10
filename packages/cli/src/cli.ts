@@ -2,9 +2,16 @@
 import { resolve } from "path";
 import { existsSync } from "fs";
 import { runPipeline } from "./pipeline.ts";
-import { wrapExtenzoOutput } from "./prefixStream.ts";
+import { wrapExtenzoOutput, getRawWrites } from "./prefixStream.ts";
 import { zipDist } from "./zipDist.ts";
-import { exitWithError, createConfigNotFoundError, CONFIG_FILES } from "@extenzo/core";
+import {
+  exitWithError,
+  createConfigNotFoundError,
+  CONFIG_FILES,
+  logDone,
+  setExoLoggerRawWrites,
+} from "@extenzo/core";
+import { launchBrowserOnly } from "@extenzo/plugin-extension-hmr";
 
 const root = process.cwd();
 
@@ -20,6 +27,7 @@ async function main(): Promise<void> {
 
   process.env.NODE_ENV = ctx.isDev ? "development" : "production";
   wrapExtenzoOutput();
+  setExoLoggerRawWrites(getRawWrites());
 
   const { createRsbuild } = await import("@rsbuild/core");
   const rsbuild = await createRsbuild({
@@ -32,13 +40,28 @@ async function main(): Promise<void> {
   });
 
   if (ctx.command === "dev") {
-    await rsbuild.build({ watch: true });
+    await rsbuild.startDevServer();
   } else {
     await rsbuild.build();
     await ctx.config.hooks?.afterBuild?.(ctx);
     if (ctx.config.zip !== false) {
       const zipPath = await zipDist(ctx.distPath, ctx.root, ctx.config.outDir);
-      console.log(`Zipped output to ${zipPath}`);
+      logDone("Zipped output to", zipPath);
+    }
+    if (ctx.launchRequested) {
+      const launch = ctx.config.launch as Record<string, string | undefined> | undefined;
+      await launchBrowserOnly({
+        distPath: ctx.distPath,
+        browser: ctx.launchTarget,
+        chromePath: launch?.chrome,
+        edgePath: launch?.edge,
+        bravePath: launch?.brave,
+        vivaldiPath: launch?.vivaldi,
+        operaPath: launch?.opera,
+        santaPath: launch?.santa,
+        firefoxPath: launch?.firefox,
+        persist: (ctx as { persist?: boolean }).persist,
+      });
     }
   }
 }

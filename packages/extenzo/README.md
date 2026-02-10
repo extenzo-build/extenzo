@@ -1,3 +1,7 @@
+[中文](README-zh_CN.md) | English
+
+---
+
 <p align="center">
   <img width="230" src="extenzo.png">
 </p>
@@ -35,20 +39,16 @@ npm install -D extenzo
 yarn add -D extenzo
 ```
 
-Create `ext.config.ts` (or `ext.config.js`) in the project root and configure it as below. Your layout must include entries such as `background`, `content`, `popup`, `options`, `sidepanel` (either at root or under a dir set via `srcDir`).
+Create `exo.config.ts` (or `exo.config.js`) in the project root and configure it as below. Your layout must include entries such as `background`, `content`, `popup`, `options`, `sidepanel` (under `app/` by default or under a dir set via `appDir`).
 
 ### Packages and imports
 
 - **Core** (`defineConfig`, types, discovery, manifest, etc.) is exported from **extenzo**. In config use: `import { defineConfig } from "extenzo"`.
-- **Runtime utilities** (e.g. [webextension-polyfill](https://github.com/mozilla/webextension-polyfill)) are exported from **`@extenzo/utils`**. Install `@extenzo/utils` and use:
-
-```ts
-import browser from "@extenzo/utils/webextension-polyfill";
-```
+- **Content UI** is in **`@extenzo/utils`**: `import { defineContentUI, mountContentUI } from "@extenzo/utils"`. For the `browser` API, install [webextension-polyfill](https://github.com/mozilla/webextension-polyfill) and use `import browser from "webextension-polyfill"`.
 
 ## Config
 
-Config file: `ext.config.ts` or `ext.config.js`.
+Config file: `exo.config.ts` or `exo.config.js`.
 
 Return a config object from `defineConfig`. Supported fields:
 
@@ -58,7 +58,7 @@ Return a config object from `defineConfig`. Supported fields:
 | **plugins** | Rsbuild plugins array (like Vite). Use function calls, e.g. `plugins: [vue()]` (from `@extenzo/plugin-vue`) or `plugins: [pluginReact()]` (from `@rsbuild/plugin-react`) |
 | **rsbuildConfig** | Override or extend Rsbuild config (like Vite’s build options). **Object**: deep-merged with base. **Function**: `(base) => config` for full control |
 | **entry** | Custom entries: object, key = entry name (reserved: popup, options, sidepanel, background, devtools, content; others custom), value = path string relative to baseDir (e.g. `'content/index.ts'`). Omit to use default discovery from baseDir |
-| **srcDir** | Source directory; default is project root. Also the base for **entry** paths |
+| **appDir** | App directory; default is `app/`. Also the base for **entry** paths |
 | **outDir** | Output directory; default `"dist"` |
 | **launch** | Dev browser paths. `launch.chrome`, `launch.firefox` for Chrome/Firefox executables; used when running `extenzo dev`. If unset, tries OS default install paths |
 | **hooks** | Lifecycle hooks at “parse CLI → load config → build Rsbuild config → run build”. See “Lifecycle hooks” below |
@@ -86,7 +86,7 @@ import { defineConfig } from "extenzo";
 import vue from "@extenzo/plugin-vue";
 
 export default defineConfig({
-  srcDir: "src",
+  appDir: "src",
   outDir: "dist",
   manifest: {
     name: "My Extension",
@@ -104,7 +104,7 @@ export default defineConfig({
 
 ## Directory and entry convention
 
-- By default, entries are discovered under the **project root** or **srcDir** (baseDir). You can override with **entry**:
+- By default, entries are discovered under **app/** or **appDir** (baseDir). You can override with **entry**:
   - **background**, **content**: script only
   - **popup**, **options**, **sidepanel**, **devtools**: require `index.html` + entry script in the same dir
   - Reserved names (fixed): popup, options, sidepanel, background, devtools, content; other names are custom
@@ -119,12 +119,12 @@ In a project that has extenzo installed:
 
 **Terminal output**: When running `extenzo dev` or `extenzo build`, each line is prefixed with **`[extenzo]`** so you can tell extenzo’s output from Rsbuild’s; full Rsbuild logs and errors are unchanged.
 
-Use **`-b chrome`** or **`-b firefox`** to choose the target browser (and thus manifest branch and dev browser):
+Use **`-l chrome/edge/brave/vivaldi/opera/santa/firefox`** or **`--launch=chrome/edge/brave/vivaldi/opera/santa/firefox`** to choose the target browser (and thus manifest branch and dev browser):
 
-- `extenzo dev -b chrome` / `extenzo dev -b firefox`
-- `extenzo build -b chrome` / `extenzo build -b firefox`
+- `extenzo dev -l chrome` / `extenzo dev -l edge` / `extenzo dev -l brave` / `extenzo dev -l vivaldi` / `extenzo dev -l opera` / `extenzo dev -l santa` / `extenzo dev -l firefox`
+- `extenzo build -l chrome` / `extenzo build -l edge` / `extenzo build -l brave` / `extenzo build -l vivaldi` / `extenzo build -l opera` / `extenzo build -l santa` / `extenzo build -l firefox`
 
-Default is Chrome if `-b` is omitted. The target is determined only by `-b`, not by env vars.
+Default is Chrome if `-l` is omitted. The target is determined by CLI `-l` first, then `config.browser`, then default.
 
 ## Dependencies
 
@@ -149,10 +149,10 @@ Browser paths: set **launch** in config to override; otherwise the framework tri
 - `packages/cli`: **@extenzo/cli** – CLI entry and **Pipeline** (parse → config → Rsbuild config → hooks; injects ConfigLoader / CliParser)
 - `packages/core`: Core modules; filenames match class names (camelCase): **ConfigLoader** (configLoader.ts), **CliParser** (cliParser.ts), **EntryDiscoverer** (entryDiscoverer.ts), **EntryResolver** (entryResolver.ts), **ManifestBuilder** (manifestBuilder.ts); constants, ExtenzoError, mergeRsbuildConfig, defineConfig, types
 - `packages/utils`: Utilities (webextension-polyfill etc.); use `@extenzo/utils` as needed
-- `packages/plugins/plugin-entry**: **Internal** – resolves dirs and entries, sets entry/html/output
-- `packages/plugins/plugin-extension`: **Internal** – writes manifest.json
-- `packages/plugins/plugin-hmr**: **Internal** – dev HMR and browser launch
+- `packages/plugins/plugin-entry**: **Internal** – resolves dirs and entries, sets entry/html/output (package: `@extenzo/plugin-extension-entry`)
+- `packages/plugins/plugin-extension`: **Internal** – writes manifest.json (package: `@extenzo/plugin-extension-manifest`)
+- `packages/plugins/plugin-extension-hmr**: **Internal** – dev HMR and browser launch
 - `packages/plugins/plugin-vue`: Vue 3 + Vue JSX + Less + Babel; use `plugins: [vue()]`
 - `packages/create-extenzo-app`: Scaffold CLI; generates project with `plugins: [vue()]` or `plugins: [pluginReact()]` (use `@rsbuild/plugin-react` for React)
 
-The framework runs plugin-entry, plugin-extension and plugin-hmr by default. Users add framework plugins via `plugins: [vue()]` etc. and override Rsbuild via `rsbuildConfig`.
+The framework runs plugin-extension-entry, plugin-extension-manifest and plugin-extension-hmr by default. Users add framework plugins via `plugins: [vue()]` etc. and override Rsbuild via `rsbuildConfig`.

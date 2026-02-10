@@ -11,6 +11,6 @@ export default defineConfig({
     exclude: ["**/cli.ts"],
     reporters: [["text", { skipFull: true }], "html", "json", "lcov"],
     reportsDirectory: "./coverage",
-    thresholds: { statements: 71, branches: 55, functions: 68, lines: 74 },
+    thresholds: { statements: 90, branches: 90, functions: 90, lines: 90 },
   },
 });

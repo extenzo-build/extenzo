@@ -1,0 +1,679 @@
+{
+   "extension_name": {
+      "message": "Video Roll - Caixa de ferramentas tudo-em-um para vídeos na web"
+   },
+   "extension_des": {
+      "message": "Ferramentas de vídeo: rotação, zoom, download, gravação, modo VR, resumo IA, PiP, captura, foco, velocidade e mais"
+   },
+   "tabs_video": {
+      "message": "Vídeo"
+   },
+   "tabs_audio": {
+      "message": "Áudio"
+   },
+   "tabs_list": {
+      "message": "Lista de vídeos"
+   },
+   "tabs_more": {
+      "message": "Mais configurações"
+   },
+   "video_rotate": {
+      "message": "Girar"
+   },
+   "video_loop": {
+      "message": "Reprodução em loop"
+   },
+   "video_pic": {
+      "message": "Imagem na imagem"
+   },
+   "video_download": {
+      "message": "Baixar"
+   },
+   "video_left": {
+      "message": "Esquerda"
+   },
+   "video_right": {
+      "message": "Direita"
+   },
+   "video_up": {
+      "message": "Cima"
+   },
+   "video_down": {
+      "message": "Baixo"
+   },
+   "video_unset": {
+      "message": "Não definido"
+   },
+   "video_custom": {
+      "message": "Personalizado"
+   },
+   "video_horizental": {
+      "message": "Horizontal"
+   },
+   "video_vertical": {
+      "message": "Vertical"
+   },
+   "video_reposition": {
+      "message": "Reposicionar"
+   },
+   "video_stretch": {
+      "message": "Esticar"
+   },
+   "video_flip": {
+      "message": "Inverter"
+   },
+   "video_focus": {
+      "message": "Modo de foco com luz apagada"
+   },
+   "video_filter": {
+      "message": "Filtro"
+   },
+   "video_screenshot": {
+      "message": "Captura de tela"
+   },
+   "video_speed": {
+      "message": "Velocidade"
+   },
+   "video_zoom": {
+      "message": "Zoom"
+   },
+   "audio_muted": {
+      "message": "Silenciado"
+   },
+   "audio_volume": {
+      "message": "Volume"
+   },
+   "audio_pitch": {
+      "message": "Tom"
+   },
+   "audio_surround": {
+      "message": "Som envolvente"
+   },
+   "list_main": {
+      "message": "Vídeo principal"
+   },
+   "more_save_preferences": {
+      "message": "Salvar configurações atuais"
+   },
+   "more_auto_resize": {
+      "message": "Redimensionamento automático ao girar"
+   },
+   "action_reset": {
+      "message": "Redefinir"
+   },
+   "tips_disabled": {
+      "message": "Desativado neste site"
+   },
+   "tips_enabled": {
+      "message": "Ativado neste site"
+   },
+   "tips_setting": {
+      "message": "Configurações"
+   },
+   "tips_rating": {
+      "message": "Avaliação de cinco estrelas"
+   },
+   "tips_donate": {
+      "message": "Me compre um café"
+   },
+   "tips_wechat": {
+      "message": "WeChat"
+   },
+   "tips_alipay": {
+      "message": "Alipay"
+   },
+   "tips_afdian": {
+      "message": "Afdian"
+   },
+   "tips_clearAll": {
+      "message": "Limpar tudo"
+   },
+   "tips_empty": {
+      "message": "Nenhum vídeo detectado"
+   },
+   "tips_feedback": {
+      "message": "Feedback"
+   },
+   "options_general": {
+      "message": "Geral"
+   },
+   "options_shortcuts": {
+      "message": "Atalhos"
+   },
+   "options_cache_list": {
+      "message": "Lista de cache"
+   },
+   "options_disabled_list": {
+      "message": "Lista de desativação"
+   },
+   "options_contact": {
+      "message": "Contato"
+   },
+   "options_donate": {
+      "message": "Doar"
+   },
+   "options_shortcuts_rotate_left": {
+      "message": "Girar para a esquerda"
+   },
+   "options_shortcuts_rotate_right": {
+      "message": "Girar para a direita"
+   },
+   "options_shortcuts_rotate_90": {
+      "message": "Girar 90 graus"
+   },
+   "options_shortcuts_rotate_180": {
+      "message": "Girar 180 graus"
+   },
+   "options_shortcuts_rotate_270": {
+      "message": "Girar 270 graus"
+   },
+   "options_shortcuts_rotate_0": {
+      "message": "Girar 0 graus"
+   },
+   "options_shortcuts_flip_horizontally": {
+      "message": "Inverter horizontalmente"
+   },
+   "options_shortcuts_vertically": {
+      "message": "Inverter verticalmente"
+   },
+   "options_shortcuts_flip_reset": {
+      "message": "Redefinir inversão"
+   },
+   "options_shortcuts_zoomin": {
+      "message": "Aumentar zoom"
+   },
+   "options_shortcuts_zoomout": {
+      "message": "Reduzir zoom"
+   },
+   "options_shortcut_stretch_horizontally_p": {
+      "message": "Esticar horizontalmente +"
+   },
+   "options_shortcut_stretch_horizontally_r": {
+      "message": "Esticar horizontalmente -"
+   },
+   "options_shortcut_stretch_vertically_p": {
+      "message": "Esticar verticalmente +"
+   },
+   "options_shortcut_stretch_vertically_r": {
+      "message": "Esticar verticalmente -"
+   },
+   "options_shortcut_stretch_reset": {
+      "message": "Redefinir esticamento"
+   },
+   "options_shortcut_move_right": {
+      "message": "Mover para a direita"
+   },
+   "options_shortcut_move_left": {
+      "message": "Mover para a esquerda"
+   },
+   "options_shortcut_move_up": {
+      "message": "Mover para cima"
+   },
+   "options_shortcut_move_down": {
+      "message": "Mover para baixo"
+   },
+   "options_shortcut_play_pause": {
+      "message": "Reproduzir/Pausar"
+   },
+   "options_shortcut_pip": {
+      "message": "Imagem em Imagem"
+   },
+   "options_shortcut_summarizer": {
+      "message": "Alternar Resumidor"
+   },
+   "options_shortcut_vr": {
+      "message": "Alternar Modo VR"
+   },
+   "options_shortcut_advanced_pip": {
+      "message": "Alternar Imagem em Imagem Avançada"
+   },
+   "options_shortcut_volume_p": {
+      "message": "Volume +"
+   },
+   "options_shortcut_volume_r": {
+      "message": "Volume -"
+   },
+   "options_shortcut_speed_p": {
+      "message": "Velocidade +"
+   },
+   "options_shortcut_speed_r": {
+      "message": "Velocidade -"
+   },
+   "options_shortcut_screenshot": {
+      "message": "Captura de tela"
+   },
+   "options_shortcut_focus": {
+      "message": "Modo de foco com luz apagada"
+   },
+   "options_general_focus": {
+      "message": "Modo de foco com luz apagada"
+   },
+   "options_general_focus_backgroundColor": {
+      "message": "Cor de fundo"
+   },
+   "options_general_focus_backgroundBlur": {
+      "message": "Desfoque de fundo"
+   },
+   "options_general_audio_capture_type": {
+      "message": "Modo de captura de áudio"
+   },
+   "options_general_audio_capture_page": {
+      "message": "Página inteira"
+   },
+   "options_general_audio_capture_element": {
+      "message": "Elementos de vídeo"
+   },
+   "options_general_focus_rounded": {
+      "message": "Cantos arredondados para o vídeo"
+   },
+   "options_ad": {
+      "message": "Colaboração publicitária"
+   },
+   "tips_mail": {
+      "message": "Contato por e-mail: gxy880520@gmail.com"
+   },
+   "tips_wechatGroup": {
+      "message": "Grupo WeChat"
+   },
+   "download_no_segments": {
+      "message": "Nenhum segmento disponível para download!"
+   },
+   "download_size": {
+      "message": "Tamanho"
+   },
+   "download_segments": {
+      "message": "Segmentos"
+   },
+   "download_format": {
+      "message": "Formato de download"
+   },
+   "format_hint_mp4_detected": {
+      "message": "Segmentos MP4 detectados, o formato MP4 é recomendado"
+   },
+   "download_video_btn": {
+      "message": "Baixar vídeo"
+   },
+   "preview_btn": {
+      "message": "Pré-visualizar"
+   },
+   "download_ts": {
+      "message": "Baixar TS"
+   },
+   "download_mp4": {
+      "message": "Baixar MP4"
+   },
+   "abloop_enable": {
+      "message": "Ativar loop A-B"
+   },
+   "abloop_a": {
+      "message": "Ponto A"
+   },
+   "abloop_b": {
+      "message": "Ponto B"
+   },
+   "player_local_file": {
+      "message": "Arquivo local"
+   },
+   "player_stream_url": {
+      "message": "URL de stream"
+   },
+   "player_mp4_url": {
+      "message": "URL MP4"
+   },
+   "player_enter_stream_url": {
+      "message": "Por favor, insira a URL do stream"
+   },
+   "player_enter_mp4_url": {
+      "message": "Por favor, insira a URL MP4"
+   },
+   "player_upload_or_drag": {
+      "message": "+Clique para fazer upload ou arrastar"
+   },
+   "tab_download": {
+      "message": "Baixar"
+   },
+   "tab_qr": {
+      "message": "Código QR"
+   },
+   "tab_player": {
+      "message": "Reprodutor"
+   },
+   "tab_abloop": {
+      "message": "Loop A-B"
+   },
+   "tab_vr": {
+      "message": "RV"
+   },
+   "tab_record": {
+      "message": "Gravar"
+   },
+   "stop_record": {
+      "message": "Parar gravação"
+   },
+   "tips_user_center": {
+      "message": "Centro do usuário",
+      "description": "Tooltip: user center"
+   },
+   "tips_login": {
+      "message": "Entrar",
+      "description": "Tooltip: login"
+   },
+   "options_layout": {
+      "message": "[PT] 布局配置"
+   },
+   "layout_title": {
+      "message": "Configuração de layout"
+   },
+   "layout_description": {
+      "message": "Personalizar o layout da interface popup e visibilidade dos componentes"
+   },
+   "layout_visibility": {
+      "message": "Visibilidade dos componentes"
+   },
+   "layout_arrangement": {
+      "message": "Arranjo do layout"
+   },
+   "layout_tabs": {
+      "message": "Abas"
+   },
+   "layout_preset_layouts": {
+      "message": "Layouts predefinidos"
+   },
+   "layout_compact": {
+      "message": "Layout compacto"
+   },
+   "layout_spacious": {
+      "message": "Layout espaçoso"
+   },
+   "layout_single_column": {
+      "message": "Layout de coluna única"
+   },
+   "layout_apply": {
+      "message": "Aplicar"
+   },
+   "layout_export": {
+      "message": "Exportar configuração"
+   },
+   "layout_import": {
+      "message": "Importar configuração"
+   },
+   "layout_reset": {
+      "message": "Redefinir para padrão"
+   },
+   "layout_rows_per_tab": {
+      "message": "Linhas por aba"
+   },
+   "layout_columns_per_row": {
+      "message": "Colunas por linha"
+   },
+   "layout_drag_hint": {
+      "message": "Arraste componentes para reorganizar"
+   },
+   "layout_unsaved_changes": {
+      "message": "Não salvo"
+   },
+   "layout_save_reminder": {
+      "message": "· Por favor, lembre-se de salvar as alterações"
+   },
+   "layout_component_hidden": {
+      "message": "Oculto"
+   },
+   "layout_config_saved": {
+      "message": "Configuração salva com sucesso!"
+   },
+   "layout_config_reset": {
+      "message": "Layout padrão redefinido com sucesso!"
+   },
+   "layout_config_title": {
+      "message": "Configuração de layout de interface"
+   },
+   "layout_config_desc": {
+      "message": "Personalizar o layout dos componentes e exibição da interface popup"
+   },
+   "layout_tabs_config": {
+      "message": "Configuração de abas"
+   },
+   "layout_row_title": {
+      "message": "Linha {0}"
+   },
+   "layout_max_columns": {
+      "message": "Exibir cada linha"
+   },
+   "layout_items": {
+      "message": "item"
+   },
+   "layout_add_row": {
+      "message": "Adicionar linha"
+   },
+   "layout_remove_row": {
+      "message": "Remover linha"
+   },
+   "layout_add_new_row": {
+      "message": "Adicionar nova linha"
+   },
+   "layout_hide_component": {
+      "message": "Ocultar componente"
+   },
+   "layout_show_component": {
+      "message": "Mostrar componente"
+   },
+   "layout_width": {
+      "message": "Largura"
+   },
+   "layout_config_import_error": {
+      "message": "Falha ao importar arquivo de configuração"
+   },
+   "layout_config_reset_confirm": {
+      "message": "Tem certeza de que deseja redefinir para o layout padrão?"
+   },
+   "layout_unsaved_warning": {
+      "message": "Você tem alterações não salvas, tem certeza de que deseja sair?"
+   },
+   "clear_shortcut": {
+      "message": "Limpar atalho"
+   },
+   "shortcut_cleared": {
+      "message": "Atalho limpo com sucesso"
+   },
+   "summary_type_key_points": {
+      "message": "Resumo de pontos-chave"
+   },
+   "summary_type_teaser": {
+      "message": "Resumo de destaque"
+   },
+   "summary_type_headline": {
+      "message": "Resumo de manchetes"
+   },
+   "summary_type_tldr": {
+      "message": "Resumo breve"
+   },
+   "summary_length_short": {
+      "message": "Curto"
+   },
+   "summary_length_medium": {
+      "message": "Médio"
+   },
+   "summary_length_long": {
+      "message": "Detalhado"
+   },
+   "summary_type_label": {
+      "message": "Tipo de resumo"
+   },
+   "summary_length_label": {
+      "message": "Comprimento do resumo"
+   },
+   "input_size_label": {
+      "message": "Tamanho da entrada"
+   },
+   "summary_btn": {
+      "message": "Gerar resumo"
+   },
+   "error_no_tab": {
+      "message": "Não é possível obter a aba atual"
+   },
+   "error_no_subtitle": {
+      "message": "Legendas não encontradas, por favor ative as legendas do YouTube"
+   },
+   "summary_title": {
+      "message": "Resumo do vídeo"
+   },
+   "error_summary_failed": {
+      "message": "Falha na geração do resumo"
+   },
+   "error_request_failed": {
+      "message": "Falha na solicitação"
+   },
+   "subtitle_dialog_title": {
+      "message": "Conteúdo das legendas"
+   },
+   "subtitle_dialog_empty": {
+      "message": "Sem conteúdo de legendas"
+   },
+   "notify_copied": {
+      "message": "Copiado com sucesso"
+   },
+   "chrome_version_tip": {
+      "message": "Requer Chrome 138 beta ou superior"
+   },
+   "model_checking": {
+      "message": "Verificando se o modelo está disponível..."
+   },
+   "model_ready": {
+      "message": "O modelo está pronto"
+   },
+   "model_downloadable": {
+      "message": "O modelo do navegador pode ser baixado"
+   },
+   "model_download_btn": {
+      "message": "Clique para baixar o modelo"
+   },
+   "model_downloading": {
+      "message": "Baixando modelo..."
+   },
+   "model_unavailable": {
+      "message": "O modelo não está disponível neste dispositivo"
+   },
+   "subtitle_optimized": {
+      "message": "Legendas obtidas, as legendas otimizadas têm "
+   },
+   "subtitle_chars": {
+      "message": " caracteres"
+   },
+   "summary_generating": {
+      "message": "Gerando resumo..."
+   },
+   "summary_done": {
+      "message": "Geração de resumo concluída"
+   },
+   "video_summarizer": {
+      "message": "Resumo IA"
+   },
+   "video_separate": {
+      "message": "Separação de imagem"
+   },
+   "audio_stereo": {
+      "message": "Estéreo"
+   },
+   "audio_delay": {
+      "message": "Atraso de áudio"
+   },
+   "head_iframes_found": {
+      "message": "Iframes encontrados"
+   },
+   "head_no_videos_iframes": {
+      "message": "Nenhum vídeo e iframe encontrado"
+   },
+   "head_dialog_close": {
+      "message": "Fechar"
+   },
+   "head_tooltip_detect_iframe": {
+      "message": "Nenhum vídeo detectado, clique para detectar vídeos incorporados"
+   },
+   "head_tooltip_rating": {
+      "message": "Avaliar esta extensão"
+   },
+   "head_tooltip_help": {
+      "message": "Ajuda"
+   },
+   "more_auto_skip_youtube_ad": {
+      "message": "Acelerar anúncios do YouTube automaticamente"
+   },
+   "contact_wechat": {
+      "message": "WeChat: gxy880520"
+   },
+   "contact_email": {
+      "message": "Email: gxy880520@gmail.com"
+   },
+   "contact_wechat_copied": {
+      "message": "ID do WeChat copiado para a área de transferência"
+   },
+   "contact_wechat_copy_failed": {
+      "message": "Falha ao copiar, ID do WeChat: gxy880520"
+   },
+   "contact_email_copied": {
+      "message": "Email copiado para a área de transferência"
+   },
+   "contact_email_copy_failed": {
+      "message": "Falha ao copiar, Email: gxy880520@gmail.com"
+   },
+   "recorder_back_to_tab": {
+      "message": "voltar à aba"
+   },
+   "recorder_no_video_detected": {
+      "message": "Nenhum vídeo detectado"
+   },
+   "recorder_video_state_invalid": {
+      "message": "O estado atual do vídeo não pode ser gravado"
+   },
+   "recorder_recording_completed": {
+      "message": "Gravação de vídeo concluída"
+   },
+   "videolist_no_video_detected": {
+      "message": "Não consegue encontrar o vídeo que quer baixar? Tente isto~"
+   },
+   "videolist_video_download": {
+      "message": "Download de Vídeo"
+   },
+   "videolist_copy_success": {
+      "message": "Copiado com sucesso"
+   },
+   "rating_dialog_title": {
+      "message": "Gosta desta extensão?"
+   },
+   "rating_submit_button": {
+      "message": "Enviar avaliação"
+   },
+   "rating_close_button": {
+      "message": "Fechar"
+   },
+   "rating_no_show_again": {
+      "message": "Não mostrar novamente"
+   },
+   "press_keyboard_to_reset": {
+      "message": "Pressione o teclado para redefinir"
+   },
+   "click_to_update": {
+      "message": "Clique para atualizar"
+   },
+   "force_lock_video_config": {
+      "message": "Forçar bloqueio da configuração de vídeo"
+   },
+   "others": {
+      "message": "Outros"
+   },
+   "site_specific_settings": {
+      "message": "Efetivo apenas para este site"
+   },
+   "global_configuration": {
+      "message": "Configuração global"
+   },
+   "more_settings": {
+      "message": "Mais configurações"
+   },
+   "dark_mode": {
+      "message": "Modo escuro"
+   },
+   "light_mode": {
+      "message": "Modo claro"
+   }
+}

@@ -13,7 +13,7 @@ Provides extenzo types, config loading, entry discovery/resolution, manifest bui
 
 ## Entries and constants
 
-- Config: `CONFIG_FILES`, `DEFAULT_SRC_DIR`, `DEFAULT_OUT_DIR`
+- Config: `CONFIG_FILES`, `DEFAULT_APP_DIR`, `DEFAULT_OUT_DIR`
 - Entries: `SCRIPT_EXTS`, `HTML_ENTRY_NAMES`, `SCRIPT_ONLY_ENTRY_NAMES`, `RESERVED_ENTRY_NAMES`, `MANIFEST_ENTRY_PATHS`
 - Do not hardcode entry names or output paths; use these constants.
 

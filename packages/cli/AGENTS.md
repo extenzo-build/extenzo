@@ -11,14 +11,14 @@ Provides the `extenzo` executable: when running `extenzo dev` or `extenzo build`
 
 ## Flow summary
 
-1. Check that ext.config.ts/js/mjs exists in cwd
+1. Check that exo.config.ts/js/mjs exists in cwd
 2. Parse argv → command (dev/build), browser (chromium/firefox)
 3. ConfigLoader.resolve → config, entries
-4. Build Rsbuild config (entry plugin, extension plugin, HMR plugin, user plugins/rsbuildConfig)
+4. Build Rsbuild config (entry plugin, manifest plugin, HMR plugin, user plugins/rsbuildConfig)
 5. If enabled, wrap stdout/stderr with `[extenzo]` prefix via `wrapExtenzoOutput`
 6. Run Rsbuild build (watch in dev)
 
 ## When changing this package
 
 - New commands or flags require updates in `cli.ts` and `@extenzo/core`’s CliParser/constants
-- Pipeline order or plugin injection lives in `pipeline.ts`; keep plugin-entry, plugin-extension, plugin-hmr contracts in mind
+- Pipeline order or plugin injection lives in `pipeline.ts`; keep plugin-extension-entry, plugin-extension-manifest, plugin-extension-hmr contracts in mind

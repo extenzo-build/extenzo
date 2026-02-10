@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "nodenext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "jsx": "preserve",
+    "jsxImportSource": "vue",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "rootDir": "./app",
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["./app/*"],
+      "app/*": ["./app/*"]
+    },
+    "lib": ["es2021", "dom"],
+    "types": ["chrome", "node", "webextension-polyfill"]
+  },
+  "include": ["app/**/*.ts", "app/**/*.tsx", "app/**/*.vue"],
+  "exclude": ["node_modules"]
+}

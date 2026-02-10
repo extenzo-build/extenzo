@@ -35,12 +35,12 @@ describe("templates", () => {
   });
 
   describe("getPackageJson", () => {
-    it("vanilla js has scripts and @extenzo/cli", () => {
+    it("vanilla js has scripts and extenzo", () => {
       const json = getPackageJson("vanilla", "js", "my-ext");
       const pkg = JSON.parse(json);
       expect(pkg.scripts?.dev).toBe("extenzo dev");
       expect(pkg.scripts?.build).toBe("extenzo build");
-      expect(pkg.dependencies["@extenzo/cli"]).toBeDefined();
+      expect(pkg.dependencies["extenzo"]).toBeDefined();
     });
     it("uses targetDir for name", () => {
       const json = getPackageJson("vanilla", "js", "my-extension");

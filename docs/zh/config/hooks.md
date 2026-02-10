@@ -41,7 +41,7 @@
 ### 基础用法：打印与简单修改
 
 ```ts
-// ext.config.ts
+// exo.config.ts
 import { defineConfig } from "extenzo";
 
 export default defineConfig({
@@ -68,7 +68,7 @@ export default defineConfig({
 ### 异步钩子（如构建后上传）
 
 ```ts
-// ext.config.ts
+// exo.config.ts
 import { defineConfig } from "extenzo";
 
 export default defineConfig({
