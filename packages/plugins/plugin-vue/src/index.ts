@@ -1,47 +1,30 @@
 import { createRequire } from "module";
 import { resolve } from "path";
-import type { RsbuildPluginAPI } from "@rsbuild/core";
+import type { RsbuildPlugin } from "@rsbuild/core";
 
 /**
- * Create require that resolves from app root so @rsbuild/* and @vue/babel-plugin-jsx
+ * Create require that resolves from app root so @rsbuild/plugin-vue, @rsbuild/plugin-vue-jsx and @rsbuild/plugin-babel
  * are found in the app's node_modules (e.g. examples/manual-install).
  */
 function createAppRequire(appRoot: string) {
   return createRequire(resolve(appRoot, "package.json"));
 }
 
-/** Return Rsbuild plugins to prepend before extenzo-vue (so Vue/Babel are available before plugins init). */
-export function getVueRsbuildPlugins(appRoot: string): unknown[] {
-  const appRequire = createAppRequire(appRoot);
+/** Return Rsbuild plugins to prepend before extenzo-vue (Vue + Vue JSX via @rsbuild/plugin-vue-jsx; Babel required by vue-jsx). */
+export function getVueRsbuildPlugins(
+  appRoot: string,
+  /** Optional require (e.g. for tests to simulate missing deps). */
+  appRequireOverride?: NodeRequire
+): unknown[] {
+  const appRequire = appRequireOverride ?? createAppRequire(appRoot);
   try {
-    const { pluginVue } = appRequire("@rsbuild/plugin-vue");
     const { pluginBabel } = appRequire("@rsbuild/plugin-babel");
+    const { pluginVue } = appRequire("@rsbuild/plugin-vue");
+    const { pluginVueJsx } = appRequire("@rsbuild/plugin-vue-jsx");
     return [
-      pluginBabel({
-        include: /\.(?:jsx|tsx)$/,
-        babelLoaderOptions: (
-          opts: Record<string, unknown>,
-          utils: { addPlugins?: (plugins: unknown[]) => void }
-        ) => {
-          if (typeof utils?.addPlugins === "function") {
-            utils.addPlugins(["@vue/babel-plugin-jsx"]);
-          } else {
-            const list = (opts.plugins as unknown[]) ?? [];
-            if (
-              !list.some(
-                (p) =>
-                  (typeof p === "string" && p.includes("babel-plugin-jsx")) ||
-                  (Array.isArray(p) && String(p[0]).includes("babel-plugin-jsx"))
-              )
-            ) {
-              opts.plugins = [...list, "@vue/babel-plugin-jsx"];
-            }
-          }
-          return opts;
-        },
-      }),
+      pluginBabel({ include: /\.(?:jsx|tsx)$/ }),
       pluginVue(),
-      // pluginVueJsx(),
+      pluginVueJsx(),
     ];
   } catch {
     return [];
@@ -49,17 +32,17 @@ export function getVueRsbuildPlugins(appRoot: string): unknown[] {
 }
 
 /**
- * Rsbuild plugin for Vue 3 + Vue JSX + Less + Babel.
+ * Rsbuild plugin for Vue 3 + Vue JSX (via @rsbuild/plugin-vue-jsx).
  * Usage: import vue from "@extenzo/plugin-vue"; plugins: [vue()]
  */
-export function extenzoVuePlugin() {
+export function extenzoVuePlugin(): RsbuildPlugin {
   return {
     name: "extenzo-vue",
-    enforce: "pre" as const,
+    enforce: "pre",
     setup() {
       // Vue/Babel plugins are injected by CLI via getVueRsbuildPlugins before createRsbuild.
     },
-  };
+  } satisfies RsbuildPlugin;
 }
 
 export default extenzoVuePlugin;

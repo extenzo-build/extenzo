@@ -2,20 +2,22 @@
 
 ## Purpose
 
-Provides a single `browser` API (via webextension-polyfill) in extension scripts (popup, options, sidepanel, content, background) for cross-Chrome/Firefox usage.
+Provides **content UI** helpers for extension content scripts: `defineContentUI` and `mountContentUI` to create and mount a root element into a page (with optional iframe or shadow DOM wrapper).
 
 ## When to use
 
-- In **any extension entry** (popup, options, sidepanel, content, background) that needs `browser.runtime`, `browser.tabs`, `browser.storage`, etc., import the default export from `@extenzo/utils/webextension-polyfill` as `browser`
-- Do not depend on `webextension-polyfill` directly; use this package for consistent version and types
+- In **content scripts** that need to inject a UI root: `import { defineContentUI, mountContentUI } from "@extenzo/utils"`, then call `mountContentUI(defineContentUI({ ... }))` when you want to mount.
+- This package does **not** provide webextension-polyfill; users install it themselves if they need the `browser` API.
 
 ## Usage
 
 ```ts
-import browser from "@extenzo/utils/webextension-polyfill";
-browser.runtime.sendMessage({ type: "PING" });
+import { defineContentUI, mountContentUI } from "@extenzo/utils";
+const spec = defineContentUI({ tag: "div", target: "body", wrapper: "shadow" });
+const root = mountContentUI(spec);
+root.appendChild(document.createElement("span"));
 ```
 
 ## When changing this package
 
-- This package only wraps webextension-polyfill; when upgrading the polyfill, update this package’s dependency and types accordingly.
+- Content UI options: `tag`, `target`, `attr`, `injectMode`, `wrapper`. Keep the API stable.

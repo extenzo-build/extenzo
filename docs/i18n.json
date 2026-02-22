@@ -1,0 +1,90 @@
+{
+  "nav": {
+    "en": "Nav",
+    "zh": "导航"
+  },
+  "home": {
+    "en": "Home",
+    "zh": "首页"
+  },
+  "guide": {
+    "en": "Guide",
+    "zh": "指南"
+  },
+  "config": {
+    "en": "Config",
+    "zh": "配置"
+  },
+  "introduction": {
+    "en": "Introduction",
+    "zh": "介绍"
+  },
+  "install": {
+    "en": "Installation",
+    "zh": "安装"
+  },
+  "features": {
+    "en": "Features",
+    "zh": "功能简介"
+  },
+  "manifest": {
+    "en": "manifest",
+    "zh": "manifest"
+  },
+  "plugins": {
+    "en": "plugins",
+    "zh": "plugins"
+  },
+  "rsbuildConfig": {
+    "en": "rsbuildConfig",
+    "zh": "rsbuildConfig"
+  },
+  "entry": {
+    "en": "entry",
+    "zh": "entry"
+  },
+  "appDir": {
+    "en": "appDir",
+    "zh": "appDir"
+  },
+  "outDir": {
+    "en": "outDir",
+    "zh": "outDir"
+  },
+  "outputRoot": {
+    "en": "outputRoot",
+    "zh": "outputRoot"
+  },
+  "zip": {
+    "en": "zip",
+    "zh": "zip"
+  },
+  "envPrefix": {
+    "en": "envPrefix",
+    "zh": "envPrefix"
+  },
+  "launch": {
+    "en": "launch",
+    "zh": "launch"
+  },
+  "hooks": {
+    "en": "hooks",
+    "zh": "hooks"
+  },
+  "outlineTitle": {
+    "en": "On this page",
+    "zh": "本页目录"
+  },
+  "prevPage": {
+    "en": "Previous",
+    "zh": "上一页"
+  },
+  "nextPage": {
+    "en": "Next",
+    "zh": "下一页"
+  },
+  "editLink": {
+    "en": "Edit this page",
+    "zh": "编辑此页"
+  }
+}

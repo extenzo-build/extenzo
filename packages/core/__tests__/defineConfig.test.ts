@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@rstest/core";
-import { defineConfig } from "../src/defineConfig.js";
+import { defineConfig } from "../src/defineConfig.ts";
 
 describe("defineConfig", () => {
   it("returns config unchanged", () => {

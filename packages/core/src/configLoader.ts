@@ -1,28 +1,30 @@
 import { createRequire } from "module";
 import { resolve } from "path";
-import { existsSync } from "fs";
-import type { ExtenzoUserConfig, ExtenzoResolvedConfig } from "./types.js";
-import type { EntryInfo } from "./types.js";
+import { existsSync, statSync } from "fs";
+import type { ExtenzoUserConfig, ExtenzoResolvedConfig, EntryInfo } from "./types.ts";
 import {
   CONFIG_FILES,
   DEFAULT_OUT_DIR,
-  DEFAULT_SRC_DIR,
+  DEFAULT_APP_DIR,
   EXTENZO_OUTPUT_ROOT,
-} from "./constants.js";
+} from "./constants.ts";
 import {
   createConfigLoadError,
   createConfigNotFoundError,
   createManifestMissingError,
+  createAppDirMissingError,
   createNoEntriesError,
-} from "./errors.js";
-import { EntryDiscoverer } from "./entryDiscoverer.js";
-import { EntryResolver } from "./entryResolver.js";
+} from "./errors.ts";
+import { EntryDiscoverer } from "./entryDiscoverer.ts";
+import { EntryResolver } from "./entryResolver.ts";
+import { resolveManifestInput } from "./manifestLoader.ts";
+import { logDone } from "./logger.ts";
 
 const require = createRequire(
   typeof __filename !== "undefined" ? __filename : import.meta.url
 );
 
-/** 配置加载器：从项目根目录加载 ext.config 并解析为完整配置与入口列表。 */
+/** Config loader: loads exo.config from project root and resolves full config and entry list. */
 export class ConfigLoader {
   constructor(
     private readonly configFiles: readonly string[] = CONFIG_FILES,
@@ -50,18 +52,34 @@ export class ConfigLoader {
     baseEntries: EntryInfo[];
     entries: EntryInfo[];
   } {
+    logDone("Parse exo.config");
     const user = this.loadConfigFile(root);
     if (!user) throw createConfigNotFoundError(root);
-    if (!user.manifest) throw createManifestMissingError();
 
-    const srcDir = resolve(root, user.srcDir ?? DEFAULT_SRC_DIR);
+    const appDir = resolve(root, user.appDir ?? user.srcDir ?? DEFAULT_APP_DIR);
+    const entryDisabled = user.entry === false;
+    if (!entryDisabled && (!existsSync(appDir) || !statSync(appDir).isDirectory())) {
+      throw createAppDirMissingError(appDir);
+    }
     const outDir = user.outDir ?? DEFAULT_OUT_DIR;
     const outputRoot = user.outputRoot ?? EXTENZO_OUTPUT_ROOT;
-    const config: ExtenzoResolvedConfig = { ...user, srcDir, outDir, outputRoot, root };
-    const baseDir = srcDir;
-    const baseEntries = this.entryDiscoverer.discover(baseDir);
-    const entries = this.entryResolver.resolve(user, root, baseDir);
-    if (entries.length === 0) throw createNoEntriesError(baseDir);
+    logDone("Parse manifest");
+    const resolvedManifest = resolveManifestInput(user.manifest, root, appDir);
+    if (!resolvedManifest) throw createManifestMissingError();
+
+    const config: ExtenzoResolvedConfig = {
+      ...user,
+      manifest: resolvedManifest,
+      appDir,
+      outDir,
+      outputRoot,
+      root,
+    };
+    const baseDir = appDir;
+    logDone("Parse entries");
+    const baseEntries = entryDisabled ? [] : this.entryDiscoverer.discover(baseDir);
+    const entries = entryDisabled ? [] : this.entryResolver.resolve(user, root, baseDir);
+    if (!entryDisabled && entries.length === 0) throw createNoEntriesError(baseDir);
     return { config, baseEntries, entries };
   }
 }

@@ -5,16 +5,18 @@
   "description": "Vue browser extension template: popup, options, content, background + messaging",
   "type": "module",
   "scripts": {
-    "dev": "extenzo dev -b chrome",
+    "dev": "extenzo dev -l chrome",
     "build": "extenzo build"
   },
   "dependencies": {
-    "extenzo": "workspace:*",
     "@extenzo/utils": "workspace:*",
-    "vue": "^3.5.0"
+    "vue": "^3.5.0",
+    "webextension-polyfill": "^0.10.0"
   },
   "devDependencies": {
+    "@extenzo/plugin-vue": "workspace:*",
     "@types/chrome": "^0.0.326",
+    "extenzo": "workspace:*",
     "typescript": "^5.0.0"
   }
 }

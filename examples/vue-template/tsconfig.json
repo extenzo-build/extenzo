@@ -11,5 +11,5 @@
     "skipLibCheck": true,
     "types": ["chrome", "webextension-polyfill"]
   },
-  "include": ["src"]
+  "include": ["app"]
 }

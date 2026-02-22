@@ -1,0 +1,19 @@
+{
+  "name": "extenzo-example-content-ui",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Content script UI with @extenzo/utils defineContentUI / mountContentUI",
+  "type": "module",
+  "scripts": {
+    "dev": "extenzo dev",
+    "build": "extenzo build"
+  },
+  "dependencies": {
+    "@extenzo/utils": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.326",
+    "extenzo": "workspace:*",
+    "typescript": "^5.0.0"
+  }
+}

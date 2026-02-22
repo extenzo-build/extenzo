@@ -1,0 +1,13 @@
+[
+  { "type": "file", "name": "manifest", "label": "manifest" },
+  { "type": "file", "name": "entry", "label": "entry" },
+  { "type": "file", "name": "app-dir", "label": "appDir" },
+  { "type": "file", "name": "out-dir", "label": "outDir" },
+  { "type": "file", "name": "output-root", "label": "outputRoot" },
+  { "type": "file", "name": "zip", "label": "zip" },
+  { "type": "file", "name": "env-prefix", "label": "envPrefix" },
+  { "type": "file", "name": "launch", "label": "launch" },
+  { "type": "file", "name": "hooks", "label": "hooks" },
+  { "type": "file", "name": "plugins", "label": "plugins" },
+  { "type": "file", "name": "rsbuild-config", "label": "rsbuildConfig" }
+]

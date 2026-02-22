@@ -1,0 +1,5 @@
+[
+  { "type": "file", "name": "introduction", "label": "介绍" },
+  { "type": "file", "name": "install", "label": "安装" },
+  { "type": "file", "name": "feature-subsets", "label": "功能分子集简介" }
+]

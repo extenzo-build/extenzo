@@ -1,0 +1,16 @@
+{
+  "name": "extenzo-example-firefox-template",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Firefox extension template: popup, content, background",
+  "type": "module",
+  "scripts": {
+    "dev": "extenzo dev -l firefox --debug",
+    "build": "extenzo build -l firefox"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.326",
+    "extenzo": "workspace:*",
+    "typescript": "^5.0.0"
+  }
+}

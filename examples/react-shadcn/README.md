@@ -2,10 +2,10 @@
 
 基于 React 与 shadcn/ui 的扩展示例，包含 **popup、options、content、background、sidepanel** 五个入口。
 
-**ext.config 配置要点**
+**exo.config 配置要点**
 
 - `manifest`：仅写基础字段（name、version、permissions、action.default_icon）；popup、options、background、content_scripts、side_panel 由框架按**目录发现**自动注入。
-- `srcDir: "src"`：入口从 `src/` 下发现，对应目录为 `popup/`、`options/`、`content/`、`background/`、`sidepanel/`，每个目录需有 `index.html`（除 content、background）+ `index.tsx` 或 `index.ts`。
+- `appDir: "src"`：入口从 `src/` 下发现，对应目录为 `popup/`、`options/`、`content/`、`background/`、`sidepanel/`，每个目录需有 `index.html`（除 content、background）+ `index.tsx` 或 `index.ts`。
 - `plugins: [react()]`：启用 React 与 JSX。
 - `rsbuildConfig.source.alias`：配置 `@` 指向 `src`，便于 `@/components/ui`、`@/lib/utils` 等引用。
 

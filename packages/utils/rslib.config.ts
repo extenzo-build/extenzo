@@ -3,7 +3,7 @@ import { defineConfig } from "@rslib/core";
 export default defineConfig({
   source: {
     entry: {
-      "webextension-polyfill": "./src/webextension-polyfill.ts",
+      index: "./src/index.ts",
     },
   },
   lib: [

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "@rstest/core";
+import { setExoLoggerRawWrites } from "../src/logger.ts";
 import {
   ExtenzoError,
   EXTENZO_ERROR_CODES,
@@ -9,7 +10,7 @@ import {
   createInvalidBrowserError,
   createUnknownCommandError,
   exitWithError,
-} from "../src/errors.js";
+} from "../src/errors.ts";
 
 describe("errors", () => {
   describe("ExtenzoError", () => {
@@ -41,9 +42,13 @@ describe("errors", () => {
 
   describe("createConfigLoadError", () => {
     it("returns error with CONFIG_LOAD_FAILED code", () => {
-      const err = createConfigLoadError("/ext.config.ts", new Error("syntax"));
+      const err = createConfigLoadError("/exo.config.ts", new Error("syntax"));
       expect(err.code).toBe(EXTENZO_ERROR_CODES.CONFIG_LOAD_FAILED);
-      expect(err.details).toContain("/ext.config.ts");
+      expect(err.details).toContain("/exo.config.ts");
+    });
+    it("accepts non-Error cause as string", () => {
+      const err = createConfigLoadError("/x", "string cause");
+      expect(err.details).toContain("string cause");
     });
   });
 
@@ -77,9 +82,21 @@ describe("errors", () => {
     });
   });
 
+  describe("ExtenzoError cause", () => {
+    it("sets cause when provided", () => {
+      const cause = new Error("inner");
+      const err = new ExtenzoError("outer", { code: EXTENZO_ERROR_CODES.BUILD_ERROR, cause });
+      expect((err as Error & { cause?: unknown }).cause).toBe(cause);
+    });
+  });
+
   describe("exitWithError", () => {
+    const noop = () => {};
+
     it("calls process.exit(1) and does not return", () => {
       const exit = process.exit;
+      const logErr = console.error;
+      console.error = noop;
       let exitCode: number | undefined;
       process.exit = ((code?: number) => {
         exitCode = code;
@@ -90,6 +107,64 @@ describe("errors", () => {
         expect(exitCode).toBe(1);
       } finally {
         process.exit = exit;
+        console.error = logErr;
+      }
+    });
+
+    it("formats non-Error via String()", () => {
+      const exit = process.exit;
+      const logErr = console.error;
+      console.error = noop;
+      let exitCode: number | undefined;
+      process.exit = ((code?: number) => {
+        exitCode = code;
+        throw new Error("exit");
+      }) as typeof process.exit;
+      try {
+        expect(() => exitWithError("string error")).toThrow("exit");
+        expect(exitCode).toBe(1);
+      } finally {
+        process.exit = exit;
+        console.error = logErr;
+      }
+    });
+
+    it("formats plain Error with stack", () => {
+      const exit = process.exit;
+      const logErr = console.error;
+      console.error = noop;
+      process.exit = (() => {
+        throw new Error("exit");
+      }) as typeof process.exit;
+      try {
+        expect(() => exitWithError(new Error("plain"))).toThrow("exit");
+      } finally {
+        process.exit = exit;
+        console.error = logErr;
+      }
+    });
+
+    it("formats ExtenzoError with details and hint in output", () => {
+      const exit = process.exit;
+      let logged = "";
+      setExoLoggerRawWrites({
+        stdout: process.stdout.write.bind(process.stdout),
+        stderr: (chunk: unknown, _enc?: unknown, cb?: () => void) => {
+          logged += String(chunk);
+          if (typeof cb === "function") cb();
+          return true;
+        },
+      });
+      process.exit = (() => {
+        throw new Error("exit");
+      }) as typeof process.exit;
+      try {
+        expect(() => exitWithError(createConfigNotFoundError("/root"))).toThrow("exit");
+        expect(logged).toContain("Details:");
+        expect(logged).toContain("Hint:");
+      } finally {
+        process.exit = exit;
+        setExoLoggerRawWrites(null);
       }
     });
   });

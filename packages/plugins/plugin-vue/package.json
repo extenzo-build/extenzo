@@ -1,7 +1,7 @@
 {
   "name": "@extenzo/plugin-vue",
-  "version": "0.0.1",
-  "description": "extenzo plugin: enable Vue 3 (SFC, JSX, Babel) for the project",
+  "version": "0.1.0-alpha.0",
+  "description": "extenzo plugin: enable Vue 3 (SFC, JSX via @rsbuild/plugin-vue-jsx) for the project",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -17,16 +17,20 @@
   "files": ["dist"],
   "scripts": {
     "build": "rslib build",
-    "dev": "rslib build --watch"
+    "dev": "rslib build --watch",
+    "test": "rstest run",
+    "test:coverage": "rstest run --coverage"
   },
   "devDependencies": {
     "@rspack/core": "^1.0.0",
     "@rsbuild/core": "^1.6.0",
     "@rsbuild/plugin-babel": "^1.0.6",
     "@rsbuild/plugin-vue": "^1.2.0",
+    "@rsbuild/plugin-vue-jsx": "^1.1.0",
     "@rslib/core": "^0.19.0",
+    "@rstest/core": "^0.8.1",
+    "@rstest/coverage-istanbul": "^0.2.0",
     "@types/node": "^20.0.0",
-    "@vue/babel-plugin-jsx": "^1.1.1",
     "@vue/compiler-sfc": "^3.2.47",
     "typescript": "^5.0.0"
   },
@@ -35,7 +39,7 @@
     "@rspack/core": ">=1.0.0",
     "@rsbuild/plugin-babel": ">=1.0.0",
     "@rsbuild/plugin-vue": ">=1.0.0",
-    "@vue/babel-plugin-jsx": ">=1.0.0",
+    "@rsbuild/plugin-vue-jsx": ">=1.0.0",
     "@vue/compiler-sfc": ">=3.0.0",
     "vue": ">=3.0.0"
   },
