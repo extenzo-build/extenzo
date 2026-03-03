@@ -1,5 +1,5 @@
 export { defineConfig } from "./defineConfig.ts";
-export { ConfigLoader, resolveExtenzoConfig, loadConfigFile } from "./configLoader.ts";
+export { ConfigLoader, resolveExtenzoConfig, loadConfigFile, getResolvedConfigFilePath, clearConfigCache } from "./configLoader.ts";
 export {
   EntryDiscoverer,
   discoverEntries,
@@ -73,4 +73,4 @@ export type {
 } from "./types.ts";
 export { parseExtenzoEntryFromHtml } from "./htmlEntry.ts";
 export type { ExtenzoEntryScriptResult } from "./htmlEntry.ts";
-export { log, logDone, warn, error, setExoLoggerRawWrites } from "./logger.ts";
+export { log, logDone, logDoneTimed, logDoneWithValue, formatDuration, warn, error, setExoLoggerRawWrites } from "./logger.ts";

@@ -97,10 +97,11 @@ describe("EntryDiscoverer", () => {
       rmSync(dir, { recursive: true, force: true });
     });
 
-    it("skips html-only when script from HTML does not exist (singleHtml, no resolved)", async () => {
+    it("throws when script from data-extenzo-entry does not exist (singleHtml)", async () => {
       const { mkdirSync, writeFileSync, rmSync } = await import("fs");
       const { join } = await import("path");
       const { tmpdir } = await import("os");
+      const { ExtenzoError, EXTENZO_ERROR_CODES } = await import("../src/errors.ts");
       const dir = join(tmpdir(), `extenzo-discover-html-only-${Date.now()}`);
       mkdirSync(dir, { recursive: true });
       writeFileSync(
@@ -109,9 +110,15 @@ describe("EntryDiscoverer", () => {
         "utf-8"
       );
       const discoverer = new EntryDiscoverer();
-      const entries = discoverer.discover(dir);
-      const popup = entries.find((e) => e.name === "popup");
-      expect(popup).toBeUndefined();
+      let err: unknown;
+      try {
+        discoverer.discover(dir);
+      } catch (e) {
+        err = e;
+      }
+      expect(err).toBeDefined();
+      expect(err).toBeInstanceOf(ExtenzoError);
+      expect((err as ExtenzoError).code).toBe(EXTENZO_ERROR_CODES.ENTRY_SCRIPT_FROM_HTML);
       rmSync(dir, { recursive: true, force: true });
     });
 

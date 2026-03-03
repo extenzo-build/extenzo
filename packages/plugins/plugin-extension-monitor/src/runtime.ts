@@ -1,8 +1,5 @@
 type ExtenzoMonitorOptions = {
   entry: string;
-  monitorPath: string;
-  autoOpen?: boolean;
-  registerShortcut?: boolean;
 };
 
 type ErrorPayload = {
@@ -16,36 +13,16 @@ type ErrorPayload = {
 };
 
 const SETUP_KEY = "__EXTENZO_MONITOR_SETUP__";
-const OPEN_KEY = "__EXTENZO_MONITOR_OPENED__";
 const WRAP_KEY = "__EXTENZO_LISTENER_WRAPPED__";
 const RUNTIME_PROXY_SYMBOL = Symbol.for("extenzo.runtime.proxy");
-const OPEN_MONITOR_COMMAND = "open-extenzo-monitor";
-const MONITOR_READY_TYPE = "monitor-ready";
-const MAX_ERROR_BUFFER = 100;
-
-type BufferedError = ErrorPayload & { entry: string };
-
-let monitorWindowId: number | null = null;
-const errorBuffer: BufferedError[] = [];
 
 declare const chrome: {
   runtime?: {
     sendMessage?: (msg: unknown) => unknown;
-    getURL?: (path: string) => string;
+    reload?: () => void;
     onMessage?: {
       addListener: (callback: (message: unknown, sender: unknown, sendResponse: (response?: unknown) => void) => boolean | void) => void;
     };
-  };
-  windows?: {
-    create?: (opts: { url: string; type: string; width: number; height: number }) => Promise<{ id?: number } | undefined>;
-    get?: (id: number) => Promise<{ id: number } | undefined>;
-    getAll?: (opts?: { populate?: boolean }) => Promise<Array<{ id?: number; tabs?: Array<{ url?: string }> }>>;
-    update?: (id: number, opts: { focused: boolean }) => Promise<void>;
-    remove?: (id: number) => Promise<void>;
-    onRemoved?: { addListener: (cb: (windowId: number) => void) => void };
-  };
-  commands?: {
-    onCommand?: { addListener: (cb: (command: string) => void) => void };
   };
 };
 
@@ -65,21 +42,15 @@ function normalizeError(value: unknown): { message: string; stack: string } {
   return { message: String(value), stack: "" };
 }
 
-function pushErrorBuffer(entry: string, payload: ErrorPayload): void {
-  errorBuffer.push({ entry, ...payload });
-  if (errorBuffer.length > MAX_ERROR_BUFFER) errorBuffer.splice(0, errorBuffer.length - MAX_ERROR_BUFFER);
-}
-
-function clearErrorBuffer(): void {
-  errorBuffer.length = 0;
-}
-
 function safeSendMessage(entry: string, payload: ErrorPayload): void {
-  pushErrorBuffer(entry, payload);
+  const msg = { __EXTENZO_DEBUG__: true, entry, ...payload };
+  if (entry === "background") {
+    forwardErrorToDevServer(msg);
+    return;
+  }
   try {
     const runtime = typeof chrome !== "undefined" ? chrome.runtime : undefined;
     if (!runtime || typeof runtime.sendMessage !== "function") return;
-    const msg = { __EXTENZO_DEBUG__: true, entry, ...payload };
     const result = runtime.sendMessage(msg);
     const maybeCatch = result as { catch?: (cb: () => void) => void } | undefined;
     if (maybeCatch?.catch) maybeCatch.catch(() => {});
@@ -91,6 +62,17 @@ function sendListenerError(entry: string, err: unknown): void {
   safeSendMessage(entry, {
     type: "error",
     message: normalized.message,
+    stack: normalized.stack,
+    time: Date.now(),
+  });
+}
+
+/** Report script load/syntax error (e.g. dynamic import failed). Call from background wrapper. */
+export function reportLoadError(entry: string, err: unknown): void {
+  const normalized = normalizeError(err);
+  safeSendMessage(entry, {
+    type: "error",
+    message: `[Load/Syntax] ${normalized.message}`,
     stack: normalized.stack,
     time: Date.now(),
   });
@@ -202,23 +184,44 @@ function createRuntimeProxy(entry: string, runtime: Record<string, unknown>): Re
   });
 }
 
-function isMonitorReadyMessage(msg: unknown): boolean {
+function isErrorForwardMessage(msg: unknown): msg is Record<string, unknown> & { entry: string; type: string; message?: string; time?: number } {
   if (!msg || typeof msg !== "object") return false;
   const o = msg as Record<string, unknown>;
-  return o.__EXTENZO_DEBUG__ === true && o.type === MONITOR_READY_TYPE;
+  if (o.__EXTENZO_DEBUG__ !== true) return false;
+  if (o.type !== "error" && o.type !== "unhandledrejection") return false;
+  return true;
 }
 
-function registerMonitorReadyHandler(runtime: Record<string, unknown>): void {
-  const onMessage = runtime.onMessage as { addListener: (cb: (msg: unknown, sender: unknown, sendResponse: (r?: unknown) => void) => boolean | void) => void } | undefined;
+function getHmrWsPort(): number {
+  const g = getGlobalObj() as Record<string, unknown>;
+  const port = g["__EXTENZO_WS_PORT__"];
+  if (typeof port === "number" && port > 0 && port < 65536) return port;
+  return 23333;
+}
+
+function forwardErrorToDevServer(payload: Record<string, unknown>): void {
+  const port = getHmrWsPort();
+  const url = `http://localhost:${port}/extenzo-error`;
+  try {
+    fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }).catch(() => {});
+  } catch {}
+}
+
+/** Register in background only: forward __EXTENZO_DEBUG__ error messages to dev server terminal. */
+function registerBackgroundErrorForwarder(): void {
+  const root = typeof chrome !== "undefined" ? (chrome as Record<string, unknown>) : undefined;
+  const runtime = root?.runtime;
+  if (!runtime || typeof runtime !== "object") return;
+  const onMessage = (runtime as Record<string, unknown>).onMessage as { addListener: (cb: (msg: unknown) => boolean | void) => void } | undefined;
   if (!onMessage?.addListener) return;
-  onMessage.addListener((msg: unknown, _sender: unknown, sendResponse: (r?: unknown) => void) => {
-    if (!isMonitorReadyMessage(msg)) return false;
-    const copy = errorBuffer.slice();
-    try {
-      sendResponse({ buffered: copy });
-    } catch {}
-    clearErrorBuffer();
-    return true;
+  onMessage.addListener((msg: unknown) => {
+    if (!isErrorForwardMessage(msg)) return false;
+    forwardErrorToDevServer(msg);
+    return false;
   });
 }
 
@@ -228,7 +231,6 @@ function patchRuntimeWithProxy(entry: string): void {
   const current = root.runtime as Record<string, unknown> & { [RUNTIME_PROXY_SYMBOL]?: boolean };
   if (current[RUNTIME_PROXY_SYMBOL]) return;
   const runtime = current;
-  registerMonitorReadyHandler(runtime);
   const proxy = createRuntimeProxy(entry, runtime);
   try {
     Object.defineProperty(root, "runtime", {
@@ -256,104 +258,6 @@ function wrapChromeListeners(entry: string): void {
   }
 }
 
-function openMonitorWindow(monitorPath: string, target: typeof globalThis): void {
-  try {
-    const runtime = typeof chrome !== "undefined" ? chrome.runtime : undefined;
-    const windowsApi = typeof chrome !== "undefined" ? chrome.windows : undefined;
-    if (!runtime || !windowsApi || typeof windowsApi.create !== "function") return;
-    if (typeof runtime.getURL !== "function") return;
-    if ((target as Record<string, unknown>)[OPEN_KEY]) return;
-    (target as Record<string, unknown>)[OPEN_KEY] = true;
-    windowsApi.create({
-      url: runtime.getURL(monitorPath),
-      type: "popup",
-      width: 800,
-      height: 600,
-    });
-  } catch {}
-}
-
-function openMonitorWindowIfNotOpen(monitorPath: string): void {
-  const runtime = typeof chrome !== "undefined" ? chrome.runtime : undefined;
-  const windowsApi = typeof chrome !== "undefined" ? chrome.windows : undefined;
-  if (!runtime?.getURL || !windowsApi?.create) return;
-  const url = runtime.getURL(monitorPath);
-
-  function doCreate(): void {
-    try {
-      const result = windowsApi!.create!({
-        url,
-        type: "popup",
-        width: 800,
-        height: 600,
-      });
-      const p = result && typeof (result as Promise<{ id?: number } | undefined>)?.then === "function"
-        ? (result as Promise<{ id?: number } | undefined>)
-        : Promise.resolve(result as { id?: number } | undefined);
-      p.then((w) => {
-        if (w?.id != null) monitorWindowId = w.id;
-      }).catch(() => {});
-    } catch {}
-  }
-
-  if (monitorWindowId != null && windowsApi.get) {
-    windowsApi
-      .get(monitorWindowId)
-      .then((w) => {
-        if (w?.id != null && windowsApi?.update) {
-          windowsApi.update(w.id, { focused: true });
-          return;
-        }
-        doCreate();
-      })
-      .catch(() => {
-        monitorWindowId = null;
-        doCreate();
-      });
-    return;
-  }
-  doCreate();
-}
-
-function closeStaleMonitorWindows(monitorPath: string): void {
-  const runtime = typeof chrome !== "undefined" ? chrome.runtime : undefined;
-  const windowsApi = typeof chrome !== "undefined" ? chrome.windows : undefined;
-  if (!runtime?.getURL || !windowsApi?.getAll || !windowsApi?.remove) return;
-  const monitorUrl = runtime.getURL(monitorPath);
-  const removeFn = windowsApi.remove;
-  const p = windowsApi.getAll({ populate: true });
-  const then = (p as Promise<Array<{ id?: number; tabs?: Array<{ url?: string }> }>>)?.then;
-  if (typeof then !== "function" || !removeFn) return;
-  then.call(p, (windows: Array<{ id?: number; tabs?: Array<{ url?: string }> }>) => {
-    for (const w of windows) {
-      if (w.id == null) continue;
-      const tabs = w.tabs;
-      if (!Array.isArray(tabs)) continue;
-      for (const tab of tabs) {
-        if (tab.url === monitorUrl) {
-          removeFn(w.id).catch(() => {});
-          break;
-        }
-      }
-    }
-  }).catch(() => {});
-}
-
-function registerCommandsListener(monitorPath: string): void {
-  closeStaleMonitorWindows(monitorPath);
-  const commandsApi = typeof chrome !== "undefined" ? chrome.commands : undefined;
-  const windowsApi = typeof chrome !== "undefined" ? chrome.windows : undefined;
-  if (!commandsApi?.onCommand?.addListener) return;
-  commandsApi.onCommand.addListener((command: string) => {
-    if (command === OPEN_MONITOR_COMMAND) openMonitorWindowIfNotOpen(monitorPath);
-  });
-  if (windowsApi?.onRemoved?.addListener) {
-    windowsApi.onRemoved.addListener((windowId: number) => {
-      if (windowId === monitorWindowId) monitorWindowId = null;
-    });
-  }
-}
-
 function markSetup(entry: string, target: typeof globalThis): boolean {
   const store = (target as Record<string, unknown>)[SETUP_KEY];
   if (store && store instanceof Set) {
@@ -367,12 +271,47 @@ function markSetup(entry: string, target: typeof globalThis): boolean {
 }
 
 export function setupExtenzoMonitor(options: ExtenzoMonitorOptions): void {
-  if (!options || !options.entry || !options.monitorPath) return;
+  if (!options || !options.entry) return;
   const target = getGlobalObj();
   if (!markSetup(options.entry, target)) return;
+  if (options.entry === "background") registerBackgroundErrorForwarder();
   attachListeners(options.entry, target);
   patchRuntimeWithProxy(options.entry);
   wrapChromeListeners(options.entry);
-  if (options.autoOpen) openMonitorWindow(options.monitorPath, target);
-  if (options.registerShortcut) registerCommandsListener(options.monitorPath);
+}
+
+/** Default WebSocket port for HMR reload (must match plugin-extension-hmr wsPort). */
+export const DEFAULT_HMR_WS_PORT = 23333;
+
+/** Connect to HMR WebSocket; on "reload-extension" call chrome.runtime.reload(). Used by generated background monitor snippet. */
+export function startHmrReloadClient(): void {
+  if (typeof chrome === "undefined" || !chrome.runtime || typeof chrome.runtime.reload !== "function") return;
+  const port = getHmrWsPort();
+  const url = `ws://localhost:${port}`;
+  let ws: WebSocket | null = null;
+  let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function connect(): void {
+    if (reconnectTimer) {
+      clearTimeout(reconnectTimer);
+      reconnectTimer = null;
+    }
+    try {
+      ws = new WebSocket(url);
+      ws.onmessage = (e) => {
+        if (e.data === "reload-extension") chrome.runtime!.reload!();
+      };
+      ws.onclose = () => {
+        ws = null;
+        if (!reconnectTimer) reconnectTimer = setTimeout(connect, 3000);
+      };
+      ws.onerror = () => {
+        if (ws) ws.close();
+      };
+    } catch {
+      reconnectTimer = setTimeout(connect, 3000);
+    }
+  }
+
+  connect();
 }

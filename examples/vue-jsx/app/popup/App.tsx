@@ -347,7 +347,6 @@ export default defineComponent({
                   : "video-roll-content-empty"
               }
             >
-              1234
               {renderComponent()}
             </div>
           </main>

@@ -16,6 +16,7 @@ A short overview of what Extenzo provides.
 ## Manifest
 
 - **Three options**: Inline manifest object in config, path per browser (`manifest.chromium` / `manifest.firefox` as string paths), or omit to auto-load `manifest.json`, `manifest.chromium.json`, `manifest.firefox.json` from `appDir`.
+- **Placeholders**: In `content_scripts`, use `js: ["[exo.content]"]` and `css: ["[exo.content]"]`; the framework fills real content output paths (multiple js/css supported) and removes the `css` field when it would be empty.
 - **See**: [manifest](/config/manifest).
 
 ## Plugins and Rsbuild
@@ -28,6 +29,7 @@ A short overview of what Extenzo provides.
 ## Dev and environment
 
 - **Dev mode**: `extenzo dev` runs watch + HMR; configure `launch.chrome` / `launch.firefox` to open the browser and load the extension.
+- **Debug monitor**: With `--debug` (or `debug: true` in config), a dev-only error monitor is enabled: errors are collected per entry, and a panel (shortcut or from CLI) shows them with Copy prompt, Ask ChatGPT, and Ask Cursor; theme toggle (light/dark) is available.
 - **Env vars**: Root `.env` is loaded via Rsbuild loadEnv; `envPrefix` controls which vars are exposed to the client (e.g. `PUBLIC_`).
 - **See**: [launch](/config/launch), [envPrefix](/config/env-prefix).
 

@@ -60,8 +60,10 @@ injectAuth();
 const videoDetector = new VideoDetector();
 const summarizer = new VideoSummarizer();
 
+console.log("background script loaded12311231232asd3");
 // 创建右键菜单（仅创建一次）
 chrome.runtime.onInstalled.addListener(() => {
+
   try {
     // 打开收藏夹菜单项
     chrome.contextMenus.create({

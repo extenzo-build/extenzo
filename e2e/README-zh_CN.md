@@ -15,15 +15,15 @@
 
 ## 命令
 
-- **`pnpm run e2e`**：构建包 + 构建 react-template + 以 debug 构建带 monitor 的扩展，再运行全部 E2E 测试（推荐）
+- **`pnpm run e2e`**：构建包 + 构建 exo-with-react + 以 debug 构建带 monitor 的扩展，再运行全部 E2E 测试（推荐）
 - **`pnpm run e2e:ui`**：以 UI 模式运行测试
 - **`pnpm run e2e:headed`**：有头浏览器运行测试
-- **`pnpm run e2e:build`**：仅构建用于 E2E 的扩展（`examples/react-template`，无 monitor）
+- **`pnpm run e2e:build`**：仅构建用于 E2E 的扩展（`examples/exo-with-react`，无 monitor）
 - **`pnpm run e2e:build:monitor`**：以 `EXTENZO_DEBUG=true` 启动 dev，等待 manifest 含 `open-extenzo-monitor` 后退出，用于生成带 monitor 的 dist
 
 ## 扩展路径
 
-默认使用 `examples/react-template/.extenzo/dist`（由 `e2e:build` 生成）。  
+默认使用 `examples/exo-with-react/.extenzo/dist`（由 `e2e:build` 生成）。  
 可通过环境变量覆盖：
 
 ```bash

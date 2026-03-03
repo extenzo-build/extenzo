@@ -519,7 +519,7 @@ describe("plugin-extension-entry", () => {
     const rsbuildConfig: Record<string, unknown> = {};
     modifyCb!(rsbuildConfig);
     const injectFn = (rsbuildConfig.html as Record<string, unknown>).inject as (opts: { entryName: string }) => string;
-    expect(injectFn({ entryName: "options" })).toBe("head");
+    expect(injectFn({ entryName: "options" })).toBe("body");
     expect(injectFn({ entryName: "popup" })).toBe("body");
   });
 

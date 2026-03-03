@@ -9,6 +9,8 @@
     "preview": "rspress preview"
   },
   "dependencies": {
-    "@rspress/core": "^2.0.0"
+    "@rspress/core": "^2.0.0",
+    "@shikijs/transformers": "^3.22.0",
+    "rspress-plugin-file-tree": "^1.0.4"
   }
 }

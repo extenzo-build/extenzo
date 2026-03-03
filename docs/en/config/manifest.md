@@ -38,6 +38,27 @@ export default defineConfig({
 
 Entry paths (e.g. `popup/index.html`, `background/index.js`) are computed by the framework from [entry](/config/entry) and [outDir](/config/out-dir). You only need to keep these keys in manifest; see [MANIFEST_ENTRY_PATHS](https://github.com/extenzo-build/extenzo/blob/main/packages/core/src/constants.ts) for custom keys.
 
+### Placeholders: `[exo.content]`
+
+In `content_scripts`, you can use the placeholder **`[exo.content]`** so the framework fills the real content entry output paths.
+
+- **`js`**: Use `js: ["[exo.content]"]`. The framework replaces it with the list of all content JS outputs (e.g. `content/index.js`); multiple files are supported.
+- **`css`**: Use `css: ["[exo.content]"]`. The framework replaces it with the list of all content CSS outputs. If the resolved `css` array is empty (including when the only value was the placeholder and content emits no CSS), the **`css`** field is removed from that `content_scripts` item in the final manifest.
+
+Example:
+
+```ts
+content_scripts: [
+  {
+    matches: ["<all_urls>"],
+    js: ["[exo.content]"],
+    css: ["[exo.content]"],
+  },
+],
+```
+
+After build, `js` and `css` will contain the actual asset paths; if there is no content CSS, `css` will be omitted.
+
 ### 2. Split by browser (chromium / firefox)
 
 When Chrome and Firefox need different manifest fields (e.g. Chrome `action` vs Firefox `sidebar_action`, or `service_worker` vs `scripts`), use `chromium` and `firefox` branches. The framework picks the branch by current `-b` and deep-merges with base.

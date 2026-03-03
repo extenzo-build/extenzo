@@ -1,5 +1,5 @@
 import { resolve, dirname } from "path";
-import { readFileSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import type { ScriptInjectPosition } from "./types.ts";
 
 export type { ScriptInjectPosition };
@@ -11,6 +11,14 @@ export interface ExtenzoEntryScriptResult {
   inject: ScriptInjectPosition;
   /** HTML content with the data-extenzo-entry script tag removed */
   strippedHtml: string;
+}
+
+/** True if src is a relative path (no leading / or \, no protocol). */
+export function isScriptSrcRelative(src: string): boolean {
+  const t = src.trim();
+  if (t.startsWith("/") || t.startsWith("\\")) return false;
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(t)) return false;
+  return true;
 }
 
 const ENTRY_SCRIPT_REGEX =
@@ -58,4 +66,32 @@ export function getScriptInjectIfMatches(
   } catch {
     return undefined;
   }
+}
+
+/**
+ * Resolve script path from HTML that has data-extenzo-entry with src.
+ * - src must be relative; throws if absolute.
+ * - Resolved file must exist; throws if not found.
+ * Use this when the entry is driven by HTML so invalid config fails fast.
+ */
+export function resolveScriptFromHtmlStrict(htmlPath: string): {
+  scriptPath: string;
+  inject: ScriptInjectPosition;
+} {
+  const parsed = parseExtenzoEntryFromHtml(htmlPath);
+  if (!parsed) {
+    throw new Error(
+      "data-extenzo-entry script must have a src attribute (relative path)"
+    );
+  }
+  if (!isScriptSrcRelative(parsed.src)) {
+    throw new Error(
+      `data-extenzo-entry src must be relative, got: ${JSON.stringify(parsed.src)}`
+    );
+  }
+  const scriptPath = resolve(dirname(htmlPath), parsed.src);
+  if (!existsSync(scriptPath)) {
+    throw new Error(`Entry script not found: ${scriptPath}`);
+  }
+  return { scriptPath, inject: parsed.inject };
 }
