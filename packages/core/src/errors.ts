@@ -10,6 +10,7 @@ export const EXTENZO_ERROR_CODES = {
   MANIFEST_MISSING: "EXTENZO_MANIFEST_MISSING",
   APP_DIR_MISSING: "EXTENZO_APP_DIR_MISSING",
   NO_ENTRIES: "EXTENZO_NO_ENTRIES",
+  ENTRY_SCRIPT_FROM_HTML: "EXTENZO_ENTRY_SCRIPT_FROM_HTML",
   INVALID_BROWSER: "EXTENZO_INVALID_BROWSER",
   UNKNOWN_COMMAND: "EXTENZO_UNKNOWN_COMMAND",
   RSBUILD_CONFIG_ERROR: "EXTENZO_RSBUILD_CONFIG_ERROR",
@@ -99,6 +100,17 @@ export function createNoEntriesError(appDir: string): ExtenzoError {
     code: EXTENZO_ERROR_CODES.NO_ENTRIES,
     details: `No background, content, popup, options or sidepanel entry found under ${appDir}`,
     hint: "At least one such directory with index.ts / index.js etc. is required",
+  });
+}
+
+export function createEntryScriptFromHtmlError(
+  htmlPath: string,
+  cause: string
+): ExtenzoError {
+  return new ExtenzoError("Invalid data-extenzo-entry script in HTML", {
+    code: EXTENZO_ERROR_CODES.ENTRY_SCRIPT_FROM_HTML,
+    details: `HTML: ${htmlPath}. ${cause}`,
+    hint: "data-extenzo-entry script must have a relative src and the file must exist",
   });
 }
 

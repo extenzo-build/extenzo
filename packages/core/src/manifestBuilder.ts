@@ -36,37 +36,32 @@ function pickManifestForTarget(
   }
   const hasChromium = config.chromium != null && typeof config.chromium === "object";
   const hasFirefox = config.firefox != null && typeof config.firefox === "object";
+  const both = hasChromium && hasFirefox;
+  const match = both ? config[target] : null;
+  const matchOk = match != null && typeof match === "object";
 
-  if (hasChromium && hasFirefox) {
-    const match = config[target];
-    if (match != null && typeof match === "object") {
-      return { manifest: match };
-    }
+  if (both && matchOk) return { manifest: match as ManifestRecord };
+  if (both) {
     const fallback = target === "firefox" ? config.chromium! : config.firefox!;
     return {
       manifest: fallback,
       warnMessage: `Build target is ${target} but manifest.${target} is missing; using ${target === "firefox" ? "chromium" : "firefox"} manifest.`,
     };
   }
-
   if (hasChromium) {
     const manifest = config.chromium!;
-    const warnMessage =
-      target === "firefox"
-        ? "Build target is firefox but manifest only has chromium; using chromium manifest."
-        : undefined;
+    const warnMessage = target === "firefox"
+      ? "Build target is firefox but manifest only has chromium; using chromium manifest."
+      : undefined;
     return { manifest, warnMessage };
   }
-
   if (hasFirefox) {
     const manifest = config.firefox!;
-    const warnMessage =
-      target === "chromium"
-        ? "Build target is chromium but manifest only has firefox; using firefox manifest."
-        : undefined;
+    const warnMessage = target === "chromium"
+      ? "Build target is chromium but manifest only has firefox; using firefox manifest."
+      : undefined;
     return { manifest, warnMessage };
   }
-
   const fallback: ManifestRecord | undefined = config.chromium ?? config.firefox;
   return {
     manifest: fallback ?? {},
@@ -80,13 +75,122 @@ function buildPlaceholderMap(entries: EntryInfo[]): Record<string, string> {
   for (const key of MANIFEST_ENTRY_KEYS) {
     const entry = entries.find((e) => e.name === key);
     if (!entry) continue;
-    if (SCRIPT_KEYS_SET.has(key)) {
-      map[key] = buildScriptOutputPath(entry);
-    } else {
-      map[key] = buildHtmlOutputPath(entry, MANIFEST_ENTRY_PATHS[key]);
-    }
+    map[key] = SCRIPT_KEYS_SET.has(key)
+      ? buildScriptOutputPath(entry)
+      : buildHtmlOutputPath(entry, MANIFEST_ENTRY_PATHS[key]);
   }
   return map;
+}
+
+/** True when value is considered "not set" for manifest entry fields. */
+function isEntryFieldEmpty(value: unknown): boolean {
+  if (value === undefined || value === null) return true;
+  if (typeof value === "string") return value.trim() === "";
+  if (Array.isArray(value)) return value.length === 0;
+  return false;
+}
+
+type FillAction = (out: ManifestRecord, path: string) => void;
+
+function makeBackgroundFiller(mv: 2 | 3): FillAction {
+  return (out, path) => {
+    const bg = (out.background as Record<string, unknown>) ?? {};
+    if (mv === 3) {
+      if (isEntryFieldEmpty((bg as { service_worker?: string }).service_worker)) {
+        out.background = { ...bg, service_worker: path };
+      }
+    } else {
+      const scripts = (bg as { scripts?: string[] }).scripts;
+      if (!Array.isArray(scripts) || scripts.length === 0) {
+        out.background = { ...bg, scripts: [path] };
+      }
+    }
+  };
+}
+
+function makePopupFiller(mv: 2 | 3): FillAction {
+  return (out, path) => {
+    if (mv === 3) {
+      const action = (out.action as Record<string, unknown>) ?? {};
+      if (isEntryFieldEmpty((action as { default_popup?: string }).default_popup)) {
+        out.action = { ...action, default_popup: path };
+      }
+    } else {
+      const ba = (out.browser_action as Record<string, unknown>) ?? {};
+      if (isEntryFieldEmpty((ba as { default_popup?: string }).default_popup)) {
+        out.browser_action = { ...ba, default_popup: path };
+      }
+    }
+  };
+}
+
+function makeOptionsFiller(mv: 2 | 3): FillAction {
+  return (out, path) => {
+    if (mv === 3) {
+      const opt = (out.options_ui as Record<string, unknown>) ?? {};
+      if (isEntryFieldEmpty((opt as { page?: string }).page)) {
+        out.options_ui = { ...opt, page: path };
+      }
+    } else if (isEntryFieldEmpty((out as { options_page?: string }).options_page)) {
+      (out as Record<string, unknown>).options_page = path;
+    }
+  };
+}
+
+function fillSidepanel(out: ManifestRecord, path: string): void {
+  const sp = (out.side_panel as Record<string, unknown>) ?? {};
+  if (isEntryFieldEmpty((sp as { default_path?: string }).default_path)) {
+    out.side_panel = { ...sp, default_path: path };
+  }
+}
+
+function fillDevtools(out: ManifestRecord, path: string): void {
+  if (isEntryFieldEmpty((out as { devtools_page?: string }).devtools_page)) {
+    (out as Record<string, unknown>).devtools_page = path;
+  }
+}
+
+function fillContent(out: ManifestRecord, path: string): void {
+  const cs = out.content_scripts;
+  if (!Array.isArray(cs) || cs.length === 0) {
+    out.content_scripts = [
+      { matches: ["<all_urls>"], js: [path], run_at: "document_idle" },
+    ] as ManifestRecord["content_scripts"];
+  }
+}
+
+/** Build fillers for MV2/MV3; only entry keys present in placeholderMap are used. */
+function buildAutoFillers(mv: 2 | 3): Record<string, FillAction> {
+  const map: Record<string, FillAction> = {
+    background: makeBackgroundFiller(mv),
+    popup: makePopupFiller(mv),
+    options: makeOptionsFiller(mv),
+    devtools: fillDevtools,
+    content: fillContent,
+  };
+  if (mv === 3) map.sidepanel = fillSidepanel;
+  return map;
+}
+
+/**
+ * Auto-fill built-in entry fields when user did not set them.
+ * Only adds/fills fields for which there is a corresponding entry (placeholderMap has the key).
+ * Respects manifest_version (2 vs 3) for field names.
+ */
+function autoFillEntryFields(
+  manifest: ManifestRecord,
+  placeholderMap: Record<string, string>
+): ManifestRecord {
+  const mv = manifest.manifest_version === 2 ? 2 : 3;
+  const out: ManifestRecord = { ...manifest };
+  const fillers = buildAutoFillers(mv);
+
+  for (const [key, path] of Object.entries(placeholderMap)) {
+    const fill = fillers[key];
+    if (fill) fill(out, path);
+  }
+
+  return out;
 }
 
 /** Replace [exo.xxx] in string with placeholderMap path; keep placeholder if no mapping. */
@@ -126,9 +230,13 @@ function isManifestRecord(value: unknown): value is ManifestRecord {
 
 const CONTENT_PLACEHOLDER = "[exo.content]";
 
+function hasNonEmptyStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.length > 0;
+}
+
 /**
  * Resolve content_scripts [exo.content] placeholders: expand to js[] and css[].
- * If resolved css array is empty, delete the css field from that item.
+ * If an item has no js and no css but content entry exists, inject js so Chrome requirement is met.
  */
 function resolveContentScriptsPlaceholders(
   manifest: ManifestRecord,
@@ -158,13 +266,29 @@ function resolveContentScriptsPlaceholders(
       const resolvedCss = (obj.css as unknown[]).flatMap((el) =>
         el === CONTENT_PLACEHOLDER ? cssReplacement : [el]
       );
-      if (resolvedCss.length === 0) {
-        delete out.css;
-      } else {
-        out.css = resolvedCss;
-      }
+      if (resolvedCss.length > 0) out.css = resolvedCss;
+      else delete out.css;
     }
 
+    const hadJs = hasNonEmptyStringArray(out.js);
+    const hadCss = hasNonEmptyStringArray(out.css);
+    if (!hadJs && !hadCss && placeholderMap.content) {
+      out.js = contentScriptOutput?.js ?? defaultContentJs;
+    }
+
+    const hasJs = hasNonEmptyStringArray(out.js);
+    const hasCss = hasNonEmptyStringArray(out.css);
+    const isContentItem =
+      hasJs &&
+      placeholderMap.content != null &&
+      (out.js as string[]).includes(placeholderMap.content);
+    if (
+      isContentItem &&
+      (contentScriptOutput?.css?.length ?? 0) > 0 &&
+      !hasCss
+    ) {
+      out.css = contentScriptOutput!.css;
+    }
     return out;
   });
 
@@ -179,8 +303,9 @@ function buildForBrowser(
   contentScriptOutput?: ContentScriptOutput
 ): ManifestRecord {
   const placeholderMap = buildPlaceholderMap(entries);
+  const afterAutoFill = autoFillEntryFields(manifest, placeholderMap);
   const afterContent = resolveContentScriptsPlaceholders(
-    manifest,
+    afterAutoFill,
     placeholderMap,
     contentScriptOutput
   );

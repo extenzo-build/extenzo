@@ -15,9 +15,9 @@ Extenzo is a **browser extension development framework based on Rsbuild**, helpi
 
 | Capability | Description |
 |------------|-------------|
-| **Manifest** | Object config, path config, or omit to auto-load `manifest.json`, `manifest.chromium.json`, `manifest.firefox.json` from `appDir` / `appDir/manifest`, merged per browser. |
+| **Manifest** | Object config, path config, or omit to auto-load `manifest.json`, `manifest.chromium.json`, `manifest.firefox.json` from `appDir` / `appDir/manifest`, merged per browser; use `[exo.content]` in content_scripts js/css for auto-filled paths. |
 | **Entry discovery** | Default discovery of `background`, `content`, `popup`, `options`, `sidepanel`, `devtools` from root or `appDir`; override with `entry`. |
-| **Plugins** | Built-in plugin-entry (entry + HTML), plugin-extension (write manifest.json), plugin-extension-hmr (dev HMR); add framework via `plugins: [vue()]`, `plugins: [react()]`. |
+| **Plugins** | Built-in plugin-entry (entry + HTML), plugin-extension (write manifest, expand placeholders), plugin-extension-hmr (dev HMR), plugin-extension-monitor (dev + `--debug`); add framework via `plugins: [vue()]`, `plugins: [react()]`. |
 | **Rsbuild extension** | Object `rsbuildConfig` deep-merged with base; function form receives `(base, helpers)` and can use `helpers.merge`. |
 
 ## Compared to other solutions

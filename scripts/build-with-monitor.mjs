@@ -1,5 +1,5 @@
 /**
- * Build react-template with EXTENZO_DEBUG=true (dev + monitor), wait for manifest
+ * Build exo-with-react with EXTENZO_DEBUG=true (dev + monitor), wait for manifest
  * to contain open-extenzo-monitor, then exit. Used by e2e to produce a dist with monitor.
  *
  * Usage: node scripts/build-with-monitor.mjs
@@ -15,7 +15,7 @@ const root = path.resolve(__dirname, "..");
 const manifestPath = path.join(
   root,
   "examples",
-  "react-template",
+  "exo-with-react",
   ".extenzo",
   "dist",
   "manifest.json"

@@ -90,6 +90,24 @@ describe("Pipeline", () => {
     const ctx = await pipeline.run(testRoot, ["dev"]);
 
     expect(ctx.isDev).toBe(true);
+    expect((ctx.rsbuildConfig.output as { sourceMap?: unknown } | undefined)?.sourceMap).toEqual({
+      js: "inline-source-map",
+    });
+  });
+
+  it("run with build argv disables sourcemap by default", async () => {
+    const mockResolved = createMockConfig(testRoot);
+    const mockEntries = createMockEntries(testRoot);
+    const configLoader = {
+      resolve: () => ({ config: mockResolved, baseEntries: mockEntries, entries: mockEntries }),
+    } as unknown as ConfigLoader;
+    const cliParser = {
+      parse: () => ({ command: "build", target: undefined, launch: undefined, unknownLaunch: undefined, unknownTarget: undefined, persist: false }),
+    } as unknown as CliParser;
+
+    const pipeline = new Pipeline(configLoader, cliParser);
+    const ctx = await pipeline.run(testRoot, ["build"]);
+    expect((ctx.rsbuildConfig.output as { sourceMap?: unknown } | undefined)?.sourceMap).toBe(false);
   });
 
   it("run with rsbuildConfig as function merges via helpers", async () => {

@@ -149,6 +149,8 @@ export interface ExtenzoUserConfig {
   hotReload?: {
     /** HMR WebSocket server port; default 23333 */
     port?: number;
+    /** When true (default), content entry change triggers reload manager to refresh the active tab. Set false to disable. */
+    autoRefreshContentPage?: boolean;
   };
   /** Lifecycle hooks to extend behaviour at each stage */
   hooks?: LifecycleHooks;
@@ -178,7 +180,7 @@ export interface ExtenzoResolvedConfig extends Omit<ExtenzoUserConfig, "manifest
   /** Passed to Rsbuild loadEnv; default `['']` exposes all .env as process.env.* */
   envPrefix?: string[];
   /** Hot-reload options for dev; port defaults to 23333 */
-  hotReload?: { port?: number };
+  hotReload?: { port?: number; autoRefreshContentPage?: boolean };
 }
 
 /** Entry config value: string path or structured { src, html } */
@@ -208,4 +210,6 @@ export interface EntryInfo {
   html?: boolean;
   /** When set, template must omit the data-extenzo-entry script and rsbuild html.inject should use this. */
   scriptInject?: ScriptInjectPosition;
+  /** When true, output path follows script/html path (e.g. main.ts → main.js, scripts/main.ts → scripts/main.js). */
+  outputFollowsScriptPath?: boolean;
 }

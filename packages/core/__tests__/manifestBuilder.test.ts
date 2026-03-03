@@ -123,6 +123,43 @@ describe("ManifestBuilder", () => {
       expect("css" in (cs ?? {})).toBe(false);
     });
 
+    it("fills js when content_scripts item has only matches and content entry exists", () => {
+      const builder = new ManifestBuilder();
+      const manifest = {
+        ...baseManifest,
+        content_scripts: [{ matches: ["<all_urls>"] }],
+      };
+      const out = builder.buildForBrowser(
+        { chromium: manifest },
+        [entry("content", "/c/index.js")],
+        "chromium"
+      );
+      const cs = (out as { content_scripts?: { js: string[] }[] }).content_scripts?.[0];
+      expect(cs?.js).toEqual([MANIFEST_ENTRY_PATHS.content]);
+    });
+
+    it("fills css when content_scripts item has only matches and content css output exists", () => {
+      const builder = new ManifestBuilder();
+      const manifest = {
+        ...baseManifest,
+        content_scripts: [{ matches: ["<all_urls>"] }],
+      };
+      const contentScriptOutput: ContentScriptOutput = {
+        js: ["content/index.js"],
+        css: ["static/css/content.hash.css"],
+      };
+      const out = builder.buildForBrowser(
+        { chromium: manifest },
+        [entry("content", "/c/index.js")],
+        "chromium",
+        undefined,
+        contentScriptOutput
+      );
+      const cs = (out as { content_scripts?: { js: string[]; css?: string[] }[] }).content_scripts?.[0];
+      expect(cs?.js).toEqual(["content/index.js"]);
+      expect(cs?.css).toEqual(["static/css/content.hash.css"]);
+    });
+
     it("replaces [exo.devtools] when devtools entry present", () => {
       const builder = new ManifestBuilder();
       const manifest = { ...baseManifest, devtools_page: "[exo.devtools]" };
@@ -364,6 +401,127 @@ describe("ManifestBuilder", () => {
       );
       expect((out as { name?: string }).name).toBe("C");
       expect(warns.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("auto-fill entry fields when missing", () => {
+    it("auto-fills background.service_worker when missing and background entry exists (MV3)", () => {
+      const builder = new ManifestBuilder();
+      const manifest = { ...baseManifest, manifest_version: 3 };
+      const out = builder.buildForBrowser(
+        { chromium: manifest },
+        [entry("background", "/b/index.js")],
+        "chromium"
+      );
+      expect((out as { background?: { service_worker: string } }).background?.service_worker).toBe(
+        MANIFEST_ENTRY_PATHS.background
+      );
+    });
+
+    it("auto-fills background.scripts when missing and background entry exists (MV2)", () => {
+      const builder = new ManifestBuilder();
+      const manifest = { ...baseManifest, manifest_version: 2 };
+      const out = builder.buildForBrowser(
+        { chromium: manifest },
+        [entry("background", "/b/index.js")],
+        "chromium"
+      );
+      const scripts = (out as { background?: { scripts: string[] } }).background?.scripts;
+      expect(scripts).toEqual([MANIFEST_ENTRY_PATHS.background]);
+    });
+
+    it("auto-fills action.default_popup when missing and popup entry exists (MV3)", () => {
+      const builder = new ManifestBuilder();
+      const manifest = { ...baseManifest, manifest_version: 3 };
+      const out = builder.buildForBrowser(
+        { chromium: manifest },
+        [entry("popup", "/p/index.js", "/p/index.html")],
+        "chromium"
+      );
+      expect((out as { action?: { default_popup: string } }).action?.default_popup).toBe(
+        MANIFEST_ENTRY_PATHS.popup
+      );
+    });
+
+    it("does not override user-set background.service_worker", () => {
+      const builder = new ManifestBuilder();
+      const manifest = {
+        ...baseManifest,
+        manifest_version: 3,
+        background: { service_worker: "my-background.js" },
+      };
+      const out = builder.buildForBrowser(
+        { chromium: manifest },
+        [entry("background", "/b/index.js")],
+        "chromium"
+      );
+      expect((out as { background?: { service_worker: string } }).background?.service_worker).toBe(
+        "my-background.js"
+      );
+    });
+
+    it("does not add action.default_popup when no popup entry", () => {
+      const builder = new ManifestBuilder();
+      const manifest = { ...baseManifest, manifest_version: 3 };
+      const out = builder.buildForBrowser(
+        { chromium: manifest },
+        [entry("background", "/b/index.js")],
+        "chromium"
+      );
+      expect((out as { action?: unknown }).action).toBeUndefined();
+    });
+
+    it("auto-fills content_scripts when missing and content entry exists", () => {
+      const builder = new ManifestBuilder();
+      const manifest = { ...baseManifest, manifest_version: 3 };
+      const out = builder.buildForBrowser(
+        { chromium: manifest },
+        [entry("content", "/c/index.js")],
+        "chromium"
+      );
+      const cs = (out as { content_scripts?: { js: string[]; matches: string[] }[] }).content_scripts;
+      expect(cs).toHaveLength(1);
+      expect(cs?.[0].js).toEqual([MANIFEST_ENTRY_PATHS.content]);
+      expect(cs?.[0].matches).toEqual(["<all_urls>"]);
+    });
+
+    it("auto-fills options_ui.page when missing and options entry exists (MV3)", () => {
+      const builder = new ManifestBuilder();
+      const manifest = { ...baseManifest, manifest_version: 3 };
+      const out = builder.buildForBrowser(
+        { chromium: manifest },
+        [entry("options", "/o/index.js", "/o/index.html")],
+        "chromium"
+      );
+      expect((out as { options_ui?: { page: string } }).options_ui?.page).toBe(
+        MANIFEST_ENTRY_PATHS.options
+      );
+    });
+
+    it("auto-fills side_panel.default_path when missing and sidepanel entry exists (MV3)", () => {
+      const builder = new ManifestBuilder();
+      const manifest = { ...baseManifest, manifest_version: 3 };
+      const out = builder.buildForBrowser(
+        { chromium: manifest },
+        [entry("sidepanel", "/s/index.js", "/s/index.html")],
+        "chromium"
+      );
+      expect((out as { side_panel?: { default_path: string } }).side_panel?.default_path).toBe(
+        MANIFEST_ENTRY_PATHS.sidepanel
+      );
+    });
+
+    it("auto-fills devtools_page when missing and devtools entry exists", () => {
+      const builder = new ManifestBuilder();
+      const manifest = { ...baseManifest, manifest_version: 3 };
+      const out = builder.buildForBrowser(
+        { chromium: manifest },
+        [entry("devtools", "/d/index.js", "/d/index.html")],
+        "chromium"
+      );
+      expect((out as { devtools_page?: string }).devtools_page).toBe(
+        MANIFEST_ENTRY_PATHS.devtools
+      );
     });
   });
 });

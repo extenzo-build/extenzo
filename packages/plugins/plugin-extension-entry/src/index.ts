@@ -1,4 +1,4 @@
-import { resolve, basename, extname, dirname } from "path";
+import { resolve, basename, extname, dirname, relative } from "path";
 import { existsSync } from "fs";
 import type { RsbuildPluginAPI } from "@rsbuild/core";
 import type { ExtenzoResolvedConfig } from "@extenzo/core";
@@ -50,7 +50,14 @@ function getStrippedTemplateContent(htmlPath: string): string | undefined {
   return parsed?.strippedHtml;
 }
 
-function buildEntryOutputMap(entries: EntryInfo[]): {
+function toWebPath(p: string): string {
+  return p.replace(/\\/g, "/");
+}
+
+function buildEntryOutputMap(
+  entries: EntryInfo[],
+  appDir: string
+): {
   html: Record<string, string>;
   js: Record<string, string>;
   css: Record<string, string>;
@@ -59,6 +66,17 @@ function buildEntryOutputMap(entries: EntryInfo[]): {
   const js: Record<string, string> = {};
   const css: Record<string, string> = {};
   for (const e of entries) {
+    if (e.outputFollowsScriptPath === true) {
+      const relScript = toWebPath(relative(appDir, e.scriptPath));
+      const scriptExt = extname(e.scriptPath);
+      const scriptBase = scriptExt ? relScript.slice(0, -scriptExt.length) : relScript;
+      js[e.name] = `${scriptBase}.js`;
+      css[e.name] = `${scriptBase}.css`;
+      if (e.htmlPath) {
+        html[e.name] = toWebPath(relative(appDir, e.htmlPath));
+      }
+      continue;
+    }
     const scriptStem = basename(e.scriptPath, extname(e.scriptPath));
     const htmlFile = e.htmlPath ? basename(e.htmlPath).toLowerCase() : null;
     const isSingleScript = scriptStem === e.name;
@@ -123,7 +141,7 @@ export function entryPlugin(resolvedConfig: ExtenzoResolvedConfig, entries: Entr
 
   const templateMap = buildTemplateMapFromEntries(entries);
   const scriptInjectMap = buildScriptInjectMap(entries);
-  const outputMap = buildEntryOutputMap(entries);
+  const outputMap = buildEntryOutputMap(entries, resolvedConfig.appDir);
   const entryByName = new Map(entries.map((e) => [e.name, e]));
 
   return {

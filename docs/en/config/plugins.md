@@ -14,8 +14,9 @@ These are injected by **@extenzo/cli**; do **not** add them in config:
 | Plugin | Role |
 |--------|------|
 | **plugin-extension-entry** | Resolves [entry](/config/entry) and [appDir](/config/app-dir), sets Rsbuild entry, HTML templates, output paths, public copy |
-| **plugin-extension-manifest** | After build, writes resolved [manifest](/config/manifest) to `manifest.json` in the output dir (chromium/firefox by `-b`) |
+| **plugin-extension-manifest** | After build, writes resolved [manifest](/config/manifest) to `manifest.json` in the output dir (chromium/firefox by `-b`); expands [exo.content] placeholders and removes empty css |
 | **plugin-extension-hmr** | Dev only: WebSocket and browser reload |
+| **plugin-extension-monitor** | Dev only when `--debug` or `debug: true`: error monitoring, panel with Ask AI (ChatGPT, Cursor), theme toggle |
 
 ## User plugins: Vue / React
 

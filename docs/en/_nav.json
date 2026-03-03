@@ -1,6 +1,5 @@
 [
-  { "text": "Home", "link": "/" },
-  { "text": "Guide", "link": "/guide/introduction", "activeMatch": "^/guide/" },
-  { "text": "Configuration", "link": "/config/manifest", "activeMatch": "^/config/" },
+  { "text": "Home", "link": "/", "activeMatch": "^/$" },
+  { "text": "Docs", "link": "/guide/introduction", "activeMatch": "^/guide/" },
   { "text": "Examples", "link": "/examples/", "activeMatch": "^/examples/" }
 ]

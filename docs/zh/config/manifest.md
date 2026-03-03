@@ -38,6 +38,27 @@ export default defineConfig({
 
 入口路径（如 `popup/index.html`、`background/index.js`）由框架根据 [entry](/config/entry) 与 [outDir](/config/out-dir) 自动计算，你只需保证 manifest 中这些键存在；若需自定义键名，可参考 [extenzo 导出的 MANIFEST_ENTRY_PATHS](https://github.com/extenzo-build/extenzo/blob/main/packages/core/src/constants.ts)。
 
+### 占位符：`[exo.content]`
+
+在 `content_scripts` 中可使用占位符 **`[exo.content]`**，由框架在构建时替换为 content 入口的实际产出路径。
+
+- **`js`**：可写 `js: ["[exo.content]"]`。框架会替换为所有 content 的 JS 产出列表（如 `content/index.js`），支持多文件。
+- **`css`**：可写 `css: ["[exo.content]"]`。框架会替换为所有 content 的 CSS 产出列表。若最终解析得到的 `css` 数组为空（例如仅写了占位符而 content 未产出 CSS），最终 manifest 中该条 `content_scripts` 的 **`css`** 字段会被移除。
+
+示例：
+
+```ts
+content_scripts: [
+  {
+    matches: ["<all_urls>"],
+    js: ["[exo.content]"],
+    css: ["[exo.content]"],
+  },
+],
+```
+
+构建后 `js`、`css` 会变为实际资源路径；若无 content CSS，则不会出现 `css` 字段。
+
 ### 2. 按浏览器拆分（chromium / firefox）
 
 Chrome 与 Firefox 的 manifest 存在差异时（如 Chrome 用 `action`、Firefox 用 `sidebar_action`，或 background 的 `service_worker` vs `scripts`），可使用 `chromium` 与 `firefox` 两个分支。框架会按当前 `-b` 选择对应分支，与 base 深度合并。

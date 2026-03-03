@@ -147,7 +147,10 @@ export class Pipeline {
     return {
       root: ctx.root,
       plugins,
-      output: { legalComments: "none" },
+      output: {
+        legalComments: "none",
+        sourceMap: ctx.isDev ? { js: "inline-source-map" } : false,
+      },
     };
   }
 
@@ -171,9 +174,10 @@ export class Pipeline {
     ctx: PipelineContext
   ): RsbuildConfig | undefined {
     if (!isDev) return undefined;
+    const isConfigRestart = process.env.EXO_CONFIG_RESTART === "1";
     const hmrOpts: HmrPluginOptions = {
       distPath: ctx.distPath,
-      autoOpen: true,
+      autoOpen: !isConfigRestart,
       browser: ctx.launchTarget,
       chromePath: ctx.config.launch?.chrome,
       edgePath: ctx.config.launch?.edge,
@@ -185,6 +189,7 @@ export class Pipeline {
       persist: ctx.persist,
       wsPort: ctx.config.hotReload?.port ?? HMR_WS_PORT,
       enableReload: true,
+      autoRefreshContentPage: ctx.config.hotReload?.autoRefreshContentPage ?? true,
     };
     const rspackFn = (rspackConfig: unknown, utils: { appendPlugins?: (p: unknown) => void }) => {
       if (utils?.appendPlugins) utils.appendPlugins(hmrPlugin(hmrOpts));
@@ -195,6 +200,9 @@ export class Pipeline {
         hmr: false,
         liveReload: false,
         writeToDisk: devWriteToDiskFilter,
+      },
+      server: {
+        printUrls: false,
       },
       tools: {
         rspack: rspackFn as RsbuildConfig["tools"] extends { rspack?: infer R } ? R : never,

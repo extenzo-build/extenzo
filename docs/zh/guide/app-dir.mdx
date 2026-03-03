@@ -1,0 +1,100 @@
+import { Tab, Tabs } from '@rspress/core/theme';
+
+# 目录结构
+Extenzo目录结构非常简单，必须的目录主要分为四个部分, `.extenzo`,`app`,`public`和`exo.config.ts`
+```tree
+.extenzo
+app（可配置）
+public
+exo.config.ts
+package.json
+```
+
+## .extenzo
+.extenzo目录会自动生成，是Extenzo输出产物和缓存的目录。输出产物（默认为`dist`）会输出到该目录，缓存`cache`目录也会输出在该目录。非必要情况下请不要删除`cache`目录，因为会影响构建速度和记录的浏览器用户配置。开发模式下浏览器加载的真实插件文件为`dist`（可指定输出目录的名称[entry](/guide/entry/file-based.md)）。
+
+```tree
+.extenzo/
+├── dist
+├── cache
+```
+## exo.config.(js|ts)
+Extenzo的配置文件，不能缺少
+
+## app
+Extenzo会默认解析`app`目录作为所有入口和`manifest`文件的根目录。若需要修改，可以在`exo.config.ts`中修改`appDir`字段
+
+`appDir` 用于指定**应用目录**，默认 `app`。[entry](/guide/entry/file-based.md) 与manifest 的解析都依赖appDir。框架会解析为绝对路径，例如 `appDir: "src"` → `path.resolve(root, "src")`。
+
+默认 `appDir` 下的典型目录结构：
+
+<Tabs>
+<Tab label="存在目录时">
+
+```tree
+app/
+├── background/
+│   └── index.ts
+├── content/
+│   └── index.ts
+├── popup/
+│   ├── index.html
+│   └── index.ts
+├── options/
+│   ├── index.html
+│   └── index.ts
+├── sidepanel/
+│   ├── index.html
+│   └── index.ts
+├── manifest/
+│   ├── manifest.chromium.json
+│   └── manifest.firefox.json
+└── 
+```
+
+</Tab>
+<Tab label="不存在目录时">
+```tree
+app/
+├── background.ts
+│  
+├── content.ts
+│   
+├── popup.html
+│ 
+├── popup.ts
+│   
+├── manifest.json
+└── 
+```
+</Tab>
+</Tabs>
+
+:::note
+更多灵活的入口配置请参考[entry](/guide/entry/concept.md)
+:::
+
+
+## public
+`public`目录存放所有静态资源，框架会直接复制这些资源到构建产物目录中。比如`public`结构如下
+```tree
+public/
+├── icons/
+│   └── icon-128.png
+├── _locales/
+│   ├── en
+│   └── ja
+```
+
+输出到`dist`目录下为
+```tree
+dist/
+├── icons/
+│   └── icon-128.png
+├── _locales/
+│   ├── en
+│   └── ja
+```
+## 相关配置
+
+- [entry](/guide/entry/file-based.md)、[manifest](/guide/manifest)：路径与自动加载均相对于 appDir。

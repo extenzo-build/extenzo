@@ -11,3 +11,4 @@ packages:
   - "packages/create-extenzo-app"
   - "docs"
   - "examples/*"
+  - "benchmark/*"

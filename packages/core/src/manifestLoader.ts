@@ -109,14 +109,20 @@ export class ManifestLoader {
     appDir: string
   ): ManifestConfig | null {
     if (input === undefined || input === null) {
-      const filesInSrcDir = this.loadFromDir(appDir);
-      if (this.hasAnyManifest(filesInSrcDir)) {
-        return validateAndReturn(this.buildConfigFromFiles(filesInSrcDir));
-      }
       const manifestSubdir = resolve(appDir, MANIFEST_DIR);
-      const filesInSubdir = this.loadFromDir(manifestSubdir);
-      if (this.hasAnyManifest(filesInSubdir)) {
-        return validateAndReturn(this.buildConfigFromFiles(filesInSubdir));
+      const baseInApp = resolve(appDir, MANIFEST_FILE_NAMES.base);
+      const baseInSub = resolve(manifestSubdir, MANIFEST_FILE_NAMES.base);
+      const dir =
+        existsSync(baseInApp)
+          ? appDir
+          : existsSync(baseInSub)
+            ? manifestSubdir
+            : null;
+      if (dir !== null) {
+        const files = this.loadFromDir(dir);
+        if (this.hasAnyManifest(files)) {
+          return validateAndReturn(this.buildConfigFromFiles(files));
+        }
       }
       return null;
     }

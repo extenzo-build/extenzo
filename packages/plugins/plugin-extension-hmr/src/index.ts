@@ -6,7 +6,7 @@ import { rm } from "node:fs/promises";
 import { createServer } from "node:http";
 import { WebSocketServer, WebSocket } from "ws";
 import type { LaunchTarget, ChromiumLaunchTarget } from "@extenzo/core";
-import { log, logDone, warn, error } from "@extenzo/core";
+import { log, logDone, logDoneTimed, warn, error } from "@extenzo/core";
 import { runChromiumRunner } from "./chromium-runner";
 import type { ChromiumRunnerOptions } from "./chromium-runner";
 
@@ -107,6 +107,8 @@ export interface HmrPluginOptions {
   persist?: boolean;
   wsPort?: number;
   enableReload?: boolean;
+  /** When true (default), content entry change triggers reload manager to refresh the active tab. */
+  autoRefreshContentPage?: boolean;
 }
 
 /** Browser paths only; used by getBrowserPath and internal callers */
@@ -236,25 +238,214 @@ export function isChromiumBrowser(browser: LaunchTarget): browser is ChromiumLau
   return browser !== "firefox";
 }
 
-function startWebSocketServer(port: number): WebSocketServer {
+function startWebSocketServer(port: number, startTime?: number): WebSocketServer {
   if (wsServer) return wsServer;
-  httpServer = createServer();
+  const t0 = startTime ?? performance.now();
+  httpServer = createServer(handleHttpRequest);
   wsServer = new WebSocketServer({ server: httpServer });
   wsServer.on("connection", (ws: WebSocket) => {
     if (ws.readyState === WebSocket.OPEN) ws.send("connected");
   });
   httpServer.listen(port, () => {
-    logDone("WebSocket started: ws://localhost:" + port);
+    const ms = Math.round(performance.now() - t0);
+    logDoneTimed("Hot reload WebSocket: ws://localhost:" + port, ms);
   });
   return wsServer;
 }
 
-export function notifyReload(): void {
+/** Extension error payload from runtime (entry, type, message, stack, time, etc.). */
+type ExtensionErrorPayload = {
+  entry?: string;
+  type?: string;
+  message?: string;
+  stack?: string;
+  filename?: string;
+  lineno?: number;
+  colno?: number;
+  time?: number;
+};
+
+const RED = "\x1b[31m";
+const RED_RESET = "\x1b[0m";
+
+function formatExtensionErrorForTerminal(payload: ExtensionErrorPayload): string {
+  const entry = typeof payload.entry === "string" && payload.entry.trim() ? payload.entry.trim() : "unknown";
+  const errorType = typeof payload.type === "string" && payload.type.trim() ? payload.type.trim() : "error";
+  const timeStr =
+    payload.time != null && Number.isFinite(Number(payload.time))
+      ? new Date(Number(payload.time)).toLocaleString()
+      : new Date().toLocaleString();
+  const message = payload.message != null ? String(payload.message) : "Unknown error";
+  const stack = payload.stack && String(payload.stack).trim() ? String(payload.stack).trim() : "";
+  const filename = payload.filename ? String(payload.filename) : "";
+  const lineno = payload.lineno != null && Number.isFinite(Number(payload.lineno)) ? Number(payload.lineno) : undefined;
+  const colno = payload.colno != null && Number.isFinite(Number(payload.colno)) ? Number(payload.colno) : undefined;
+  const loc = filename ? (filename + (lineno != null ? `:${lineno}` : "") + (colno != null ? `:${colno}` : "")) : "";
+  const lines: string[] = [
+    "--- Extenzo extension error ---",
+    `source: ${entry}`,
+    `type: ${errorType}`,
+    `time: ${timeStr}`,
+    `message: ${message}`,
+  ];
+  if (loc) lines.push(`location: ${loc}`);
+  if (stack) lines.push(`stack:\n${stack}`);
+  lines.push("---------------------------");
+  return lines.join("\n");
+}
+
+function logExtensionErrorToTerminal(payload: ExtensionErrorPayload): void {
+  const text = formatExtensionErrorForTerminal(payload);
+  const w = process.stderr.write.bind(process.stderr);
+  for (const line of text.split("\n")) {
+    w(RED + line + RED_RESET + "\n", "utf8");
+  }
+}
+
+function handleHttpRequest(
+  req: import("node:http").IncomingMessage,
+  res: import("node:http").ServerResponse
+): void {
+  if (req.method === "POST" && req.url === "/extenzo-error") {
+    let body = "";
+    req.setEncoding("utf8");
+    req.on("data", (chunk: string) => {
+      body += chunk;
+    });
+    req.on("end", () => {
+      try {
+        const payload = JSON.parse(body) as ExtensionErrorPayload;
+        if (payload && (payload.entry != null || payload.message != null)) {
+          logExtensionErrorToTerminal(payload);
+        }
+      } catch {
+        // ignore parse error
+      }
+      res.writeHead(204).end();
+    });
+    return;
+  }
+  res.writeHead(404).end();
+}
+
+/** Message "reload-extension": dev extension calls chrome.runtime.reload(). "toggle-extension": reload manager does disable+enable. "toggle-extension-refresh-tab": same + refresh active tab (only when content entry changed). */
+export function notifyReload(
+  kind: "reload-extension" | "toggle-extension",
+  opts?: { refreshTab?: boolean }
+): void {
   if (!wsServer) return;
+  const message =
+    kind === "toggle-extension" && opts?.refreshTab ? "toggle-extension-refresh-tab" : kind;
   wsServer.clients.forEach((client: WebSocket) => {
-    if (client.readyState === WebSocket.OPEN) client.send("reload-extension");
+    if (client.readyState === WebSocket.OPEN) client.send(message);
   });
-  logDone("hotreload success", new Date().toLocaleString());
+  logDone("hotreload success", message, new Date().toLocaleString());
+}
+
+/** Entry names that require runtime.reload; only background. Content and others use disable+enable. */
+const RELOAD_ENTRY_NAMES = new Set(["background"]);
+/** Entry names that inject into pages; when they change, reload manager should refresh the active tab. */
+const CONTENT_ENTRY_NAMES = new Set(["content"]);
+
+/** Rspack compilation proxy: entrypoints Map, Entrypoint has chunks (Chunk[]), Chunk has hash. */
+type CompilationLike = {
+  entrypoints?: ReadonlyMap<string, EntrypointLike>;
+};
+type EntrypointLike = {
+  chunks?: ReadonlyArray<{ hash?: string }>;
+  getFiles?: () => ReadonlyArray<string>;
+};
+
+function getCompilationFromStats(stats: unknown): CompilationLike | null {
+  if (!stats || typeof stats !== "object") return null;
+  const comp = (stats as { compilation?: CompilationLike }).compilation;
+  return comp && typeof comp === "object" ? comp : null;
+}
+
+/** Build signature from an entrypoint: prefer chunk hashes, else filenames from getFiles(). No toJson. */
+function getEntrypointSignature(entrypoint: EntrypointLike | undefined, _entryName: string): string | null {
+  if (!entrypoint) return null;
+  const hashes: string[] = [];
+  if (entrypoint.chunks && Array.isArray(entrypoint.chunks)) {
+    for (const c of entrypoint.chunks) {
+      if (c?.hash) hashes.push(c.hash);
+    }
+  }
+  if (hashes.length > 0) {
+    hashes.sort();
+    return hashes.join(",");
+  }
+  const getFiles = entrypoint.getFiles;
+  if (typeof getFiles === "function") {
+    try {
+      const files = getFiles();
+      if (files && files.length > 0) {
+        const list = [...files].sort();
+        return list.join(",");
+      }
+    } catch {
+      // proxy may throw
+    }
+  }
+  return null;
+}
+
+/** Fast path: use compilation.entrypoints + chunk hash (or getFiles) to avoid stats.toJson(). */
+function getReloadEntriesSignatureFromCompilation(compilation: CompilationLike): string | null {
+  const entrypoints = compilation.entrypoints;
+  if (!entrypoints || typeof entrypoints.get !== "function") return null;
+  const hashes: string[] = [];
+  for (const name of RELOAD_ENTRY_NAMES) {
+    const sig = getEntrypointSignature(entrypoints.get(name), name);
+    if (sig) hashes.push(sig);
+  }
+  return hashes.length > 0 ? hashes.sort().join("|") : null;
+}
+
+/** Fast path for content entry signature. */
+function getContentEntriesSignatureFromCompilation(compilation: CompilationLike): string | null {
+  const entrypoints = compilation.entrypoints;
+  if (!entrypoints || typeof entrypoints.get !== "function") return null;
+  const hashes: string[] = [];
+  for (const name of CONTENT_ENTRY_NAMES) {
+    const sig = getEntrypointSignature(entrypoints.get(name), name);
+    if (sig) hashes.push(sig);
+  }
+  return hashes.length > 0 ? hashes.sort().join("|") : null;
+}
+
+/** Collect hash of chunks for background entry from compilation; only background triggers full reload. No toJson. */
+function getReloadEntriesSignature(stats: unknown): string | null {
+  const compilation = getCompilationFromStats(stats);
+  if (!compilation) return null;
+  return getReloadEntriesSignatureFromCompilation(compilation);
+}
+
+/** Collect hash of content entry chunks; when this changes, reload manager should refresh active tab. No toJson. */
+function getContentEntriesSignature(stats: unknown): string | null {
+  const compilation = getCompilationFromStats(stats);
+  if (!compilation) return null;
+  return getContentEntriesSignatureFromCompilation(compilation);
+}
+
+let lastReloadSignature: string | null = null;
+let lastContentSignature: string | null = null;
+
+/** Decide reload kind: if we can detect background change → reload-extension; else → toggle-extension (default, enable/disable). No toJson. */
+export function getReloadKind(stats: unknown): "reload-extension" | "toggle-extension" {
+  const sig = getReloadEntriesSignature(stats);
+  if (sig === null) return "toggle-extension";
+  const useReload = lastReloadSignature === null || sig !== lastReloadSignature;
+  lastReloadSignature = sig;
+  return useReload ? "reload-extension" : "toggle-extension";
+}
+
+/** True if content entry chunks changed (used to decide whether reload manager should refresh active tab). Returns false on first build. */
+export function isContentChanged(stats: unknown): boolean {
+  const sig = getContentEntriesSignature(stats);
+  const changed = sig !== null && lastContentSignature !== null && sig !== lastContentSignature;
+  if (sig !== null) lastContentSignature = sig;
+  return changed;
 }
 
 /**
@@ -328,11 +519,14 @@ async function createReloadManagerExtension(
   const extPath = getReloadManagerPath(distPath);
   const bgJsPath = resolve(extPath, "bg.js");
   const portCachePath = resolve(extPath, ".port-cache");
+  const scriptVersionPath = resolve(extPath, ".script-version");
+  const RELOAD_MANAGER_SCRIPT_VERSION = 2;
   let needsUpdate = true;
-  if (existsSync(portCachePath)) {
+  if (existsSync(portCachePath) && existsSync(scriptVersionPath)) {
     try {
-      const cached = parseInt(await readFile(portCachePath, "utf-8"), 10);
-      if (cached === wsPort) needsUpdate = false;
+      const cachedPort = parseInt(await readFile(portCachePath, "utf-8"), 10);
+      const cachedVer = parseInt(await readFile(scriptVersionPath, "utf-8"), 10);
+      if (cachedPort === wsPort && cachedVer === RELOAD_MANAGER_SCRIPT_VERSION) needsUpdate = false;
     } catch {
       // ignore
     }
@@ -350,13 +544,20 @@ async function createReloadManagerExtension(
     );
     const bgJs = `
 let ws=null,rt=null;
+function canReloadTab(tab){
+  if(!tab||!tab.url)return false;
+  const u=tab.url;
+  return u.startsWith("http://")||u.startsWith("https://")||u.startsWith("file://");
+}
 function connect(){
   try{if(ws)ws.close();
   ws=new WebSocket("ws://localhost:${wsPort}");
   ws.onopen=()=>{if(rt)clearInterval(rt);rt=null;};
   ws.onmessage=async(e)=>{
     if(e.data==="connected")return;
-    if(e.data==="reload-extension"){
+    if(e.data==="reload-extension")return;
+    const refreshTab=e.data==="toggle-extension-refresh-tab";
+    if(e.data==="toggle-extension"||refreshTab){
       const all=await chrome.management.getAll();
       for(const x of all){
         if(x.enabled&&x.installType==="development"&&x.id!==chrome.runtime.id){
@@ -364,6 +565,13 @@ function connect(){
           await new Promise(r=>setTimeout(r,100));
           await chrome.management.setEnabled(x.id,true);}catch(err){}
         }
+      }
+      if(refreshTab){
+        await new Promise(r=>setTimeout(r,200));
+        try{
+          const [tab]=await chrome.tabs.query({active:true,currentWindow:true});
+          if(tab?.id&&canReloadTab(tab))await chrome.tabs.reload(tab.id);
+        }catch(err){}
       }
     }
   };
@@ -374,6 +582,7 @@ connect();
 `;
     await writeFile(bgJsPath, bgJs, "utf-8");
     await writeFile(portCachePath, String(wsPort), "utf-8");
+    await writeFile(scriptVersionPath, String(RELOAD_MANAGER_SCRIPT_VERSION), "utf-8");
   }
   return extPath;
 }
@@ -454,6 +663,7 @@ async function launchBrowser(
   ensureDistReadyOverride?: (distPath: string) => Promise<boolean>,
   getBrowserPathOverride?: (b: LaunchTarget, o: LaunchPathOptions) => string | null
 ): Promise<void> {
+  const launchStart = performance.now();
   const {
     distPath,
     browser = "chrome",
@@ -485,11 +695,10 @@ async function launchBrowser(
     error(e.message);
   });
   if (enableReload) {
-    startWebSocketServer(wsPort);
+    const wsStart = performance.now();
+    startWebSocketServer(wsPort, wsStart);
     if (isChromiumBrowser(browser)) {
-      reloadManagerPath =
-        findExistingReloadManager(distPath) ??
-        (await createReloadManagerExtension(wsPort, distPath));
+      reloadManagerPath = await createReloadManagerExtension(wsPort, distPath);
     }
   }
   if (isChromiumBrowser(browser)) {
@@ -520,7 +729,8 @@ async function launchBrowser(
           .catch(() => process.exit(1));
       },
     });
-    logDone(browser, "started via Chromium runner, extensions loaded.");
+    const ms = Math.round(performance.now() - launchStart);
+    logDoneTimed(browser + " started via Chromium runner, extensions loaded.", ms);
     return;
   }
   const onFirefoxExit = (): void => {
@@ -529,7 +739,8 @@ async function launchBrowser(
       .catch(() => process.exit(1));
   };
   await runFirefoxWebExt(distPath, browserBinary || undefined, onFirefoxExit);
-  logDone("Firefox started via web-ext cmd.run, extension loaded.");
+  const ms = Math.round(performance.now() - launchStart);
+  logDoneTimed("Firefox started via web-ext cmd.run, extension loaded.", ms);
 }
 
 /**
@@ -582,6 +793,7 @@ export function launchBrowserOnly(
 
   const runnerFn = chromiumRunnerOverride ?? runChromiumRunner;
   const doLaunch = async (): Promise<void> => {
+    const launchStart = performance.now();
     await ensureDistReady(distPath).catch((e: Error) => {
       throw e;
     });
@@ -611,7 +823,8 @@ export function launchBrowserOnly(
         startUrl: "chrome://extensions",
         onExit,
       });
-      logDone(browser, "started (build launch), extension loaded.");
+      const ms = Math.round(performance.now() - launchStart);
+      logDoneTimed(browser + " started (build launch), extension loaded.", ms);
       return;
     }
     const onFirefoxExit = (): void => {
@@ -623,7 +836,8 @@ export function launchBrowserOnly(
         .catch(() => process.exit(1));
     };
     await runFirefoxWebExt(distPath, browserBinary ?? undefined, onFirefoxExit);
-    logDone("Firefox started (build launch), extension loaded.");
+    const ms = Math.round(performance.now() - launchStart);
+    logDoneTimed("Firefox started (build launch), extension loaded.", ms);
   };
 
   return doLaunch().then(() => closedPromise);
@@ -659,6 +873,7 @@ export function hmrPlugin(
     browser = "chrome",
     wsPort = 23333,
     enableReload = true,
+    autoRefreshContentPage = true,
   } = options;
   const runnerOverride = testDeps?.runChromiumRunner;
   const ensureDistReadyOverride = testDeps?.ensureDistReady;
@@ -672,9 +887,15 @@ export function hmrPlugin(
 
       if (enableReload) {
         hooks.done.tap("extenzo-hmr-reload", async (stats) => {
-          if (statsHasErrors(stats)) return;
-          await new Promise((r) => setTimeout(r, 500));
-          notifyReload();
+          // if (statsHasErrors(stats)) return;
+          // Wait for build output to be written (especially background chunk) before notifying reload.
+          await new Promise((r) => setTimeout(r, 60));
+          const kind = getReloadKind(stats);
+          const refreshTab =
+            kind === "toggle-extension" &&
+            isContentChanged(stats) &&
+            autoRefreshContentPage;
+          notifyReload(kind, refreshTab ? { refreshTab: true } : undefined);
         });
       }
 

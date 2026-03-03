@@ -1,42 +1,38 @@
 import { describe, expect, it } from "@rstest/core";
-import { defineContentUI, mountContentUI } from "../src/content-ui";
+import {
+  defineContentUI,
+  defineShadowContentUI,
+  defineIframeContentUI,
+} from "../src/content-ui";
 
 describe("content-ui", () => {
-  describe("defineContentUI", () => {
-    it("returns spec with tag, target, defaults for injectMode and wrapper", () => {
-      const spec = defineContentUI({ tag: "div", target: "body" });
-      expect(spec.tag).toBe("div");
-      expect(spec.target).toBe("body");
-      expect(spec.injectMode).toBe("append");
-      expect(spec.wrapper).toBe("none");
+  describe("define*ContentUI", () => {
+    it("returns mount function for native UI", () => {
+      const mount = defineContentUI({ tag: "div", target: "body" });
+      expect(typeof mount).toBe("function");
     });
 
-    it("accepts injectMode and wrapper", () => {
-      const spec = defineContentUI({
-        tag: "section",
+    it("returns mount function for shadow UI", () => {
+      const mount = defineShadowContentUI({
+        name: "my-content-ui",
         target: "#root",
         injectMode: "prepend",
-        wrapper: "shadow",
       });
-      expect(spec.injectMode).toBe("prepend");
-      expect(spec.wrapper).toBe("shadow");
+      expect(typeof mount).toBe("function");
     });
 
-    it("accepts attr", () => {
-      const spec = defineContentUI({
+    it("returns mount function for iframe UI", () => {
+      const mount = defineIframeContentUI({ target: "body" });
+      expect(typeof mount).toBe("function");
+    });
+
+    it("accepts common attrs on define", () => {
+      const mount = defineContentUI({
         tag: "div",
         target: "body",
         attr: { id: "app", class: "container" },
       });
-      expect(spec.attr).toEqual({ id: "app", class: "container" });
-    });
-  });
-
-  describe("mountContentUI", () => {
-    it("throws when given non-spec", () => {
-      expect(() => mountContentUI({ tag: "div", target: "body" } as never)).toThrow(
-        /expected return value of defineContentUI/
-      );
+      expect(typeof mount).toBe("function");
     });
   });
 });

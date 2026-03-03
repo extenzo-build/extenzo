@@ -14,6 +14,8 @@ export default defineComponent({
 
     const currentTheme = ref("dark");
 
+    console.log("captureId", ttf);
+
     const getTheme = () => {
       if (
         window.matchMedia &&

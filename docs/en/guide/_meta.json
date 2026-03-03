@@ -1,5 +1,22 @@
 [
-  { "type": "file", "name": "introduction", "label": "Introduction" },
-  { "type": "file", "name": "install", "label": "Installation" },
-  { "type": "file", "name": "feature-subsets", "label": "Feature Subsets" }
+  { "type": "section-header", "label": "Quick Start" },
+  "introduction",
+  "install",
+  { "type": "section-header", "label": "Basics" },
+  "app-dir",
+  "entry",
+  "manifest",
+  "i18n",
+  "icons",
+  { "type": "dir", "name": "framework", "label": "Framework support", "collapsible": true, "collapsed": false },
+  "launch",
+  "monitor",
+  "env-prefix",
+  "rsbuild-config",
+  { "type": "section-header", "label": "Development" },
+  "hmr",
+  "reload-manager",
+  { "type": "section-header", "label": "Production" },
+  "output",
+  "zip"
 ]

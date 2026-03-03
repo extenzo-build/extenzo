@@ -14,8 +14,9 @@
 | 插件 | 作用 |
 |------|------|
 | **plugin-extension-entry** | 根据 [entry](/config/entry) 与 [appDir](/config/app-dir) 解析入口，设置 Rsbuild 的 entry、HTML 模板、output 路径、public 复制等 |
-| **plugin-extension-manifest** | 构建结束后将解析好的 [manifest](/config/manifest) 写入产物目录的 `manifest.json`（按 `-b` 选择 chromium/firefox） |
+| **plugin-extension-manifest** | 构建结束后将解析好的 [manifest](/config/manifest) 写入产物目录的 `manifest.json`（按 `-b` 选择 chromium/firefox），展开 [exo.content] 占位符并移除空 css |
 | **plugin-extension-hmr** | 开发模式下启动 WebSocket 与浏览器重载（仅 dev 时注入） |
+| **plugin-extension-monitor** | 仅开发且 `--debug` 或 `debug: true` 时：错误监控、带 Ask AI（ChatGPT、Cursor）与主题切换的面板 |
 
 ## 用户插件：Vue / React
 

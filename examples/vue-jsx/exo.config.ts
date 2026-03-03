@@ -61,18 +61,12 @@ const baseManifest = {
       512: "icons/icon_512.png",
     },
     default_title: "Video Roll",
-    default_popup: "[exo.popup]",
   },
-  background: { service_worker: "[exo.background]" },
   content_scripts: [
     {
-      matches: ["<all_urls>"],
-      js: ["[exo.content]"],
-      run_at: "document_start",
+      matches: ["<all_urls>"]
     },
-  ],
-  options_ui: { page: "[exo.options]", open_in_tab: true },
-  side_panel: { default_path: "[exo.sidepanel]" },
+  ]
 };
 
 export default defineConfig({
@@ -91,5 +85,9 @@ export default defineConfig({
       src: "player/index.ts",
       html: "player/player.html",
     }
-  }
+  },
+  hotReload: {
+    port: 21123,
+    autoRefreshContentPage: true,
+  },
 });

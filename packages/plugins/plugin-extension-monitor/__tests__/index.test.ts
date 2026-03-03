@@ -32,30 +32,46 @@ describe("plugin-extension-monitor", () => {
   it("ExtenzoMonitorPlugin buildInjectionSnippet includes entry and setupExtenzoMonitor", () => {
     const config = minimalConfig({ name: "X", version: "1.0.0", manifest_version: 3 });
     const instance = new ExtenzoMonitorPlugin(config, [minimalEntry("popup")]);
-    const snippet = instance.buildInjectionSnippet("popup", { autoOpen: true, registerShortcut: false });
+    const snippet = instance.buildInjectionSnippet("popup", { registerShortcut: false });
     expect(snippet).toContain("setupExtenzoMonitor");
     expect(snippet).toContain("popup");
-    expect(snippet).toContain("autoOpen: true");
+    expect(snippet).toContain("entry:");
   });
 
-  it("ExtenzoMonitorPlugin getInjectDataUrl returns data URL", () => {
+  it("ExtenzoMonitorPlugin buildInjectionSnippet for background includes startHmrReloadClient", () => {
     const config = minimalConfig({ name: "X", version: "1.0.0", manifest_version: 3 });
     const instance = new ExtenzoMonitorPlugin(config, [minimalEntry("background")]);
-    const url = instance.getInjectDataUrl("background", { autoOpen: false, registerShortcut: true });
-    expect(url).toMatch(/^data:text\/javascript;charset=utf-8,/);
-    expect(decodeURIComponent(url)).toContain("setupExtenzoMonitor");
+    const snippet = instance.buildInjectionSnippet("background", { registerShortcut: true });
+    expect(snippet).toContain("startHmrReloadClient");
   });
 
-  it("injectPermissions adds commands and web_accessible_resources to single manifest", () => {
-    const manifest = { name: "X", version: "1.0.0", manifest_version: 3 };
-    const config = minimalConfig(manifest);
-    const instance = new ExtenzoMonitorPlugin(config, []);
-    instance.injectPermissions();
-    expect(manifest.commands).toBeDefined();
-    expect((manifest.commands as Record<string, unknown>)["open-extenzo-monitor"]).toBeDefined();
-    expect(Array.isArray(manifest.web_accessible_resources)).toBe(true);
-    expect((manifest.web_accessible_resources as { resources?: string[] }[])[0]?.resources).toContain(
-      "extenzo-monitor/*"
-    );
+  it("modifyRsbuildConfig prepends virtual module id to each entry import array", () => {
+    const config = minimalConfig({ name: "X", version: "1.0.0", manifest_version: 3 });
+    const instance = new ExtenzoMonitorPlugin(config, [minimalEntry("background"), minimalEntry("content")]);
+    const cfg = {
+      source: {
+        entry: {
+          background: "/app/background.ts",
+          content: "/app/content.ts",
+        },
+      },
+    };
+    const api = {
+      modifyRsbuildConfig: (fn: (c: unknown) => void) => {
+        fn(cfg);
+        const src = (cfg as Record<string, unknown>).source as Record<string, unknown>;
+        const entry = src.entry as Record<string, unknown>;
+        expect(entry.background).toEqual({
+          import: ["./.extenzo-monitor-background.js", "/app/background.ts"],
+          html: false,
+        });
+        expect(entry.content).toEqual({
+          import: ["./.extenzo-monitor-content.js", "/app/content.ts"],
+          html: false,
+        });
+      },
+      onBeforeCreateCompiler: () => {},
+    };
+    instance.toRsbuildPlugin().setup!(api as never);
   });
 });

@@ -6,7 +6,7 @@ Extenzo config can be split into the following feature subsets for reference and
 
 | Option | Description | Doc |
 |--------|-------------|-----|
-| **manifest** | Extension manifest: object/path config, per-browser split (chromium/firefox), or omit to auto-load manifest.json. | [manifest](/config/manifest) |
+| **manifest** | Extension manifest: object/path config, per-browser split (chromium/firefox), or omit to auto-load manifest.json; supports [exo.content] placeholders in content_scripts. | [manifest](/config/manifest) |
 | **entry** | Custom entry map: reserved names (popup, options, background, etc.), value = path relative to baseDir. | [entry](/config/entry) |
 | **appDir** | App directory, default project root; baseDir for entry and root for manifest auto-load. | [appDir](/config/app-dir) |
 | **outDir** | Output directory name, default `"dist"`; full path is outputRoot/outDir. | [outDir](/config/out-dir) |
@@ -20,7 +20,7 @@ Extenzo config can be split into the following feature subsets for reference and
 
 ## Relation to CLI
 
-- **extenzo dev**: Uses manifest, entry, plugins, launch, rsbuildConfig; HMR and browser launch depend on plugin-extension-hmr and launch.
+- **extenzo dev**: Uses manifest, entry, plugins, launch, rsbuildConfig; HMR and browser launch depend on plugin-extension-hmr and launch; with `--debug` adds plugin-extension-monitor (error panel, Ask AI).
 - **extenzo build**: Uses manifest, entry, plugins, rsbuildConfig; plugin-extension writes manifest.json; when zip is true, produces outDir.zip under outputRoot.
 
 ## Next steps

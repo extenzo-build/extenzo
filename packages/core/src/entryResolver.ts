@@ -3,7 +3,12 @@ import { existsSync } from "fs";
 import type { ExtenzoUserConfig, EntryInfo, EntryConfigValue } from "./types.ts";
 import { HTML_ENTRY_NAMES, SCRIPT_EXTS } from "./constants.ts";
 import { EntryDiscoverer } from "./entryDiscoverer.ts";
-import { getScriptInjectIfMatches, parseExtenzoEntryFromHtml } from "./htmlEntry.ts";
+import {
+  getScriptInjectIfMatches,
+  parseExtenzoEntryFromHtml,
+  resolveScriptFromHtmlStrict,
+} from "./htmlEntry.ts";
+import { createEntryScriptFromHtmlError } from "./errors.ts";
 
 const HTML_ENTRY_SET = new Set(HTML_ENTRY_NAMES);
 
@@ -37,18 +42,6 @@ function findScriptForHtmlDir(dir: string, htmlFilename: string): string | undef
 
 function isEntryConfigObject(value: EntryConfigValue): value is { src: string; html?: boolean | string } {
   return typeof value === "object" && value !== null && "src" in value;
-}
-
-/** Resolve script path from HTML when it has data-extenzo-entry with src. scriptInject is applied later via enrichEntryWithScriptInject. */
-function resolveScriptFromHtml(htmlPath: string): string | undefined {
-  try {
-    const parsed = parseExtenzoEntryFromHtml(htmlPath);
-    if (!parsed || !isScriptPath(parsed.src)) return undefined;
-    const scriptPath = resolve(dirname(htmlPath), parsed.src);
-    return existsSync(scriptPath) ? scriptPath : undefined;
-  } catch {
-    return undefined;
-  }
 }
 
 function resolveHtmlPath(baseDir: string, htmlValue: string | undefined): string | undefined {
@@ -134,10 +127,33 @@ export class EntryResolver {
     if (isHtmlPath(pathStr)) {
       const htmlPath = resolved;
       const dir = dirname(htmlPath);
-      const scriptPath =
-        resolveScriptFromHtml(htmlPath) ?? findScriptForHtmlDir(dir, basename(htmlPath));
+      let parsed: ReturnType<typeof parseExtenzoEntryFromHtml>;
+      try {
+        parsed = parseExtenzoEntryFromHtml(htmlPath);
+      } catch {
+        parsed = undefined;
+      }
+      let scriptPath: string | undefined;
+      if (parsed) {
+        try {
+          scriptPath = resolveScriptFromHtmlStrict(htmlPath).scriptPath;
+        } catch (e) {
+          throw createEntryScriptFromHtmlError(
+            htmlPath,
+            e instanceof Error ? e.message : String(e)
+          );
+        }
+      } else {
+        scriptPath = findScriptForHtmlDir(dir, basename(htmlPath));
+      }
       if (!scriptPath) return null;
-      const entry: EntryInfo = { name, scriptPath, htmlPath, html: true };
+      const entry: EntryInfo = {
+        name,
+        scriptPath,
+        htmlPath,
+        html: true,
+        outputFollowsScriptPath: Boolean(parsed),
+      };
       return enrichEntryWithScriptInject(entry);
     }
     if (isScriptPath(pathStr)) {

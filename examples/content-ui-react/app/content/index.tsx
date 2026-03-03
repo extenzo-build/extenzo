@@ -1,12 +1,13 @@
 /**
- * Content script: defineContentUI + mountContentUI from @extenzo/utils,
+ * Content script: defineContentUI from @extenzo/utils,
  * then mount a React app with Tailwind CSS.
  */
 import "./index.css";
+import "./test.css";
 import { createRoot } from "react-dom/client";
-import { defineContentUI, mountContentUI } from "@extenzo/utils";
+import { defineContentUI } from "@extenzo/utils";
 
-const contentUISpec = defineContentUI({
+const mountContentUI = defineContentUI({
   tag: "div",
   target: "body",
   attr: {
@@ -14,7 +15,6 @@ const contentUISpec = defineContentUI({
     class: "fixed bottom-4 right-4 z-[2147483647] max-w-[320px]",
   },
   injectMode: "append",
-  wrapper: "none",
 });
 
 function ContentApp() {
@@ -24,7 +24,7 @@ function ContentApp() {
         Content UI (React + Tailwind)
       </h2>
       <p className="text-xs text-slate-500">
-        Mounted with defineContentUI + mountContentUI from @extenzo/utils.
+        Mounted with defineContentUI from @extenzo/utils.
       </p>
       <div className="mt-3 flex gap-2">
         <button
@@ -43,7 +43,7 @@ function ContentApp() {
 }
 
 function mountUI(): void {
-  const container = mountContentUI(contentUISpec);
+  const container = mountContentUI();
   if (!(container instanceof Element)) return;
   const root = createRoot(container);
   root.render(<ContentApp />);
