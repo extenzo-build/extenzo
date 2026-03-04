@@ -420,5 +420,55 @@ describe("ManifestLoader", () => {
         )
       ).toThrow("cannot have both");
     });
+
+    it("throws when MV3 (Chrome) background has page field", () => {
+      expect(() =>
+        resolveManifestInput(
+          { name: "X", version: "1.0.0", manifest_version: 3, background: { page: "bg.html" } },
+          "/root",
+          tempDir
+        )
+      ).toThrow("background.page");
+    });
+
+    it("throws when Firefox MV3 background is not an object", () => {
+      expect(() =>
+        resolveManifestInput(
+          {
+            firefox: { name: "F", version: "1.0.0", manifest_version: 3, background: "bg.js" as unknown as object },
+          },
+          "/root",
+          tempDir
+        )
+      ).toThrow("background");
+    });
+
+    it("accepts Firefox MV3 with empty background object", () => {
+      const config = {
+        firefox: { name: "F", version: "1.0.0", manifest_version: 3, background: {} },
+      };
+      const result = resolveManifestInput(config, "/root", tempDir);
+      expect(result).toEqual(config);
+    });
+
+    it("throws when MV3 host_permissions is not string[]", () => {
+      expect(() =>
+        resolveManifestInput(
+          { name: "X", version: "1.0.0", manifest_version: 3, host_permissions: "bad" as unknown as string[] },
+          "/root",
+          tempDir
+        )
+      ).toThrow("host_permissions");
+    });
+
+    it("throws when MV2 background.scripts is not string[]", () => {
+      expect(() =>
+        resolveManifestInput(
+          { name: "X", version: "1.0.0", manifest_version: 2, background: { scripts: "bg.js" } },
+          "/root",
+          tempDir
+        )
+      ).toThrow("background.scripts");
+    });
   });
 });

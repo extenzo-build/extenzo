@@ -1,4 +1,4 @@
-import { resolve, dirname } from "path";
+import { resolve } from "path";
 import { existsSync, readdirSync } from "fs";
 import type { EntryInfo } from "./types.ts";
 import {
@@ -18,15 +18,15 @@ interface DirContents {
   dirs: Set<string>;
 }
 
+/** Read directory contents, separating files from subdirectories. */
 function readDirContents(dir: string): DirContents | null {
   try {
     const entries = readdirSync(dir, { withFileTypes: true });
     const files = new Set<string>();
     const dirs = new Set<string>();
     for (const e of entries) {
-      const name = e.name;
-      if (e.isDirectory()) dirs.add(name);
-      else if (e.isFile()) files.add(name);
+      if (e.isDirectory()) dirs.add(e.name);
+      else if (e.isFile()) files.add(e.name);
     }
     return { files, dirs };
   } catch {
@@ -34,6 +34,7 @@ function readDirContents(dir: string): DirContents | null {
   }
 }
 
+/** Find an index script file in the directory (by extension priority). */
 function findScriptInDir(dir: string, scriptExts: readonly string[]): string | undefined {
   const contents = readDirContents(dir);
   if (!contents) return undefined;
@@ -43,6 +44,7 @@ function findScriptInDir(dir: string, scriptExts: readonly string[]): string | u
   return undefined;
 }
 
+/** Find an index script using pre-read directory contents to avoid redundant IO. */
 function findScriptInDirFromContents(
   dirPath: string,
   contents: DirContents | null,
@@ -55,6 +57,7 @@ function findScriptInDirFromContents(
   return undefined;
 }
 
+/** Find a named script file in the base directory (e.g. popup.ts / popup.js). */
 function findNamedScript(
   baseDir: string,
   name: string,
@@ -74,6 +77,7 @@ function findNamedScript(
   return undefined;
 }
 
+/** Find a named HTML file in the base directory. */
 function findNamedHtml(
   baseDir: string,
   name: string,
@@ -86,18 +90,14 @@ function findNamedHtml(
   return existsSync(p) ? p : undefined;
 }
 
-function hasIndexHtmlInContents(contents: DirContents): boolean {
-  return contents.files.has("index.html");
-}
-
 function isValidScriptExt(pathStr: string, scriptExts: readonly string[]): boolean {
   const lower = pathStr.trim().toLowerCase();
   return scriptExts.some((ext) => lower.endsWith(ext));
 }
 
 /**
- * When HTML has data-extenzo-entry with src: resolve script path (relative only, file must exist).
- * Throws ExtenzoError on invalid src or missing file.
+ * Resolve script path from HTML data-extenzo-entry attribute.
+ * Only relative paths accepted; file must exist. Throws ExtenzoError otherwise.
  */
 function resolveScriptFromHtmlWithInjectStrict(
   htmlPath: string,
@@ -114,8 +114,8 @@ function resolveScriptFromHtmlWithInjectStrict(
 }
 
 /**
- * If HTML has data-extenzo-entry with src, resolve script and return { scriptPath, inject }.
- * Throws on invalid src or missing file. Returns undefined when no data-extenzo-entry.
+ * Try resolving entry from HTML data-extenzo-entry.
+ * Returns undefined when no data-extenzo-entry; throws on invalid src or missing file.
  */
 function tryResolveEntryFromHtml(
   htmlPath: string,
@@ -138,7 +138,39 @@ function tryResolveEntryFromHtml(
   }
 }
 
-/** Entry discoverer: finds background, content, popup, options, sidepanel, devtools entries under a directory. */
+/**
+ * Build an HTML entry from an HTML resolution result and a conventional script path.
+ * Handles both data-extenzo-entry and conventional script discovery in one place,
+ * eliminating the repeated pattern across discovery scenarios.
+ */
+function buildHtmlEntryInfo(
+  name: string,
+  htmlPath: string,
+  conventionalScriptPath: string | undefined,
+  scriptExts: readonly string[]
+): EntryInfo | null {
+  const fromHtml = tryResolveEntryFromHtml(htmlPath, scriptExts);
+  if (fromHtml) {
+    return {
+      name,
+      scriptPath: fromHtml.scriptPath,
+      htmlPath,
+      html: true,
+      scriptInject: fromHtml.inject,
+      outputFollowsScriptPath: true,
+    };
+  }
+  if (!conventionalScriptPath) return null;
+  return {
+    name,
+    scriptPath: conventionalScriptPath,
+    htmlPath,
+    html: true,
+    scriptInject: getScriptInjectIfMatches(htmlPath, conventionalScriptPath),
+  };
+}
+
+/** Entry discoverer: finds built-in entries (script-only + HTML entries) under a directory. */
 export class EntryDiscoverer {
   constructor(
     private readonly scriptExts: readonly string[] = SCRIPT_EXTS,
@@ -146,153 +178,102 @@ export class EntryDiscoverer {
     private readonly htmlEntryNames: readonly string[] = HTML_ENTRY_NAMES
   ) {}
 
+  /** Scan directory and discover all built-in entries. */
   discover(baseDir: string): EntryInfo[] {
     const entries: EntryInfo[] = [];
     const baseContents = readDirContents(baseDir);
 
     for (const name of this.scriptOnlyNames) {
-      const singleScript = findNamedScript(
-        baseDir,
-        name,
-        this.scriptExts,
-        baseContents
-      );
-      if (singleScript) {
-        entries.push({ name, scriptPath: singleScript, html: false });
-        continue;
-      }
-      if (!baseContents?.dirs.has(name)) continue;
-      const dirPath = resolve(baseDir, name);
-      const scriptPath = findScriptInDir(dirPath, this.scriptExts);
-      if (scriptPath) entries.push({ name, scriptPath, html: false });
+      const entry = this.discoverScriptOnlyEntry(baseDir, name, baseContents);
+      if (entry) entries.push(entry);
     }
 
     for (const name of this.htmlEntryNames) {
-      const singleScript = findNamedScript(
-        baseDir,
-        name,
-        this.scriptExts,
-        baseContents
-      );
-      const singleHtml = findNamedHtml(baseDir, name, baseContents);
-      if (singleScript && singleHtml) {
-        const fromHtml = tryResolveEntryFromHtml(singleHtml, this.scriptExts);
-        if (fromHtml) {
-          entries.push({
-            name,
-            scriptPath: fromHtml.scriptPath,
-            htmlPath: singleHtml,
-            html: true,
-            scriptInject: fromHtml.inject,
-            outputFollowsScriptPath: true,
-          });
-        } else {
-          const scriptInject = getScriptInjectIfMatches(singleHtml, singleScript);
-          entries.push({
-            name,
-            scriptPath: singleScript,
-            htmlPath: singleHtml,
-            html: true,
-            scriptInject,
-          });
-        }
-        continue;
-      }
-      if (singleHtml) {
-        const fromHtml = tryResolveEntryFromHtml(singleHtml, this.scriptExts);
-        if (fromHtml) {
-          entries.push({
-            name,
-            scriptPath: fromHtml.scriptPath,
-            htmlPath: singleHtml,
-            html: true,
-            scriptInject: fromHtml.inject,
-            outputFollowsScriptPath: true,
-          });
-          continue;
-        }
-        const conventional = findNamedScript(
-          baseDir,
-          name,
-          this.scriptExts,
-          baseContents
-        );
-        if (conventional) {
-          const scriptInject = getScriptInjectIfMatches(singleHtml, conventional);
-          entries.push({
-            name,
-            scriptPath: conventional,
-            htmlPath: singleHtml,
-            html: true,
-            scriptInject,
-          });
-        }
-        continue;
-      }
-      if (!baseContents?.dirs.has(name)) continue;
-      const dirPath = resolve(baseDir, name);
-      const subContents = readDirContents(dirPath);
-      const htmlPathInDir =
-        subContents && hasIndexHtmlInContents(subContents)
-          ? resolve(dirPath, "index.html")
-          : undefined;
-      const scriptInDir = findScriptInDirFromContents(
-        dirPath,
-        subContents,
-        this.scriptExts
-      );
-      if (scriptInDir && htmlPathInDir) {
-        const fromHtml = tryResolveEntryFromHtml(htmlPathInDir, this.scriptExts);
-        if (fromHtml) {
-          entries.push({
-            name,
-            scriptPath: fromHtml.scriptPath,
-            htmlPath: htmlPathInDir,
-            html: true,
-            scriptInject: fromHtml.inject,
-            outputFollowsScriptPath: true,
-          });
-        } else {
-          const scriptInject = getScriptInjectIfMatches(
-            htmlPathInDir,
-            scriptInDir
-          );
-          entries.push({
-            name,
-            scriptPath: scriptInDir,
-            htmlPath: htmlPathInDir,
-            html: true,
-            scriptInject,
-          });
-        }
-        continue;
-      }
-      if (scriptInDir) {
-        entries.push({
-          name,
-          scriptPath: scriptInDir,
-          htmlPath: htmlPathInDir,
-          html: true,
-          scriptInject: htmlPathInDir
-            ? getScriptInjectIfMatches(htmlPathInDir, scriptInDir)
-            : undefined,
-        });
-        continue;
-      }
-      if (!htmlPathInDir) continue;
-      const fromHtml = tryResolveEntryFromHtml(htmlPathInDir, this.scriptExts);
-      if (fromHtml) {
-        entries.push({
-          name,
-          scriptPath: fromHtml.scriptPath,
-          htmlPath: htmlPathInDir,
-          html: true,
-          scriptInject: fromHtml.inject,
-          outputFollowsScriptPath: true,
-        });
-      }
+      const entry = this.discoverHtmlEntry(baseDir, name, baseContents);
+      if (entry) entries.push(entry);
     }
+
     return entries;
+  }
+
+  /** Discover a script-only entry (background / content): try single file first, then subdirectory. */
+  private discoverScriptOnlyEntry(
+    baseDir: string,
+    name: string,
+    baseContents: DirContents | null
+  ): EntryInfo | null {
+    const singleScript = findNamedScript(baseDir, name, this.scriptExts, baseContents);
+    if (singleScript) return { name, scriptPath: singleScript, html: false };
+
+    if (!baseContents?.dirs.has(name)) return null;
+    const scriptPath = findScriptInDir(resolve(baseDir, name), this.scriptExts);
+    return scriptPath ? { name, scriptPath, html: false } : null;
+  }
+
+  /**
+   * Discover an HTML entry (popup / options / sidepanel etc.).
+   * Priority: 1. flat files in base dir  2. subdirectory
+   */
+  private discoverHtmlEntry(
+    baseDir: string,
+    name: string,
+    baseContents: DirContents | null
+  ): EntryInfo | null {
+    const flatEntry = this.discoverHtmlEntryFromFlat(baseDir, name, baseContents);
+    if (flatEntry) return flatEntry;
+    return this.discoverHtmlEntryFromDir(baseDir, name, baseContents);
+  }
+
+  /** Discover HTML entry from flat files in the base directory (e.g. popup.ts + popup.html). */
+  private discoverHtmlEntryFromFlat(
+    baseDir: string,
+    name: string,
+    baseContents: DirContents | null
+  ): EntryInfo | null {
+    const singleScript = findNamedScript(baseDir, name, this.scriptExts, baseContents);
+    const singleHtml = findNamedHtml(baseDir, name, baseContents);
+
+    if (singleScript && singleHtml) {
+      return buildHtmlEntryInfo(name, singleHtml, singleScript, this.scriptExts);
+    }
+    if (singleHtml) {
+      const conventional = findNamedScript(baseDir, name, this.scriptExts, baseContents);
+      return buildHtmlEntryInfo(name, singleHtml, conventional, this.scriptExts);
+    }
+    return null;
+  }
+
+  /** Discover HTML entry from a subdirectory (e.g. popup/index.ts + popup/index.html). */
+  private discoverHtmlEntryFromDir(
+    baseDir: string,
+    name: string,
+    baseContents: DirContents | null
+  ): EntryInfo | null {
+    if (!baseContents?.dirs.has(name)) return null;
+
+    const dirPath = resolve(baseDir, name);
+    const subContents = readDirContents(dirPath);
+    const htmlPath = subContents?.files.has("index.html")
+      ? resolve(dirPath, "index.html")
+      : undefined;
+    const scriptPath = findScriptInDirFromContents(dirPath, subContents, this.scriptExts);
+
+    if (scriptPath && htmlPath) {
+      return buildHtmlEntryInfo(name, htmlPath, scriptPath, this.scriptExts);
+    }
+    if (scriptPath) {
+      return {
+        name,
+        scriptPath,
+        htmlPath,
+        html: true,
+        scriptInject: htmlPath
+          ? getScriptInjectIfMatches(htmlPath, scriptPath)
+          : undefined,
+      };
+    }
+    if (!htmlPath) return null;
+    return buildHtmlEntryInfo(name, htmlPath, undefined, this.scriptExts);
   }
 
   getHtmlEntryNames(): string[] {

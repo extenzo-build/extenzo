@@ -519,7 +519,7 @@ describe("plugin-extension-entry", () => {
     const rsbuildConfig: Record<string, unknown> = {};
     modifyCb!(rsbuildConfig);
     const injectFn = (rsbuildConfig.html as Record<string, unknown>).inject as (opts: { entryName: string }) => string;
-    expect(injectFn({ entryName: "options" })).toBe("body");
+    expect(injectFn({ entryName: "options" })).toBe("head");
     expect(injectFn({ entryName: "popup" })).toBe("body");
   });
 
@@ -909,6 +909,125 @@ describe("plugin-extension-entry", () => {
     const fn = buildCssChunkFilenameFn(outputMap, entryNames);
     expect(fn({ chunk: { name: "popup" } })).toBe("popup/index.css");
     expect(fn({ chunk: { id: "vendor" } })).toBe("static/css/vendor.css");
+  });
+
+  it("entry with outputFollowsScriptPath but no htmlPath skips html output", async () => {
+    const appDir = resolve(testRoot, "src");
+    const contentDir = resolve(appDir, "content");
+    mkdirSync(contentDir, { recursive: true });
+    const config = {
+      ...createMockConfig(testRoot),
+      appDir,
+    } as unknown as ExtenzoResolvedConfig;
+    const entries: EntryInfo[] = [
+      {
+        name: "content",
+        scriptPath: resolve(contentDir, "index.ts"),
+        htmlPath: undefined,
+        outputFollowsScriptPath: true,
+      } as EntryInfo,
+    ];
+    const plugin = entryPlugin(config, entries);
+    let onBeforeCb: ((arg: { bundlerConfigs: unknown[] }) => void) | null = null;
+    const api = {
+      modifyRsbuildConfig: () => {},
+      onBeforeCreateCompiler: (cb: (arg: { bundlerConfigs: unknown[] }) => void) => { onBeforeCb = cb; },
+    };
+    plugin.setup(api as never);
+    const bundlerConfig = {
+      plugins: [] as unknown[],
+      watchOptions: {},
+      output: {},
+      optimization: { splitChunks: {} },
+    };
+    await onBeforeCb!({ bundlerConfigs: [bundlerConfig] });
+    const filenameFn = (bundlerConfig.output as Record<string, unknown>).filename as (
+      pathData: { chunk?: { name?: string } }
+    ) => string;
+    expect(filenameFn({ chunk: { name: "content" } })).toBe("content/index.js");
+  });
+
+  it("html output for entry where html file matches entry name (isSingleHtml)", () => {
+    const otherDir = resolve(testRoot, "src", "other-dir");
+    mkdirSync(otherDir, { recursive: true });
+    const htmlPath = resolve(otherDir, "options.html");
+    writeFileSync(htmlPath, "<html></html>", "utf-8");
+    const config = createMockConfig(testRoot);
+    const entries: EntryInfo[] = [
+      { name: "options", scriptPath: resolve(testRoot, "src/options.ts"), htmlPath },
+    ];
+    const plugin = entryPlugin(config, entries);
+    let modifyCb: ((config: Record<string, unknown>) => void) | null = null;
+    const api = {
+      modifyRsbuildConfig: (cb: (config: Record<string, unknown>) => void) => { modifyCb = cb; },
+      onBeforeCreateCompiler: () => {},
+    };
+    plugin.setup(api as never);
+    const rsbuildConfig: Record<string, unknown> = {};
+    modifyCb!(rsbuildConfig);
+    const htmlPluginFn = (rsbuildConfig.tools as Record<string, unknown>).htmlPlugin as (
+      htmlConfig: Record<string, unknown>,
+      ctx: { entryName: string }
+    ) => void;
+    const htmlConfig: Record<string, unknown> = {};
+    htmlPluginFn(htmlConfig, { entryName: "options" });
+    expect(htmlConfig.filename).toBe("options.html");
+  });
+
+  it("entry with outputFollowsScriptPath uses relative script path for output filenames", async () => {
+    const appDir = resolve(testRoot, "src");
+    const sandboxDir = resolve(appDir, "sandbox");
+    mkdirSync(sandboxDir, { recursive: true });
+    const htmlPath = resolve(sandboxDir, "index.html");
+    writeFileSync(htmlPath, "<html></html>", "utf-8");
+    const config = {
+      ...createMockConfig(testRoot),
+      appDir,
+    } as unknown as ExtenzoResolvedConfig;
+    const entries: EntryInfo[] = [
+      {
+        name: "sandbox",
+        scriptPath: resolve(sandboxDir, "index.ts"),
+        htmlPath,
+        outputFollowsScriptPath: true,
+      } as EntryInfo,
+    ];
+    const plugin = entryPlugin(config, entries);
+
+    let modifyCb: ((config: Record<string, unknown>) => void) | null = null;
+    let onBeforeCb: ((arg: { bundlerConfigs: unknown[] }) => void) | null = null;
+    const api = {
+      modifyRsbuildConfig: (cb: (config: Record<string, unknown>) => void) => { modifyCb = cb; },
+      onBeforeCreateCompiler: (cb: (arg: { bundlerConfigs: unknown[] }) => void) => { onBeforeCb = cb; },
+    };
+
+    plugin.setup(api as never);
+    const rsbuildConfig: Record<string, unknown> = {};
+    modifyCb!(rsbuildConfig);
+
+    const htmlPluginFn = (rsbuildConfig.tools as Record<string, unknown>).htmlPlugin as (
+      htmlConfig: Record<string, unknown>,
+      ctx: { entryName: string }
+    ) => void;
+    const htmlConfig: Record<string, unknown> = {};
+    htmlPluginFn(htmlConfig, { entryName: "sandbox" });
+    expect(htmlConfig.filename).toBe("sandbox/index.html");
+
+    const bundlerConfig = {
+      plugins: [] as unknown[],
+      watchOptions: {},
+      output: {},
+      optimization: { splitChunks: {} },
+    };
+    await onBeforeCb!({ bundlerConfigs: [bundlerConfig] });
+    const filenameFn = (bundlerConfig.output as Record<string, unknown>).filename as (
+      pathData: { chunk?: { name?: string } }
+    ) => string;
+    const cssFilenameFn = (bundlerConfig.output as Record<string, unknown>).cssFilename as (
+      pathData: { chunk?: { name?: string } }
+    ) => string;
+    expect(filenameFn({ chunk: { name: "sandbox" } })).toBe("sandbox/index.js");
+    expect(cssFilenameFn({ chunk: { name: "sandbox" } })).toBe("sandbox/index.css");
   });
 
   it("buildFilenameMap for custom entry with htmlPath", () => {

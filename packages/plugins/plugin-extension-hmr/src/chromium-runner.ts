@@ -315,14 +315,6 @@ function buildChromeFlags(options: {
   return flags;
 }
 
-function ensureAutomationControlledFlag(flags: string[]): string[] {
-  const hasAutomationFlag = flags.some((flag) =>
-    /^--enable-blink-features=(.*,)?AutomationControlled(,|$)/.test(flag)
-  );
-  if (!hasAutomationFlag) flags.push("--disable-blink-features=AutomationControlled");
-  return flags;
-}
-
 export async function runChromiumRunner(
   options: ChromiumRunnerOptions
 ): Promise<{ exit: () => Promise<void> }> {

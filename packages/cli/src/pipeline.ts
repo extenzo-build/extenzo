@@ -12,6 +12,7 @@ import type {
   PipelineContext,
   RsbuildConfigHelpers,
   LaunchTarget,
+  BrowserTarget,
 } from "@extenzo/core";
 import { entryPlugin } from "@extenzo/plugin-extension-entry";
 import { extensionPlugin } from "@extenzo/plugin-extension-manifest";
@@ -22,8 +23,33 @@ import { ensureDependencies } from "./ensureDeps.ts";
 
 type LoosePlugin = RsbuildConfig["plugins"] extends (infer P)[] ? P : never;
 
+/** Browser name → build target lookup table. */
+const BROWSER_TO_TARGET: Record<string, BrowserTarget> = {
+  firefox: "firefox",
+  chromium: "chromium",
+  chrome: "chromium",
+  edge: "chromium",
+  brave: "chromium",
+  vivaldi: "chromium",
+  opera: "chromium",
+  santa: "chromium",
+};
+
+/** Browser name → launch target lookup table. */
+const BROWSER_TO_LAUNCH: Record<string, LaunchTarget> = {
+  chromium: "chrome",
+  chrome: "chrome",
+  edge: "edge",
+  brave: "brave",
+  vivaldi: "vivaldi",
+  opera: "opera",
+  santa: "santa",
+  firefox: "firefox",
+};
+
 /**
- * writeToDisk filter: skip HMR hot-update temp files to avoid output dir clutter and watch false triggers; normal assets still written for extension load.
+ * writeToDisk filter for dev mode: skip HMR hot-update temp files
+ * to avoid output dir clutter and watch false triggers.
  * Exported for tests.
  */
 export function devWriteToDiskFilter(filename: string): boolean {
@@ -41,62 +67,30 @@ export class Pipeline {
 
   async run(root: string, argv: string[]): Promise<PipelineContext> {
     const parseResult = this.cliParser.parse(argv);
-    if (parseResult.unknownLaunch) {
-      warn(
-        "Unknown launch",
-        parseResult.unknownLaunch,
-        ", use chrome/edge/brave/vivaldi/opera/santa/firefox. Defaulting to chrome."
-      );
-    }
-    if (parseResult.unknownTarget) {
-      warn(
-        "Unknown target",
-        parseResult.unknownTarget,
-        ", use chromium or firefox. Defaulting to chromium."
-      );
-    }
+    this.warnUnknownArgs(parseResult);
+
     const { config: rawConfig, baseEntries, entries } = this.configLoader.resolve(root);
-    const config =
-      parseResult.debug === true ? { ...rawConfig, debug: true } : rawConfig;
+    const config = parseResult.debug === true ? { ...rawConfig, debug: true } : rawConfig;
     await ensureDependencies(root, config);
+
     const outDir = config.outDir;
     const outputRoot = config.outputRoot;
     const distPath = resolve(root, outputRoot, outDir);
     const isDev = parseResult.command === "dev";
-
-    const launchTarget = this.resolveLaunchTarget(
-      parseResult.launch,
-      this.getConfigBrowser(config)
-    );
-    const browser = this.resolveTarget(
-      parseResult.target,
-      launchTarget,
-      this.getConfigBrowser(config)
-    );
+    const configBrowser = this.getConfigBrowser(config);
+    const launchTarget = this.resolveLaunchTarget(parseResult.launch, configBrowser);
+    const browser = this.resolveTarget(parseResult.target, launchTarget, configBrowser);
     const persist = this.resolvePersist(parseResult.persist, config.persist);
-    const base = this.buildBaseRsbuildConfig({
-      root,
-      config,
-      baseEntries,
-      entries,
-      browser,
-      isDev,
-    });
+
+    const base = this.buildBaseRsbuildConfig({ root, config, baseEntries, entries, browser, isDev });
     const userConfig = await this.resolveUserRsbuildConfig(base, config);
+
     const hmrCtx: PipelineContext = {
-      root,
-      command: parseResult.command,
-      browser,
-      launchTarget,
-      launchRequested: false,
-      persist,
-      config,
-      baseEntries,
-      entries,
-      rsbuildConfig: base,
-      isDev,
-      distPath,
+      root, command: parseResult.command, browser, launchTarget,
+      launchRequested: false, persist, config, baseEntries, entries,
+      rsbuildConfig: base, isDev, distPath,
     };
+
     const hmrOverrides = this.buildHmrOverrides(isDev, hmrCtx);
     const merged = mergeRsbuildConfig(base, userConfig);
     const baseConfig = hmrOverrides ? mergeRsbuildConfig(merged, hmrOverrides) : merged;
@@ -115,6 +109,16 @@ export class Pipeline {
     return ctx;
   }
 
+  private warnUnknownArgs(parseResult: ReturnType<CliParser["parse"]>): void {
+    if (parseResult.unknownLaunch) {
+      warn("Unknown launch", parseResult.unknownLaunch, ", use chrome/edge/brave/vivaldi/opera/santa/firefox. Defaulting to chrome.");
+    }
+    if (parseResult.unknownTarget) {
+      warn("Unknown target", parseResult.unknownTarget, ", use chromium or firefox. Defaulting to chromium.");
+    }
+  }
+
+  /** Expand framework plugins (e.g. extenzo-vue → actual Rsbuild Vue plugins). */
   private expandFrameworkPlugins(
     userPlugins: RsbuildConfig["plugins"] | undefined,
     appRoot: string
@@ -154,7 +158,7 @@ export class Pipeline {
     };
   }
 
-  /** Resolve user rsbuildConfig: object returned as-is; function called with base and helpers. */
+  /** Resolve user rsbuildConfig: object returned as-is; function form called with base and helpers. */
   private async resolveUserRsbuildConfig(
     base: RsbuildConfig,
     config: PipelineContext["config"]
@@ -168,11 +172,8 @@ export class Pipeline {
     return {};
   }
 
-  /** In dev, returns HMR overrides (dev + tools.rspack); merged with base/user via mergeRsbuildConfig. */
-  private buildHmrOverrides(
-    isDev: boolean,
-    ctx: PipelineContext
-  ): RsbuildConfig | undefined {
+  /** Build HMR overrides config for dev mode. */
+  private buildHmrOverrides(isDev: boolean, ctx: PipelineContext): RsbuildConfig | undefined {
     if (!isDev) return undefined;
     const isConfigRestart = process.env.EXO_CONFIG_RESTART === "1";
     const hmrOpts: HmrPluginOptions = {
@@ -196,87 +197,51 @@ export class Pipeline {
       return rspackConfig;
     };
     return {
-      dev: {
-        hmr: false,
-        liveReload: false,
-        writeToDisk: devWriteToDiskFilter,
-      },
-      server: {
-        printUrls: false,
-      },
-      tools: {
-        rspack: rspackFn as RsbuildConfig["tools"] extends { rspack?: infer R } ? R : never,
-      },
+      dev: { hmr: false, liveReload: false, writeToDisk: devWriteToDiskFilter },
+      server: { printUrls: false },
+      tools: { rspack: rspackFn as RsbuildConfig["tools"] extends { rspack?: infer R } ? R : never },
     };
   }
 
-  /** Resolve launch browser (-l > config.browser > default chrome); used for launch only, not build target. */
-  private resolveLaunchTarget(
-    cliLaunch: LaunchTarget | undefined,
-    configBrowser: string | undefined
-  ): LaunchTarget {
+  /** Resolve launch browser: -l > config.browser > default chrome. */
+  private resolveLaunchTarget(cliLaunch: LaunchTarget | undefined, configBrowser: string | undefined): LaunchTarget {
     if (cliLaunch) return cliLaunch;
-    const configLaunch = this.parseConfigLaunch(configBrowser);
-    if (configLaunch) return configLaunch;
-    return "chrome";
+    return this.parseConfigLaunch(configBrowser) ?? "chrome";
   }
 
-  /** Resolve build target (-t > config.browser > inferred from -l > default chromium); used for manifest/build. */
+  /** Resolve build target: -t > config.browser > inferred from -l > default chromium. */
   private resolveTarget(
-    cliTarget: PipelineContext["browser"] | undefined,
+    cliTarget: BrowserTarget | undefined,
     launchTarget: LaunchTarget,
     configBrowser: string | undefined
-  ): PipelineContext["browser"] {
-    const fromLaunch = this.launchToTarget(launchTarget);
-    const fromConfig = this.configBrowserToTarget(configBrowser);
-    return cliTarget ?? fromConfig ?? fromLaunch ?? DEFAULT_BROWSER;
+  ): BrowserTarget {
+    return cliTarget
+      ?? this.configBrowserToTarget(configBrowser)
+      ?? (launchTarget === "firefox" ? "firefox" : "chromium");
   }
 
-  private launchToTarget(launch: LaunchTarget): PipelineContext["browser"] {
-    return launch === "firefox" ? "firefox" : "chromium";
-  }
-
-  private configBrowserToTarget(value: string | undefined): PipelineContext["browser"] | null {
+  private configBrowserToTarget(value: string | undefined): BrowserTarget | null {
     if (!value) return null;
-    const n = value.trim().toLowerCase();
-    if (n === "firefox") return "firefox";
-    if (n === "chromium" || n === "chrome" || n === "edge" || n === "brave" || n === "vivaldi" || n === "opera" || n === "santa") return "chromium";
-    return null;
+    return BROWSER_TO_TARGET[value.trim().toLowerCase()] ?? null;
   }
 
   private parseConfigLaunch(value: string | undefined): LaunchTarget | null {
     if (!value) return null;
     const normalized = value.trim().toLowerCase();
-    if (normalized === "chromium") return "chrome";
-    if (
-      normalized === "chrome" ||
-      normalized === "edge" ||
-      normalized === "brave" ||
-      normalized === "vivaldi" ||
-      normalized === "opera" ||
-      normalized === "santa" ||
-      normalized === "firefox"
-    ) {
-      return normalized;
-    }
-    warn(
-      "Unknown config.browser",
-      value,
-      ", use chrome/edge/brave/vivaldi/opera/santa/firefox. Defaulting to chrome."
-    );
+    const target = BROWSER_TO_LAUNCH[normalized];
+    if (target) return target;
+    warn("Unknown config.browser", value, ", use chrome/edge/brave/vivaldi/opera/santa/firefox. Defaulting to chrome.");
     return null;
   }
 
   private resolvePersist(cliPersist: boolean | undefined, configPersist: boolean | undefined): boolean {
-    if (cliPersist) return true;
-    return Boolean(configPersist);
+    return Boolean(cliPersist || configPersist);
   }
 
   private getConfigBrowser(config: PipelineContext["config"]): string | undefined {
     const v = config.browser;
     return typeof v === "string" ? v : undefined;
   }
-
 }
 
 const defaultPipeline = new Pipeline();

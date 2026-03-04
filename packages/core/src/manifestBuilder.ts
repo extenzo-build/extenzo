@@ -16,6 +16,11 @@ import type { BrowserTarget } from "./constants.ts";
 export interface ContentScriptOutput {
   js: string[];
   css: string[];
+  /**
+   * Whether content css assets should be auto-filled into manifest.content_scripts[].css.
+   * Default true; set false for shadow/iframe UI where css is injected via runtime style.
+   */
+  autoFillCssInManifest?: boolean;
 }
 
 /** Placeholder format [exo.xxx]; xxx is a key from MANIFEST_ENTRY_PATHS */
@@ -150,6 +155,18 @@ function fillDevtools(out: ManifestRecord, path: string): void {
   }
 }
 
+function fillSandbox(out: ManifestRecord, path: string): void {
+  const sandbox = out.sandbox;
+  if (sandbox === null || typeof sandbox !== "object" || Array.isArray(sandbox)) {
+    out.sandbox = { pages: [path] };
+    return;
+  }
+  const pages = (sandbox as { pages?: unknown }).pages;
+  if (!Array.isArray(pages) || pages.length === 0) {
+    out.sandbox = { ...sandbox, pages: [path] };
+  }
+}
+
 function fillContent(out: ManifestRecord, path: string): void {
   const cs = out.content_scripts;
   if (!Array.isArray(cs) || cs.length === 0) {
@@ -159,6 +176,38 @@ function fillContent(out: ManifestRecord, path: string): void {
   }
 }
 
+function ensurePermission(out: ManifestRecord, permission: string): void {
+  const current = out.permissions;
+  if (!Array.isArray(current)) {
+    out.permissions = [permission];
+    return;
+  }
+  const exists = current.some((item) => item === permission);
+  if (exists) return;
+  out.permissions = [...current, permission];
+}
+
+function fillChromeUrlOverrideField(
+  out: ManifestRecord,
+  field: "newtab" | "bookmarks" | "history",
+  path: string
+): void {
+  const overrides = (out.chrome_url_overrides as Record<string, unknown>) ?? {};
+  if (isEntryFieldEmpty(overrides[field])) {
+    out.chrome_url_overrides = { ...overrides, [field]: path };
+  }
+}
+
+function makeChromeUrlOverrideFiller(
+  field: "newtab" | "bookmarks" | "history"
+): FillAction {
+  return (out, path) => {
+    fillChromeUrlOverrideField(out, field, path);
+    if (field === "history") ensurePermission(out, "history");
+    if (field === "bookmarks") ensurePermission(out, "bookmarks");
+  };
+}
+
 /** Build fillers for MV2/MV3; only entry keys present in placeholderMap are used. */
 function buildAutoFillers(mv: 2 | 3): Record<string, FillAction> {
   const map: Record<string, FillAction> = {
@@ -166,7 +215,11 @@ function buildAutoFillers(mv: 2 | 3): Record<string, FillAction> {
     popup: makePopupFiller(mv),
     options: makeOptionsFiller(mv),
     devtools: fillDevtools,
+    sandbox: fillSandbox,
     content: fillContent,
+    newtab: makeChromeUrlOverrideFiller("newtab"),
+    bookmarks: makeChromeUrlOverrideFiller("bookmarks"),
+    history: makeChromeUrlOverrideFiller("history"),
   };
   if (mv === 3) map.sidepanel = fillSidepanel;
   return map;
@@ -235,8 +288,11 @@ function hasNonEmptyStringArray(value: unknown): value is string[] {
 }
 
 /**
- * Resolve content_scripts [exo.content] placeholders: expand to js[] and css[].
- * If an item has no js and no css but content entry exists, inject js so Chrome requirement is met.
+ * Resolve content_scripts [exo.content] placeholders.
+ * - Expand js placeholders using contentScriptOutput.js (or fallback content path).
+ * - Expand css placeholders only when user already configured `css` in manifest.
+ * - Auto-fill `css` only when contentScriptOutput.autoFillCssInManifest !== false.
+ * - If an item has no js and no css but content entry exists, inject js so Chrome requirement is met.
  */
 function resolveContentScriptsPlaceholders(
   manifest: ManifestRecord,
@@ -247,8 +303,7 @@ function resolveContentScriptsPlaceholders(
   if (!Array.isArray(contentScripts)) return manifest;
 
   const defaultContentJs = placeholderMap.content != null ? [placeholderMap.content] : [];
-  const defaultContentCss: string[] = [];
-
+  const shouldAutoFillCss = contentScriptOutput?.autoFillCssInManifest !== false;
   const resolved = contentScripts.map((item: unknown) => {
     if (item === null || typeof item !== "object" || Array.isArray(item)) return item;
     const obj = item as Record<string, unknown>;
@@ -262,7 +317,7 @@ function resolveContentScriptsPlaceholders(
     }
 
     if (Array.isArray(obj.css)) {
-      const cssReplacement = contentScriptOutput?.css ?? defaultContentCss;
+      const cssReplacement = contentScriptOutput?.css ?? [];
       const resolvedCss = (obj.css as unknown[]).flatMap((el) =>
         el === CONTENT_PLACEHOLDER ? cssReplacement : [el]
       );
@@ -283,12 +338,14 @@ function resolveContentScriptsPlaceholders(
       placeholderMap.content != null &&
       (out.js as string[]).includes(placeholderMap.content);
     if (
+      shouldAutoFillCss &&
       isContentItem &&
       (contentScriptOutput?.css?.length ?? 0) > 0 &&
       !hasCss
     ) {
       out.css = contentScriptOutput!.css;
     }
+
     return out;
   });
 
@@ -329,7 +386,7 @@ function buildHtmlOutputPath(entry: EntryInfo, fallback: string): string {
 export class ManifestBuilder {
   /**
    * Pick manifest by target and build output; optional onWarn when target mismatch.
-   * contentScriptOutput: when provided, [exo.content] in content_scripts js/css is expanded to these arrays; empty css removes the css field.
+   * contentScriptOutput: when provided, [exo.content] in content_scripts js/css is expanded to these arrays; css auto-fill can be disabled by autoFillCssInManifest=false.
    */
   buildForBrowser(
     config: ManifestConfig,
@@ -370,7 +427,7 @@ export function resolveManifestFirefox(
 
 /**
  * Resolve manifest for current build target and produce output; onWarn when target mismatch.
- * contentScriptOutput: optional build output for content entry (js/css arrays); expands [exo.content] and removes css when empty.
+ * contentScriptOutput: optional build output for content entry (js/css arrays); expands [exo.content], and auto-fills css unless disabled.
  */
 export function resolveManifestForTarget(
   config: ManifestConfig,

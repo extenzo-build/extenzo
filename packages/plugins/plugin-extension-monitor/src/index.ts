@@ -1,5 +1,3 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
 import rspack from "@rspack/core";
 import type { RsbuildPluginAPI } from "@rsbuild/core";
 import type { ExtenzoResolvedConfig, EntryInfo } from "@extenzo/core";

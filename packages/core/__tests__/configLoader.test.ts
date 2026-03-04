@@ -1,7 +1,13 @@
 import path from "path";
 import { fileURLToPath } from "url";
 import { describe, expect, it } from "@rstest/core";
-import { ConfigLoader, loadConfigFile, resolveExtenzoConfig } from "../src/configLoader.ts";
+import {
+  ConfigLoader,
+  loadConfigFile,
+  resolveExtenzoConfig,
+  getResolvedConfigFilePath,
+  clearConfigCache,
+} from "../src/configLoader.ts";
 import {
   createConfigNotFoundError,
   createManifestMissingError,
@@ -96,10 +102,44 @@ describe("resolveExtenzoConfig with invalid config", () => {
   });
 });
 
+describe("loadConfigFile with EXO_CONFIG_RESTART", () => {
+  it("loads config with moduleCache disabled when EXO_CONFIG_RESTART is set", () => {
+    const saved = process.env.EXO_CONFIG_RESTART;
+    try {
+      process.env.EXO_CONFIG_RESTART = "1";
+      const result = loadConfigFile(fixtureDir);
+      expect(result).not.toBeNull();
+      expect(result?.manifest?.name).toBe("Fixture");
+    } finally {
+      if (saved === undefined) delete process.env.EXO_CONFIG_RESTART;
+      else process.env.EXO_CONFIG_RESTART = saved;
+    }
+  });
+});
+
 describe("loadConfigFile throws on load error", () => {
   it("throws createConfigLoadError when config file throws", () => {
     const loadErrorDir = path.join(__dirname, "fixtures", "config-load-error");
     const loader = new ConfigLoader();
     expect(() => loader.loadConfigFile(loadErrorDir)).toThrow("Failed to load config file");
+  });
+});
+
+describe("getResolvedConfigFilePath", () => {
+  it("returns the config file path when config exists", () => {
+    const result = getResolvedConfigFilePath(fixtureDir);
+    expect(result).not.toBeNull();
+    expect(result).toMatch(/exo\.config/);
+  });
+
+  it("returns null when no config file exists", () => {
+    const result = getResolvedConfigFilePath(emptyDir);
+    expect(result).toBeNull();
+  });
+});
+
+describe("clearConfigCache", () => {
+  it("does not throw when clearing cache for any path", () => {
+    expect(() => clearConfigCache("/nonexistent/path.js")).not.toThrow();
   });
 });

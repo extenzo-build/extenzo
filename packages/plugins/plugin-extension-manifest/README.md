@@ -4,7 +4,9 @@
 
 ---
 
-Rsbuild plugin: after build, writes manifest.json (per-browser) and removes stray HTML for background/content. Injected by CLI pipeline.
+Rsbuild plugin: after build, writes manifest.json (per-browser) based on CLI `-l`/`--launch` or config.browser target. Injected by CLI pipeline.
 
-- Uses `@extenzo/core`’s `resolveManifestChromium` / `resolveManifestFirefox`
-- Writes manifest according to BROWSER env
+- Uses `@extenzo/core`'s `resolveManifestForTarget` to build the final manifest
+- Handles content script output (JS/CSS) for `[exo.content]` placeholder expansion
+- Auto-detects shadow/iframe content UI usage to control CSS auto-fill in manifest
+- Validates entry HTML rules (e.g. popup must have HTML, background cannot have HTML in MV3)
