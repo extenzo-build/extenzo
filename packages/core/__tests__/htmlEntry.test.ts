@@ -6,6 +6,8 @@ import { describe, expect, it, afterEach } from "@rstest/core";
 import {
   parseExtenzoEntryFromHtml,
   getScriptInjectIfMatches,
+  resolveScriptFromHtmlStrict,
+  isScriptSrcRelative,
   type ExtenzoEntryScriptResult,
 } from "../src/htmlEntry.ts";
 
@@ -98,6 +100,67 @@ describe("htmlEntry", () => {
       const htmlPath = path.join(tempDir, "popup.html");
       writeFileSync(htmlPath, '<html><script data-extenzo-entry src="./other.ts"></script></html>', "utf-8");
       expect(getScriptInjectIfMatches(htmlPath, path.join(tempDir, "main.ts"))).toBeUndefined();
+    });
+  });
+
+  describe("isScriptSrcRelative", () => {
+    it("returns true for relative paths", () => {
+      expect(isScriptSrcRelative("./main.ts")).toBe(true);
+      expect(isScriptSrcRelative("main.ts")).toBe(true);
+    });
+
+    it("returns false for absolute paths", () => {
+      expect(isScriptSrcRelative("/absolute/path.ts")).toBe(false);
+      expect(isScriptSrcRelative("\\backslash\\path.ts")).toBe(false);
+    });
+
+    it("returns false for protocol URLs", () => {
+      expect(isScriptSrcRelative("https://cdn.example.com/script.js")).toBe(false);
+      expect(isScriptSrcRelative("http://localhost/script.js")).toBe(false);
+    });
+  });
+
+  describe("resolveScriptFromHtmlStrict", () => {
+    it("throws when data-extenzo-entry has no src attribute", () => {
+      tempDir = path.join(tmpdir(), `htmlEntry-strict-${Date.now()}`);
+      mkdirSync(tempDir, { recursive: true });
+      const htmlPath = path.join(tempDir, "index.html");
+      writeFileSync(
+        htmlPath,
+        '<html><script data-extenzo-entry>console.log(1);</script></html>',
+        "utf-8"
+      );
+      expect(() => resolveScriptFromHtmlStrict(htmlPath)).toThrow(
+        "data-extenzo-entry script must have a src attribute"
+      );
+    });
+
+    it("throws when src is a protocol URL", () => {
+      tempDir = path.join(tmpdir(), `htmlEntry-strict-proto-${Date.now()}`);
+      mkdirSync(tempDir, { recursive: true });
+      const htmlPath = path.join(tempDir, "index.html");
+      writeFileSync(
+        htmlPath,
+        '<html><script data-extenzo-entry src="https://cdn.example.com/app.js"></script></html>',
+        "utf-8"
+      );
+      expect(() => resolveScriptFromHtmlStrict(htmlPath)).toThrow(
+        "data-extenzo-entry src must be relative"
+      );
+    });
+
+    it("throws when src is an absolute path", () => {
+      tempDir = path.join(tmpdir(), `htmlEntry-strict-abs-${Date.now()}`);
+      mkdirSync(tempDir, { recursive: true });
+      const htmlPath = path.join(tempDir, "index.html");
+      writeFileSync(
+        htmlPath,
+        '<html><script data-extenzo-entry src="/absolute/path.ts"></script></html>',
+        "utf-8"
+      );
+      expect(() => resolveScriptFromHtmlStrict(htmlPath)).toThrow(
+        "data-extenzo-entry src must be relative"
+      );
     });
   });
 });

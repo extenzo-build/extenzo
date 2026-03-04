@@ -1,38 +1,52 @@
 /**
- * Framework-level constants shared by config, discover, manifest, cli, etc.
- * Some behaviour can be overridden via ExtenzoUserConfig or environment variables.
+ * 框架级常量，供 config、discover、manifest、cli 等模块共享使用。
+ * 部分行为可通过 ExtenzoUserConfig 或环境变量覆盖。
  */
 
-/** Supported config file names (in priority order) */
+/** 支持的配置文件名（按优先级排序） */
 export const CONFIG_FILES = ["exo.config.ts", "exo.config.js", "exo.config.mjs"] as const;
 
-/** Entry script extensions (.js preferred when both exist) */
+/** 入口脚本扩展名（同时存在时优先使用 .js） */
 export const SCRIPT_EXTS = [".js", ".jsx", ".ts", ".tsx"] as const;
 
-/** Reserved entry names (not user-renamable): popup / options / sidepanel / offscreen / background / devtools / content */
+/** 保留入口名称（不可由用户重命名）：popup / options / sidepanel / offscreen / sandbox / newtab / bookmarks / history / background / devtools / content */
 export const RESERVED_ENTRY_NAMES = [
   "popup",
   "options",
   "sidepanel",
   "offscreen",
+  "sandbox",
+  "newtab",
+  "bookmarks",
+  "history",
   "background",
   "devtools",
   "content",
 ] as const;
 
-/** Entry names that require HTML (popup / options / sidepanel / devtools / offscreen) */
-export const HTML_ENTRY_NAMES = ["popup", "options", "sidepanel", "devtools", "offscreen"] as const;
+/** 需要 HTML 的入口名称（popup / options / sidepanel / devtools / offscreen / sandbox / newtab / bookmarks / history） */
+export const HTML_ENTRY_NAMES = [
+  "popup",
+  "options",
+  "sidepanel",
+  "devtools",
+  "offscreen",
+  "sandbox",
+  "newtab",
+  "bookmarks",
+  "history",
+] as const;
 
-/** Script-only entry names (background / content) */
+/** 仅脚本入口名称（background / content） */
 export const SCRIPT_ONLY_ENTRY_NAMES = ["background", "content"] as const;
 
-/** Parent dir for build output (output path is outputRoot/outDir; avoids root dist being scanned by Tailwind v4 etc.) */
+/** 构建输出的父目录（输出路径为 outputRoot/outDir；避免根目录 dist 被 Tailwind v4 等工具扫描） */
 export const EXTENZO_OUTPUT_ROOT = ".extenzo";
 
-/** Default output dir name under outputRoot (user can override via outDir) */
+/** outputRoot 下的默认输出目录名（用户可通过 outDir 覆盖） */
 export const DEFAULT_OUT_DIR = "dist";
 
-/** Default app directory (relative to root) */
+/** 默认应用目录（相对于项目根目录） */
 export const DEFAULT_APP_DIR = "app";
 
 /** Dev mode HMR WebSocket port */
@@ -83,6 +97,10 @@ export const MANIFEST_ENTRY_PATHS = {
   sidepanel: "sidepanel/index.html",
   devtools: "devtools/index.html",
   offscreen: "offscreen/index.html",
+  sandbox: "sandbox/index.html",
+  newtab: "newtab/index.html",
+  bookmarks: "bookmarks/index.html",
+  history: "history/index.html",
 } as const;
 
 /** Placeholder [exo.xxx] key; must match MANIFEST_ENTRY_PATHS keys */

@@ -1,0 +1,201 @@
+import { Tab, Tabs } from '@rspress/core/theme';
+
+# 基于文件
+
+当你不配置 `exo.config.ts` 中的 `entry` 时，Extenzo 会根据 **baseDir**（默认 `app/`）下的目录和文件名自动发现入口。
+
+---
+
+## 核心原则（基于 Rsbuild）
+
+- **入口一定是 JS/TS**：构建由 Rsbuild 完成，真实入口只能是 `.js`、`.jsx`、`.ts`、`.tsx` 脚本。
+- **HTML 由 Rsbuild 自动生成**：popup、options、sidepanel、devtools、offscreen 等需要页面的入口，若不提供 HTML 文件，Rsbuild 会自动生成一个带 `<div id="app"></div>` 的 HTML 并注入入口脚本。
+- **若你提供了 HTML 文件**：该 HTML 仅作为**模板**使用；**必须**在模板里通过 `data-extenzo-entry` 标明入口脚本，框架才能识别入口。一个 HTML 模板中只能有一个带 `data-extenzo-entry` 的 `<script>`。
+
+---
+
+## 内置入口类型
+
+| 入口名 | 说明 | 是否产出 HTML |
+|--------|------|----------------|
+| `background` | Service Worker / 后台脚本 | 否，仅 JS |
+| `content` | Content Script | 否，仅 JS |
+| `popup` | 弹窗页面 | 是，Rsbuild 生成或使用你的模板 |
+| `options` | 选项页 | 是 |
+| `sidepanel` | 侧边栏 | 是 |
+| `devtools` | 开发者工具页 | 是 |
+| `offscreen` | Offscreen 文档 | 是 |
+
+---
+
+## 仅脚本入口（background / content）
+
+不产出 HTML，只需在 baseDir 下按「入口名」放置脚本即可。
+
+<Tabs>
+<Tab label="目录形式">
+
+```tree
+app
+├── background
+│   └── index.ts
+└── content
+    └── index.ts
+```
+
+| 入口名 | 入口脚本 | 输出（outDir=dist） |
+|--------|----------|---------------------|
+| `background` | `app/background/index.(js\|ts\|jsx\|tsx)` | `dist/background/index.js` |
+| `content` | `app/content/index.(js\|ts\|jsx\|tsx)` | `dist/content/index.js` |
+
+</Tab>
+<Tab label="单文件形式">
+
+```tree
+app
+├── background.ts
+└── content.ts
+```
+
+| 入口名 | 入口脚本 | 输出 |
+|--------|----------|------|
+| `background` | `app/background.(js\|ts\|jsx\|tsx)` | `dist/background.js` |
+| `content` | `app/content.(js\|ts\|jsx\|tsx)` | `dist/content.js` |
+
+</Tab>
+</Tabs>
+
+---
+
+## 需要 HTML 的入口（popup / options / sidepanel / devtools / offscreen）
+
+这类入口会产出 **HTML + JS**。分两种情况：
+
+### 情况一：不提供 HTML 文件 → Rsbuild 自动生成
+
+只写脚本，不写 HTML。Rsbuild 会自动生成 HTML 并注入该脚本。
+
+<Tabs>
+<Tab label="目录形式">
+
+```tree
+app
+├── popup
+│   └── index.ts
+├── options
+│   └── index.ts
+└── sidepanel
+    └── index.ts
+```
+
+| 入口名 | 入口脚本 | 输出 HTML | 输出 JS |
+|--------|----------|-----------|---------|
+| `popup` | `app/popup/index.(js\|ts\|jsx\|tsx)` | `dist/popup/index.html` | `dist/popup/index.js` |
+| `options` | `app/options/index.(js\|ts\|jsx\|tsx)` | `dist/options/index.html` | `dist/options/index.js` |
+| `sidepanel` | `app/sidepanel/index.(js\|ts\|jsx\|tsx)` | `dist/sidepanel/index.html` | `dist/sidepanel/index.js` |
+| `devtools` | `app/devtools/index.(js\|ts\|jsx\|tsx)` | `dist/devtools/index.html` | `dist/devtools/index.js` |
+| `offscreen` | `app/offscreen/index.(js\|ts\|jsx\|tsx)` | `dist/offscreen/index.html` | `dist/offscreen/index.js` |
+
+</Tab>
+<Tab label="单文件形式">
+
+```tree
+app
+├── popup.ts
+├── options.ts
+└── sidepanel.ts
+```
+
+| 入口名 | 入口脚本 | 输出 HTML | 输出 JS |
+|--------|----------|-----------|---------|
+| `popup` | `app/popup.(js\|ts\|jsx\|tsx)` | `dist/popup.html` | `dist/popup.js` |
+| `options` | `app/options.(js\|ts\|jsx\|tsx)` | `dist/options.html` | `dist/options.js` |
+| `sidepanel` | `app/sidepanel.(js\|ts\|jsx\|tsx)` | `dist/sidepanel.html` | `dist/sidepanel.js` |
+| `devtools` | `app/devtools.(js\|ts\|jsx\|tsx)` | `dist/devtools.html` | `dist/devtools.js` |
+| `offscreen` | `app/offscreen.(js\|ts\|jsx\|tsx)` | `dist/offscreen.html` | `dist/offscreen.js` |
+
+</Tab>
+</Tabs>
+
+### 情况二：提供 HTML 文件 → 必须用 data-extenzo-entry 标明入口
+
+若在入口目录下（或同名单文件旁）放了 **HTML 文件**，框架会把它当作**页面模板**使用。此时 **必须** 在该 HTML 里用 `data-extenzo-entry` 标明入口脚本，框架才能识别入口（HTML 本身不参与编译，只有脚本才是 Rsbuild 的入口）。
+
+<Tabs>
+<Tab label="目录形式">
+
+```tree
+app
+└── popup
+    ├── index.html
+    └── index.ts
+```
+
+</Tab>
+<Tab label="单文件形式">
+
+```tree
+app
+├── popup.html
+└── popup.ts
+```
+
+</Tab>
+</Tabs>
+
+**HTML 中必须有一处且仅一处带 `data-extenzo-entry` 的 script，其 `src` 即为入口脚本：**
+
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Popup</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="./index.ts" data-extenzo-entry></script>
+  </body>
+</html>
+```
+
+- `src` 可以是同目录的 `index.ts`，也可以是其它路径（如 `./main.ts`）；输出路径会跟随该脚本路径。
+- 其它脚本、CSS 等请在入口脚本中通过 `import` 引入，不要在多处写 `<script>` 作为入口。
+
+:::warning
+使用 HTML 模板时：**必须**用 `data-extenzo-entry` 指定唯一入口脚本；且不要在 HTML 里直接写 CSS/资源引用，HTML 不会被编译，请在入口 JS/TS 中 import。
+:::
+
+---
+
+## 路径与结构约定
+
+- **入口只能是脚本**：`.js` / `.jsx` / `.ts` / `.tsx`。HTML 只作模板或由 Rsbuild 自动生成。
+- **目录层级**：支持 baseDir 下**单文件**（`popup.ts`）或**单层目录**（`popup/index.ts`），不支持多层嵌套入口目录。
+- **省略 entry 时**：框架从 baseDir 按上述命名扫描；若某入口存在 HTML 文件，则**必须**通过该 HTML 中的 `data-extenzo-entry` 识别入口脚本。
+
+---
+
+## 完整示例（不配置 entry）
+
+```tree
+app
+├── background
+│   └── index.ts
+├── content
+│   └── index.ts
+├── popup
+│   └── index.ts          # 无 HTML → Rsbuild 自动生成 popup 的 HTML
+└── options
+    ├── index.html        # 有 HTML → 必须在此 HTML 里写 data-extenzo-entry
+    └── index.ts
+```
+
+---
+
+## 相关链接
+
+- [基于配置](/guide/entry/config-based)：在 `exo.config.ts` 中显式配置 `entry`。
+- [appDir](/guide/app-dir)：baseDir 与入口解析起点。
+- [manifest](/guide/manifest)、[outDir](/guide/output)：输出路径如何写入 manifest。

@@ -1,0 +1,18 @@
+/* 主题色：橙色 */
+:root {
+  --rp-c-brand: #F97316; /* hsl(25deg 95% 53%) */
+  --rp-c-brand-dark: #ef6606; /* hsl(25deg 95% 48%) */
+  --rp-c-brand-darker: #d65b06; /* hsl(25deg 95% 43%) */
+  --rp-c-brand-light: #fa9148; /* hsl(25deg 95% 63%) */
+  --rp-c-brand-lighter: #fcaf79; /* hsl(25deg 95% 73%) */
+  --rp-c-brand-tint: rgba(249, 115, 22, 0.15);
+}
+
+.dark {
+  --rp-c-brand: #F97316; /* hsl(25deg 95% 53%) */
+  --rp-c-brand-dark: #ef6606; /* hsl(25deg 95% 48%) */
+  --rp-c-brand-darker: #d65b06; /* hsl(25deg 95% 43%) */
+  --rp-c-brand-light: #fa9148; /* hsl(25deg 95% 63%) */
+  --rp-c-brand-lighter: #fcaf79; /* hsl(25deg 95% 73%) */
+  --rp-c-brand-tint: rgba(249, 115, 22, 0.15);
+}

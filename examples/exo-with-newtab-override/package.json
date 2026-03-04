@@ -1,0 +1,16 @@
+{
+  "name": "extenzo-example-newtab-override",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Built-in newtab entry with chrome_url_overrides.newtab auto-fill",
+  "type": "module",
+  "scripts": {
+    "dev": "extenzo dev",
+    "build": "extenzo build"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.326",
+    "extenzo": "workspace:*",
+    "typescript": "^5.0.0"
+  }
+}

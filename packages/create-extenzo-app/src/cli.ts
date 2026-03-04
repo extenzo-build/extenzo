@@ -4,7 +4,7 @@ import { resolve, join } from "path";
 import prompts from "prompts";
 import { blue, green } from "kolorist";
 import minimist from "minimist";
-import { getScriptExt, getConfigContent, getPackageJson } from "./templates.ts";
+import { getScriptExt, getEntryScriptExt, getConfigContent, getPackageJson } from "./templates.ts";
 import type { Framework, Language } from "./templates.ts";
 
 const argv = minimist(process.argv.slice(2));
@@ -28,7 +28,8 @@ function getContentScriptContent(lang: Language): string {
 `;
 }
 
-function getPopupHtml(): string {
+function getPopupHtml(framework: Framework, lang: Language): string {
+  const entryExt = getEntryScriptExt(framework, lang);
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -38,6 +39,7 @@ function getPopupHtml(): string {
 </head>
 <body>
   <div id="app"></div>
+  <script type="module" src="./index${entryExt}" data-extenzo-entry></script>
 </body>
 </html>
 `;
@@ -50,14 +52,6 @@ function getPopupVanillaContent(lang: Language): string {
 }
 
 function getPopupVueContent(lang: Language): string {
-  const ext = getScriptExt(lang);
-  if (lang === "ts") {
-    return `import { createApp } from "vue";
-import App from "./App.vue";
-
-createApp(App).mount("#app");
-`;
-  }
   return `import { createApp } from "vue";
 import App from "./App.vue";
 
@@ -66,31 +60,69 @@ createApp(App).mount("#app");
 }
 
 function getPopupReactContent(lang: Language): string {
-  if (lang === "ts") {
-    return `import React from "react";
-import { createRoot } from "react-dom/client";
+  return `import { createRoot } from "react-dom/client";
 import App from "./App";
 
 const root = document.getElementById("app");
-if (root) createRoot(root).render(React.createElement(App));
-`;
-  }
-  return `import React from "react";
-import { createRoot } from "react-dom/client";
-import App from "./App";
-
-const root = document.getElementById("app");
-if (root) createRoot(root).render(React.createElement(App));
+if (root) createRoot(root).render(<App />);
 `;
 }
+
+function getPopupPreactContent(lang: Language): string {
+  return `import { render, h } from "preact";
+import App from "./App";
+
+const root = document.getElementById("app");
+if (root) render(h(App, null), root);
+`;
+}
+
+function getPopupSvelteContent(lang: Language): string {
+  return `import App from "./App.svelte";
+
+const target = document.getElementById("app");
+if (target) new App({ target });
+`;
+}
+
+function getPopupSolidContent(lang: Language): string {
+  return `import { render } from "solid-js/web";
+import App from "./App";
+
+const root = document.getElementById("app");
+if (root) render(() => App(), root);
+`;
+}
+
+function getPopupUnoContent(lang: Language): string {
+  return `import "../uno.css";
+import { createRoot } from "react-dom/client";
+import App from "./App";
+
+const root = document.getElementById("app");
+if (root) createRoot(root).render(<App />);
+`;
+}
+
+const POPUP_ENTRY_MAP: Record<
+  Exclude<Framework, "vanilla">,
+  (lang: Language) => string
+> = {
+  vue: getPopupVueContent,
+  react: getPopupReactContent,
+  preact: getPopupPreactContent,
+  svelte: getPopupSvelteContent,
+  solid: getPopupSolidContent,
+  uno: getPopupUnoContent,
+};
 
 function getPopupEntryContent(framework: Framework, lang: Language): string {
   if (framework === "vanilla") return getPopupVanillaContent(lang);
-  if (framework === "vue") return getPopupVueContent(lang);
-  return getPopupReactContent(lang);
+  return POPUP_ENTRY_MAP[framework](lang);
 }
 
-function getOptionsHtml(): string {
+function getOptionsHtml(framework: Framework, lang: Language): string {
+  const entryExt = getEntryScriptExt(framework, lang);
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -100,6 +132,7 @@ function getOptionsHtml(): string {
 </head>
 <body>
   <div id="app"></div>
+  <script type="module" src="./index${entryExt}" data-extenzo-entry></script>
 </body>
 </html>
 `;
@@ -109,7 +142,8 @@ function getOptionsEntryContent(framework: Framework, lang: Language): string {
   return getPopupEntryContent(framework, lang);
 }
 
-function getSidepanelHtml(): string {
+function getSidepanelHtml(framework: Framework, lang: Language): string {
+  const entryExt = getEntryScriptExt(framework, lang);
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -119,6 +153,7 @@ function getSidepanelHtml(): string {
 </head>
 <body>
   <div id="app"></div>
+  <script type="module" src="./index${entryExt}" data-extenzo-entry></script>
 </body>
 </html>
 `;
@@ -139,15 +174,44 @@ function getVueAppContent(lang: Language): string {
 }
 
 function getReactAppContent(lang: Language): string {
-  const ext = getScriptExt(lang);
-  if (lang === "ts") {
-    return `export default function App() {
+  return `export default function App() {
   return <div>Hello from React</div>;
 }
 `;
-  }
+}
+
+function getPreactAppContent(lang: Language): string {
+  return `import { h } from "preact";
+
+export default function App() {
+  return <div>Hello from Preact</div>;
+}
+`;
+}
+
+function getSvelteAppContent(lang: Language): string {
+  return `<script>
+</script>
+
+<div>Hello from Svelte</div>
+`;
+}
+
+function getSolidAppContent(lang: Language): string {
   return `export default function App() {
-  return <div>Hello from React</div>;
+  return <div>Hello from Solid</div>;
+}
+`;
+}
+
+function getUnoAppContent(lang: Language): string {
+  return `export default function App() {
+  return (
+    <div className="p-4 font-sans">
+      <h1 className="text-lg font-semibold mb-2">Hello from UnoCSS</h1>
+      <p className="text-gray-600">Edit this component to get started.</p>
+    </div>
+  );
 }
 `;
 }
@@ -174,6 +238,10 @@ async function main() {
         { title: "Vanilla", value: "vanilla" },
         { title: "Vue", value: "vue" },
         { title: "React", value: "react" },
+        { title: "React + UnoCSS", value: "uno" },
+        { title: "Preact", value: "preact" },
+        { title: "Svelte", value: "svelte" },
+        { title: "Solid", value: "solid" },
       ],
     },
     {
@@ -192,17 +260,18 @@ async function main() {
   const framework = res.framework as Framework;
   const lang = res.language as Language;
   const scriptExt = getScriptExt(lang);
+  const entryExt = getEntryScriptExt(framework, lang);
   const configExt = lang === "ts" ? "ts" : "js";
 
   const root = resolve(process.cwd(), targetDir);
-  const src = join(root, "src");
+  const appDir = join(root, "app");
   const dirs = [
     root,
-    join(src, "background"),
-    join(src, "content"),
-    join(src, "popup"),
-    join(src, "options"),
-    join(src, "sidepanel"),
+    join(appDir, "background"),
+    join(appDir, "content"),
+    join(appDir, "popup"),
+    join(appDir, "options"),
+    join(appDir, "sidepanel"),
     join(root, "public", "icons"),
   ];
 
@@ -216,44 +285,120 @@ async function main() {
   );
   writeFileSync(join(root, "package.json"), getPackageJson(framework, lang, targetDir));
 
+  if (lang === "ts") {
+    writeFileSync(
+      join(root, "tsconfig.json"),
+      JSON.stringify(
+        {
+          compilerOptions: {
+            target: "ES2020",
+            module: "ESNext",
+            moduleResolution: "bundler",
+            strict: true,
+            jsx: "react-jsx",
+            resolveJsonModule: true,
+            isolatedModules: true,
+            noEmit: true,
+            skipLibCheck: true,
+            types: framework !== "vanilla" ? ["chrome", "webextension-polyfill"] : [],
+          },
+          include: ["app"],
+        },
+        null,
+        2
+      )
+    );
+  }
+
   writeFileSync(
-    join(src, "background", `index${scriptExt}`),
+    join(appDir, "background", `index${scriptExt}`),
     getBackgroundContent(lang)
   );
   writeFileSync(
-    join(src, "content", `index${scriptExt}`),
+    join(appDir, "content", `index${scriptExt}`),
     getContentScriptContent(lang)
   );
 
-  writeFileSync(join(src, "popup", "index.html"), getPopupHtml());
+  writeFileSync(join(appDir, "popup", "index.html"), getPopupHtml(framework, lang));
   writeFileSync(
-    join(src, "popup", `index${scriptExt}`),
+    join(appDir, "popup", `index${entryExt}`),
     getPopupEntryContent(framework, lang)
   );
-  writeFileSync(join(src, "options", "index.html"), getOptionsHtml());
+  writeFileSync(join(appDir, "options", "index.html"), getOptionsHtml(framework, lang));
   writeFileSync(
-    join(src, "options", `index${scriptExt}`),
+    join(appDir, "options", `index${entryExt}`),
     getOptionsEntryContent(framework, lang)
   );
-  writeFileSync(join(src, "sidepanel", "index.html"), getSidepanelHtml());
+  writeFileSync(join(appDir, "sidepanel", "index.html"), getSidepanelHtml(framework, lang));
   writeFileSync(
-    join(src, "sidepanel", `index${scriptExt}`),
+    join(appDir, "sidepanel", `index${entryExt}`),
     getSidepanelEntryContent(framework, lang)
   );
 
   if (framework === "vue") {
-    writeFileSync(join(src, "popup", "App.vue"), getVueAppContent(lang));
-    writeFileSync(join(src, "options", "App.vue"), getVueAppContent(lang));
-    writeFileSync(join(src, "sidepanel", "App.vue"), getVueAppContent(lang));
+    writeFileSync(join(appDir, "popup", "App.vue"), getVueAppContent(lang));
+    writeFileSync(join(appDir, "options", "App.vue"), getVueAppContent(lang));
+    writeFileSync(join(appDir, "sidepanel", "App.vue"), getVueAppContent(lang));
   }
   if (framework === "react") {
     const reactExt = lang === "ts" ? "tsx" : "jsx";
-    writeFileSync(join(src, "popup", `App.${reactExt}`), getReactAppContent(lang));
-    writeFileSync(join(src, "options", `App.${reactExt}`), getReactAppContent(lang));
-    writeFileSync(join(src, "sidepanel", `App.${reactExt}`), getReactAppContent(lang));
+    writeFileSync(join(appDir, "popup", `App.${reactExt}`), getReactAppContent(lang));
+    writeFileSync(join(appDir, "options", `App.${reactExt}`), getReactAppContent(lang));
+    writeFileSync(join(appDir, "sidepanel", `App.${reactExt}`), getReactAppContent(lang));
+  }
+  if (framework === "uno") {
+    writeFileSync(
+      join(root, "uno.config.ts"),
+      `import { defineConfig, presetUno } from "unocss";
+
+export default defineConfig({
+  content: { filesystem: ["./app/**/*.{html,js,ts,jsx,tsx}"] },
+  presets: [presetUno()],
+});
+`
+    );
+    writeFileSync(
+      join(root, "postcss.config.mjs"),
+      `import UnoCSS from "@unocss/postcss";
+
+export default {
+  plugins: [UnoCSS()],
+};
+`
+    );
+    writeFileSync(
+      join(appDir, "uno.css"),
+      `@unocss preflights;
+@unocss default;
+`
+    );
+    const reactExt = lang === "ts" ? "tsx" : "jsx";
+    writeFileSync(join(appDir, "popup", `App.${reactExt}`), getUnoAppContent(lang));
+    writeFileSync(join(appDir, "options", `App.${reactExt}`), getUnoAppContent(lang));
+    writeFileSync(join(appDir, "sidepanel", `App.${reactExt}`), getUnoAppContent(lang));
+  }
+  if (framework === "preact") {
+    const preactExt = lang === "ts" ? "tsx" : "jsx";
+    writeFileSync(join(appDir, "popup", `App.${preactExt}`), getPreactAppContent(lang));
+    writeFileSync(join(appDir, "options", `App.${preactExt}`), getPreactAppContent(lang));
+    writeFileSync(join(appDir, "sidepanel", `App.${preactExt}`), getPreactAppContent(lang));
+  }
+  if (framework === "svelte") {
+    writeFileSync(join(appDir, "popup", "App.svelte"), getSvelteAppContent(lang));
+    writeFileSync(join(appDir, "options", "App.svelte"), getSvelteAppContent(lang));
+    writeFileSync(join(appDir, "sidepanel", "App.svelte"), getSvelteAppContent(lang));
+  }
+  if (framework === "solid") {
+    const solidExt = lang === "ts" ? "tsx" : "jsx";
+    writeFileSync(join(appDir, "popup", `App.${solidExt}`), getSolidAppContent(lang));
+    writeFileSync(join(appDir, "options", `App.${solidExt}`), getSolidAppContent(lang));
+    writeFileSync(join(appDir, "sidepanel", `App.${solidExt}`), getSolidAppContent(lang));
   }
 
-  writeFileSync(join(root, "public", "icons", ".gitkeep"), "");
+  writeFileSync(
+    join(root, "public", "icons", "README.txt"),
+    "Copy icon_16.png and icon_48.png here (16x16 and 48x48 PNG), or add your own icons.\n"
+  );
 
   console.log(green("\n✓ 项目已生成\n"));
   console.log(`  cd ${targetDir}`);

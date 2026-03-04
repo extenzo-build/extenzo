@@ -24,11 +24,15 @@ describe("constants", () => {
     expect(SCRIPT_EXTS).toContain(".ts");
   });
 
-  it("RESERVED_ENTRY_NAMES includes popup, background, content, devtools", () => {
+  it("RESERVED_ENTRY_NAMES includes popup, background, content, devtools, sandbox and chrome override entries", () => {
     expect(RESERVED_ENTRY_NAMES).toContain("popup");
     expect(RESERVED_ENTRY_NAMES).toContain("background");
     expect(RESERVED_ENTRY_NAMES).toContain("content");
     expect(RESERVED_ENTRY_NAMES).toContain("devtools");
+    expect(RESERVED_ENTRY_NAMES).toContain("sandbox");
+    expect(RESERVED_ENTRY_NAMES).toContain("newtab");
+    expect(RESERVED_ENTRY_NAMES).toContain("bookmarks");
+    expect(RESERVED_ENTRY_NAMES).toContain("history");
   });
 
   it("HTML_ENTRY_NAMES and SCRIPT_ONLY_ENTRY_NAMES are disjoint", () => {
@@ -64,5 +68,9 @@ describe("constants", () => {
     expect(MANIFEST_ENTRY_PATHS.background).toBe("background/index.js");
     expect(MANIFEST_ENTRY_PATHS.devtools).toBe("devtools/index.html");
     expect(MANIFEST_ENTRY_PATHS.popup).toBe("popup/index.html");
+    expect(MANIFEST_ENTRY_PATHS.sandbox).toBe("sandbox/index.html");
+    expect(MANIFEST_ENTRY_PATHS.newtab).toBe("newtab/index.html");
+    expect(MANIFEST_ENTRY_PATHS.bookmarks).toBe("bookmarks/index.html");
+    expect(MANIFEST_ENTRY_PATHS.history).toBe("history/index.html");
   });
 });

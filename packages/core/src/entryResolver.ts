@@ -3,7 +3,12 @@ import { existsSync } from "fs";
 import type { ExtenzoUserConfig, EntryInfo, EntryConfigValue } from "./types.ts";
 import { HTML_ENTRY_NAMES, SCRIPT_EXTS } from "./constants.ts";
 import { EntryDiscoverer } from "./entryDiscoverer.ts";
-import { getScriptInjectIfMatches, parseExtenzoEntryFromHtml } from "./htmlEntry.ts";
+import {
+  getScriptInjectIfMatches,
+  parseExtenzoEntryFromHtml,
+  resolveScriptFromHtmlStrict,
+} from "./htmlEntry.ts";
+import { createEntryScriptFromHtmlError } from "./errors.ts";
 
 const HTML_ENTRY_SET = new Set(HTML_ENTRY_NAMES);
 
@@ -39,18 +44,6 @@ function isEntryConfigObject(value: EntryConfigValue): value is { src: string; h
   return typeof value === "object" && value !== null && "src" in value;
 }
 
-/** Resolve script path from HTML when it has data-extenzo-entry with src. scriptInject is applied later via enrichEntryWithScriptInject. */
-function resolveScriptFromHtml(htmlPath: string): string | undefined {
-  try {
-    const parsed = parseExtenzoEntryFromHtml(htmlPath);
-    if (!parsed || !isScriptPath(parsed.src)) return undefined;
-    const scriptPath = resolve(dirname(htmlPath), parsed.src);
-    return existsSync(scriptPath) ? scriptPath : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
 function resolveHtmlPath(baseDir: string, htmlValue: string | undefined): string | undefined {
   if (!htmlValue) return undefined;
   const resolved = resolve(baseDir, htmlValue);
@@ -81,8 +74,8 @@ function enrichEntryWithScriptInject(entry: EntryInfo): EntryInfo {
 }
 
 /**
- * Entry resolver: discovers popup/options/background etc by default; config.entry overrides.
- * - First discover default entries (background, content, popup, options, sidepanel, devtools) from dirs.
+ * Entry resolver: discovers built-in entries by default; config.entry overrides.
+ * - First discover default entries (background, content, popup, options, sidepanel, devtools, offscreen, newtab, bookmarks, history) from dirs.
  * - If config.entry exists, only those keys are overridden/added; others keep discovered result.
  * - value is .html: find script via data-extenzo-entry or same dir; if no script exists the entry is skipped.
  * - value is .js/.ts etc: reserved html entries infer index.html; custom entries are script-only unless html is set.
@@ -134,10 +127,33 @@ export class EntryResolver {
     if (isHtmlPath(pathStr)) {
       const htmlPath = resolved;
       const dir = dirname(htmlPath);
-      const scriptPath =
-        resolveScriptFromHtml(htmlPath) ?? findScriptForHtmlDir(dir, basename(htmlPath));
+      let parsed: ReturnType<typeof parseExtenzoEntryFromHtml>;
+      try {
+        parsed = parseExtenzoEntryFromHtml(htmlPath);
+      } catch {
+        parsed = undefined;
+      }
+      let scriptPath: string | undefined;
+      if (parsed) {
+        try {
+          scriptPath = resolveScriptFromHtmlStrict(htmlPath).scriptPath;
+        } catch (e) {
+          throw createEntryScriptFromHtmlError(
+            htmlPath,
+            e instanceof Error ? e.message : String(e)
+          );
+        }
+      } else {
+        scriptPath = findScriptForHtmlDir(dir, basename(htmlPath));
+      }
       if (!scriptPath) return null;
-      const entry: EntryInfo = { name, scriptPath, htmlPath, html: true };
+      const entry: EntryInfo = {
+        name,
+        scriptPath,
+        htmlPath,
+        html: true,
+        outputFollowsScriptPath: Boolean(parsed),
+      };
       return enrichEntryWithScriptInject(entry);
     }
     if (isScriptPath(pathStr)) {
@@ -150,7 +166,7 @@ export class EntryResolver {
     return null;
   }
 
-  /** For popup/options/sidepanel/devtools only, infer same-dir index.html from script path */
+  /** For built-in HTML entries, infer same-dir index.html from script path */
   private inferHtmlPathForReservedName(entryName: string, scriptPath: string): string | undefined {
     if (!HTML_ENTRY_SET.has(entryName as (typeof HTML_ENTRY_NAMES)[number])) return undefined;
     const dir = dirname(scriptPath);

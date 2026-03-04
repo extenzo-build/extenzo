@@ -68,6 +68,44 @@ describe("EntryResolver", () => {
       expect(popupEntry?.htmlPath).toMatch(/popup[\\/]index\.html$/);
     });
 
+    it("resolves script path and infers htmlPath for newtab when index.html exists", async () => {
+      const { mkdirSync, writeFileSync, rmSync } = await import("fs");
+      const { join } = await import("path");
+      const { tmpdir } = await import("os");
+      const baseDir = join(tmpdir(), `extenzo-entry-newtab-${Date.now()}`);
+      mkdirSync(join(baseDir, "newtab"), { recursive: true });
+      writeFileSync(join(baseDir, "newtab", "index.ts"), "// script", "utf-8");
+      writeFileSync(join(baseDir, "newtab", "index.html"), "<html></html>", "utf-8");
+      const entries = resolveEntries(
+        { entry: { newtab: "newtab/index.ts" } },
+        "/root",
+        baseDir
+      );
+      const newtabEntry = entries.find((e) => e.name === "newtab");
+      expect(newtabEntry).toBeDefined();
+      expect(newtabEntry?.htmlPath).toMatch(/newtab[\\/]index\.html$/);
+      rmSync(baseDir, { recursive: true, force: true });
+    });
+
+    it("resolves script path and infers htmlPath for sandbox when index.html exists", async () => {
+      const { mkdirSync, writeFileSync, rmSync } = await import("fs");
+      const { join } = await import("path");
+      const { tmpdir } = await import("os");
+      const baseDir = join(tmpdir(), `extenzo-entry-sandbox-${Date.now()}`);
+      mkdirSync(join(baseDir, "sandbox"), { recursive: true });
+      writeFileSync(join(baseDir, "sandbox", "index.ts"), "// script", "utf-8");
+      writeFileSync(join(baseDir, "sandbox", "index.html"), "<html></html>", "utf-8");
+      const entries = resolveEntries(
+        { entry: { sandbox: "sandbox/index.ts" } },
+        "/root",
+        baseDir
+      );
+      const sandboxEntry = entries.find((e) => e.name === "sandbox");
+      expect(sandboxEntry).toBeDefined();
+      expect(sandboxEntry?.htmlPath).toMatch(/sandbox[\\/]index\.html$/);
+      rmSync(baseDir, { recursive: true, force: true });
+    });
+
     it("resolves script path without htmlPath for background", () => {
       const entries = resolveEntries(
         { entry: { background: "background/index.ts" } },
@@ -211,6 +249,41 @@ describe("EntryResolver", () => {
       expect(popup).toBeDefined();
       expect(popup?.htmlPath).toMatch(/popup[\\/]index\.html$/);
       expect(popup?.html).toBe(true);
+    });
+
+    it("throws when html entry has data-extenzo-entry with non-relative src", async () => {
+      const { mkdirSync, writeFileSync, rmSync } = await import("fs");
+      const { join } = await import("path");
+      const { tmpdir } = await import("os");
+      const baseDir = join(tmpdir(), `extenzo-entry-bad-src-${Date.now()}`);
+      mkdirSync(baseDir, { recursive: true });
+      writeFileSync(
+        join(baseDir, "popup.html"),
+        '<html><script data-extenzo-entry src="/absolute/path.ts"></script></html>',
+        "utf-8"
+      );
+      expect(() =>
+        resolveEntries({ entry: { popup: "popup.html" } }, "/root", baseDir)
+      ).toThrow();
+      rmSync(baseDir, { recursive: true, force: true });
+    });
+
+    it("skips object entry when src does not exist", () => {
+      const entries = resolveEntries(
+        { entry: { custom: { src: "nonexistent/index.ts" } } },
+        "/root",
+        fixtureDir
+      );
+      expect(entries.some((e) => e.name === "custom")).toBe(false);
+    });
+
+    it("skips object entry when html path does not exist", () => {
+      const entries = resolveEntries(
+        { entry: { popup: { src: "popup/index.ts", html: "nonexistent.html" } } },
+        "/root",
+        fixtureDir
+      );
+      expect(entries.find((e) => e.name === "popup")?.htmlPath).toBeUndefined();
     });
 
     it("applies scriptInject when user specifies html template path and it has data-extenzo-entry", () => {

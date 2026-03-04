@@ -1,5 +1,22 @@
 [
-  { "type": "file", "name": "introduction", "label": "介绍" },
-  { "type": "file", "name": "install", "label": "安装" },
-  { "type": "file", "name": "feature-subsets", "label": "功能分子集简介" }
+  { "type": "section-header", "label": "快速开始" },
+  "introduction",
+  "install",
+  { "type": "section-header", "label": "基础" },
+  "app-dir",
+  { "type": "dir", "name": "entry", "label": "入口", "collapsible": true, "collapsed": true },
+  "manifest",
+  "i18n",
+  "icons",
+  { "type": "dir", "name": "framework", "label": "框架支持", "collapsible": true, "collapsed": true },
+  "launch",
+  "monitor",
+  "env-prefix",
+  "rsbuild-config",
+  { "type": "section-header", "label": "开发环境" },
+  "hmr",
+  "reload-manager",
+  { "type": "section-header", "label": "生产环境" },
+  "output",
+  "zip"
 ]

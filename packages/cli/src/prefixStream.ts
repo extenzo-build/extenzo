@@ -1,9 +1,28 @@
 /** ANSI: orange (256 color 208), then reset. Exported for tests. */
 export const EXO_PREFIX = "\x1b[38;5;208m[exo]\x1b[0m ";
-const PREFIX = EXO_PREFIX;
+/** Light purple [Rsbuild] for rsbuild-origin lines (256 color 141) */
+const RSBUILD_PREFIX = "\x1b[38;5;141m[Rsbuild]\x1b[0m ";
 
 let rawStdoutWrite: NodeJS.WriteStream["write"] | null = null;
 let rawStderrWrite: NodeJS.WriteStream["write"] | null = null;
+
+/** "exo" | "rsbuild" - which prefix to use for wrapped stdout/stderr (non-exo logger output). */
+let outputPrefix: "exo" | "rsbuild" = "exo";
+
+/**
+ * Use [Rsbuild] prefix for subsequent stdout/stderr lines (e.g. before createRsbuild / startDevServer).
+ * Call setOutputPrefixExo() after build() to restore [exo] for non-rsbuild output.
+ */
+export function setOutputPrefixRsbuild(): void {
+  outputPrefix = "rsbuild";
+}
+
+/**
+ * Use [exo] prefix for subsequent stdout/stderr lines. Call after rsbuild.build() when only extenzo will write.
+ */
+export function setOutputPrefixExo(): void {
+  outputPrefix = "exo";
+}
 
 /** Return raw stream writes (before wrap) for the shared logger so output has a single prefix. */
 export function getRawWrites(): {
@@ -63,17 +82,16 @@ export function createPrefixedWrite(
 }
 
 /**
- * Wraps process.stdout and process.stderr so each line is prefixed with colored "[exo]".
- * Call before running rsbuild dev/build so users see exo output.
- * Original rsbuild output is preserved line-by-line.
+ * Wraps process.stdout and process.stderr so each line is prefixed with colored "[exo]" or "[Rsbuild]".
+ * Call before running rsbuild dev/build. Use setOutputPrefixRsbuild() before rsbuild, setOutputPrefixExo() after build.
  */
 export function wrapExtenzoOutput(): void {
   rawStdoutWrite = process.stdout.write.bind(process.stdout);
   rawStderrWrite = process.stderr.write.bind(process.stderr);
 
-  const prefix = () => PREFIX;
-  const stdoutWrite = createPrefixedWrite(process.stdout, prefix);
-  const stderrWrite = createPrefixedWrite(process.stderr, prefix);
+  const getPrefix = (): string => (outputPrefix === "rsbuild" ? RSBUILD_PREFIX : EXO_PREFIX);
+  const stdoutWrite = createPrefixedWrite(process.stdout, getPrefix);
+  const stderrWrite = createPrefixedWrite(process.stderr, getPrefix);
 
   (process.stdout as NodeJS.WriteStream & { write: NodeJS.WriteStream["write"] }).write = stdoutWrite;
   (process.stderr as NodeJS.WriteStream & { write: NodeJS.WriteStream["write"] }).write = stderrWrite;

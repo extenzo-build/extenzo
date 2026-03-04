@@ -13,8 +13,18 @@ const fixtureDir = path.join(__dirname, "fixtures", "entry-discovery");
 
 describe("EntryDiscoverer", () => {
   describe("getHtmlEntryNames", () => {
-    it("returns popup, options, sidepanel, devtools, offscreen", () => {
-      expect(getHtmlEntryNames()).toEqual(["popup", "options", "sidepanel", "devtools", "offscreen"]);
+    it("returns html built-in entries including sandbox and chrome override pages", () => {
+      expect(getHtmlEntryNames()).toEqual([
+        "popup",
+        "options",
+        "sidepanel",
+        "devtools",
+        "offscreen",
+        "sandbox",
+        "newtab",
+        "bookmarks",
+        "history",
+      ]);
     });
   });
 
@@ -41,6 +51,12 @@ describe("EntryDiscoverer", () => {
     it("returns empty array for dir with no entry subdirs", () => {
       const discoverer = new EntryDiscoverer();
       const entries = discoverer.discover(path.join(__dirname, "fixtures"));
+      expect(entries).toEqual([]);
+    });
+
+    it("returns empty array for non-existent directory (null baseContents)", () => {
+      const discoverer = new EntryDiscoverer();
+      const entries = discoverer.discover("/nonexistent/path/that/does/not/exist");
       expect(entries).toEqual([]);
     });
 
@@ -97,10 +113,31 @@ describe("EntryDiscoverer", () => {
       rmSync(dir, { recursive: true, force: true });
     });
 
-    it("skips html-only when script from HTML does not exist (singleHtml, no resolved)", async () => {
+    it("finds chrome override html entries at base (newtab/bookmarks/history)", async () => {
       const { mkdirSync, writeFileSync, rmSync } = await import("fs");
       const { join } = await import("path");
       const { tmpdir } = await import("os");
+      const dir = join(tmpdir(), `extenzo-discover-overrides-${Date.now()}`);
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(join(dir, "newtab.html"), "<html></html>", "utf-8");
+      writeFileSync(join(dir, "newtab.ts"), "// script", "utf-8");
+      writeFileSync(join(dir, "bookmarks.html"), "<html></html>", "utf-8");
+      writeFileSync(join(dir, "bookmarks.ts"), "// script", "utf-8");
+      writeFileSync(join(dir, "history.html"), "<html></html>", "utf-8");
+      writeFileSync(join(dir, "history.ts"), "// script", "utf-8");
+      const discoverer = new EntryDiscoverer();
+      const entries = discoverer.discover(dir);
+      expect(entries.find((e) => e.name === "newtab")?.htmlPath).toMatch(/newtab\.html$/);
+      expect(entries.find((e) => e.name === "bookmarks")?.htmlPath).toMatch(/bookmarks\.html$/);
+      expect(entries.find((e) => e.name === "history")?.htmlPath).toMatch(/history\.html$/);
+      rmSync(dir, { recursive: true, force: true });
+    });
+
+    it("throws when script from data-extenzo-entry does not exist (singleHtml)", async () => {
+      const { mkdirSync, writeFileSync, rmSync } = await import("fs");
+      const { join } = await import("path");
+      const { tmpdir } = await import("os");
+      const { ExtenzoError, EXTENZO_ERROR_CODES } = await import("../src/errors.ts");
       const dir = join(tmpdir(), `extenzo-discover-html-only-${Date.now()}`);
       mkdirSync(dir, { recursive: true });
       writeFileSync(
@@ -109,9 +146,15 @@ describe("EntryDiscoverer", () => {
         "utf-8"
       );
       const discoverer = new EntryDiscoverer();
-      const entries = discoverer.discover(dir);
-      const popup = entries.find((e) => e.name === "popup");
-      expect(popup).toBeUndefined();
+      let err: unknown;
+      try {
+        discoverer.discover(dir);
+      } catch (e) {
+        err = e;
+      }
+      expect(err).toBeDefined();
+      expect(err).toBeInstanceOf(ExtenzoError);
+      expect((err as ExtenzoError).code).toBe(EXTENZO_ERROR_CODES.ENTRY_SCRIPT_FROM_HTML);
       rmSync(dir, { recursive: true, force: true });
     });
 
@@ -134,6 +177,62 @@ describe("EntryDiscoverer", () => {
       expect(popup?.scriptPath).toMatch(/main\.ts$/);
       expect(popup?.htmlPath).toMatch(/popup\.html$/);
       expect(popup?.scriptInject).toBe("body");
+      rmSync(dir, { recursive: true, force: true });
+    });
+
+    it("returns html entry with scriptInject undefined when subdir has script but no index.html", async () => {
+      const { mkdirSync, writeFileSync, rmSync } = await import("fs");
+      const { join } = await import("path");
+      const { tmpdir } = await import("os");
+      const dir = join(tmpdir(), `extenzo-discover-script-no-html-${Date.now()}`);
+      mkdirSync(join(dir, "popup"), { recursive: true });
+      writeFileSync(join(dir, "popup", "index.ts"), "// entry", "utf-8");
+      const discoverer = new EntryDiscoverer();
+      const entries = discoverer.discover(dir);
+      const popup = entries.find((e) => e.name === "popup");
+      expect(popup).toBeDefined();
+      expect(popup?.html).toBe(true);
+      expect(popup?.scriptInject).toBeUndefined();
+      expect(popup?.htmlPath).toBeUndefined();
+      rmSync(dir, { recursive: true, force: true });
+    });
+
+    it("throws when data-extenzo-entry points to unsupported script extension in subdir", async () => {
+      const { mkdirSync, writeFileSync, rmSync } = await import("fs");
+      const { join } = await import("path");
+      const { tmpdir } = await import("os");
+      const { ExtenzoError } = await import("../src/errors.ts");
+      const dir = join(tmpdir(), `extenzo-discover-bad-ext-${Date.now()}`);
+      mkdirSync(join(dir, "popup"), { recursive: true });
+      writeFileSync(
+        join(dir, "popup", "index.html"),
+        '<html><script data-extenzo-entry src="./main.css"></script></html>',
+        "utf-8"
+      );
+      writeFileSync(join(dir, "popup", "main.css"), "body{}", "utf-8");
+      const discoverer = new EntryDiscoverer();
+      let err: unknown;
+      try {
+        discoverer.discover(dir);
+      } catch (e) {
+        err = e;
+      }
+      expect(err).toBeDefined();
+      expect(err).toBeInstanceOf(ExtenzoError);
+      rmSync(dir, { recursive: true, force: true });
+    });
+
+    it("falls through to buildHtmlEntryInfo when subdir has only index.html (no script)", async () => {
+      const { mkdirSync, writeFileSync, rmSync } = await import("fs");
+      const { join } = await import("path");
+      const { tmpdir } = await import("os");
+      const dir = join(tmpdir(), `extenzo-discover-html-no-script-${Date.now()}`);
+      mkdirSync(join(dir, "popup"), { recursive: true });
+      writeFileSync(join(dir, "popup", "index.html"), "<html><body>no script</body></html>", "utf-8");
+      const discoverer = new EntryDiscoverer();
+      const entries = discoverer.discover(dir);
+      const popup = entries.find((e) => e.name === "popup");
+      expect(popup).toBeUndefined();
       rmSync(dir, { recursive: true, force: true });
     });
 

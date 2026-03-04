@@ -1,10 +1,18 @@
 import { defineConfig } from "@rspress/core";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { transformerNotationHighlight } from "@shikijs/transformers";
+import fileTree from "rspress-plugin-file-tree";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   root: ".",
+  plugins: [fileTree()],
+  globalStyles: path.join(__dirname, "styles/theme.css"),
   lang: "zh",
   route: {
-    exclude: ["config/**", "guide/**", "advanced/**", "packages/**"],
+    exclude: ["config/**", "advanced/**", "packages/**"],
   },
   locales: [
     {
@@ -24,7 +32,11 @@ export default defineConfig({
   logo: { light: "/extenzo.png", dark: "/extenzo.png" },
   themeConfig: {
     socialLinks: [
-      { icon: "github", mode: "link", content: "https://github.com/extenzo-build/extenzo" },
+      {
+        icon: "github",
+        mode: "link",
+        content: "https://github.com/extenzo-build/extenzo",
+      },
     ],
     editLink: {
       docRepoBaseUrl: "https://github.com/extenzo-build/extenzo/tree/main/docs",
@@ -36,13 +48,19 @@ export default defineConfig({
       en: "Edit this page",
     },
   },
-  markdown: { showLineNumbers: true },
+  markdown: {
+    showLineNumbers: true,
+    shiki: {
+      transformers: [transformerNotationHighlight()],
+    },
+  },
   head: [
     [
       "meta",
       {
         name: "keywords",
-        content: "browser extension, chrome extension, firefox, rsbuild, extenzo",
+        content:
+          "browser extension, chrome extension, firefox, rsbuild, extenzo",
       },
     ],
   ],

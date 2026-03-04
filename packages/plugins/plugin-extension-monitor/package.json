@@ -20,7 +20,9 @@
       "default": "./dist/runtime.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "rslib build",
     "dev": "rslib build --watch",

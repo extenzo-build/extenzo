@@ -4,19 +4,23 @@ This page lists extension examples in the extenzo repo. Each example is a separa
 
 | Example | Description | Repo link |
 |---------|-------------|-----------|
-| **vue-template** | Vue 3 template: popup, options, content, background with simple messaging. | [examples/vue-template](https://github.com/extenzo-build/extenzo/tree/main/examples/vue-template) |
-| **react-template** | React template: popup, options, content, background with simple messaging. | [examples/react-template](https://github.com/extenzo-build/extenzo/tree/main/examples/react-template) |
-| **react-shadcn** | React + shadcn/ui: popup, options, content, background, sidepanel; Tailwind + component library. | [examples/react-shadcn](https://github.com/extenzo-build/extenzo/tree/main/examples/react-shadcn) |
-| **devtools-native-ts** | Plain TypeScript: background + devtools_page only, no React/Vue; demonstrates a DevTools extension. | [examples/devtools-native-ts](https://github.com/extenzo-build/extenzo/tree/main/examples/devtools-native-ts) |
+| **exo-with-vue** | Vue 3 template: popup, options, content, background with simple messaging. | [examples/exo-with-vue](https://github.com/extenzo-build/extenzo/tree/main/examples/exo-with-vue) |
+| **exo-with-react** | React template: popup, options, content, background with simple messaging. | [examples/exo-with-react](https://github.com/extenzo-build/extenzo/tree/main/examples/exo-with-react) |
+| **exo-with-preact** | Preact template: popup, options, content, background with simple messaging. | [examples/exo-with-preact](https://github.com/extenzo-build/extenzo/tree/main/examples/exo-with-preact) |
+| **exo-with-svelte** | Svelte template: popup, options, content, background with simple messaging. | [examples/exo-with-svelte](https://github.com/extenzo-build/extenzo/tree/main/examples/exo-with-svelte) |
+| **exo-with-solid** | Solid template: popup, options, content, background with simple messaging. | [examples/exo-with-solid](https://github.com/extenzo-build/extenzo/tree/main/examples/exo-with-solid) |
+| **exo-with-uno** | React + UnoCSS: popup, options, content, background; atomic CSS via PostCSS. | [examples/exo-with-uno](https://github.com/extenzo-build/extenzo/tree/main/examples/exo-with-uno) |
+| **exo-with-react-shadcn** | React + shadcn/ui: popup, options, content, background, sidepanel; Tailwind + component library. | [examples/exo-with-react-shadcn](https://github.com/extenzo-build/extenzo/tree/main/examples/exo-with-react-shadcn) |
+| **exo-with-devtools** | Plain TypeScript: background + devtools_page only, no React/Vue; demonstrates a DevTools extension. | [examples/exo-with-devtools](https://github.com/extenzo-build/extenzo/tree/main/examples/exo-with-devtools) |
 
 ## How to run
 
 From the extenzo repo root, run `pnpm install`, then go to an example directory:
 
 ```bash
-cd examples/vue-template   # or another example
+cd examples/exo-with-vue   # or another example
 pnpm dev                   # dev mode
 pnpm build                 # build
 ```
 
-Output goes to `.extenzo/dist` (or the example’s outputRoot/outDir). Load that directory in the browser; with `pnpm dev`, the framework can open the browser and load the extension automatically.
+Output goes to `.extenzo/dist` (or the example's outputRoot/outDir). Load that directory in the browser; with `pnpm dev`, the framework can open the browser and load the extension automatically.
