@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach, afterEach } from "@rstest/core";
-import { wrapExtenzoOutput, createPrefixedWrite, getRawWrites, EXO_PREFIX } from "../src/prefixStream.ts";
+import { wrapExtenzoOutput, createPrefixedWrite, getRawWrites, EXO_PREFIX, setOutputPrefixRsbuild, setOutputPrefixExo } from "../src/prefixStream.ts";
 
 const PREFIX = EXO_PREFIX;
 
@@ -136,6 +136,28 @@ describe("prefixStream", () => {
     const flush = (write as { flush?: () => void }).flush;
     expect(flush).toBeDefined();
     expect(() => flush!()).not.toThrow();
+  });
+
+  it("getRawWrites before wrap returns fallback process stream writes", () => {
+    const { stdout, stderr } = getRawWrites();
+    expect(typeof stdout).toBe("function");
+    expect(typeof stderr).toBe("function");
+  });
+
+  it("setOutputPrefixRsbuild switches prefix to [Rsbuild] and setOutputPrefixExo restores [exo]", () => {
+    wrapExtenzoOutput();
+    setOutputPrefixRsbuild();
+    (process.stdout as NodeJS.WriteStream).write("rsbuild-line\n");
+    const rsbuildOut = stdoutChunks.join("");
+    expect(rsbuildOut).toContain("[Rsbuild]");
+    expect(rsbuildOut).toContain("rsbuild-line");
+
+    stdoutChunks.length = 0;
+    setOutputPrefixExo();
+    (process.stdout as NodeJS.WriteStream).write("exo-line\n");
+    const exoOut = stdoutChunks.join("");
+    expect(exoOut).toContain(PREFIX);
+    expect(exoOut).toContain("exo-line");
   });
 
   it("getRawWrites after wrap returns raw write functions", () => {

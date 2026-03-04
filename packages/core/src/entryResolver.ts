@@ -74,8 +74,8 @@ function enrichEntryWithScriptInject(entry: EntryInfo): EntryInfo {
 }
 
 /**
- * Entry resolver: discovers popup/options/background etc by default; config.entry overrides.
- * - First discover default entries (background, content, popup, options, sidepanel, devtools) from dirs.
+ * Entry resolver: discovers built-in entries by default; config.entry overrides.
+ * - First discover default entries (background, content, popup, options, sidepanel, devtools, offscreen, newtab, bookmarks, history) from dirs.
  * - If config.entry exists, only those keys are overridden/added; others keep discovered result.
  * - value is .html: find script via data-extenzo-entry or same dir; if no script exists the entry is skipped.
  * - value is .js/.ts etc: reserved html entries infer index.html; custom entries are script-only unless html is set.
@@ -166,7 +166,7 @@ export class EntryResolver {
     return null;
   }
 
-  /** For popup/options/sidepanel/devtools only, infer same-dir index.html from script path */
+  /** For built-in HTML entries, infer same-dir index.html from script path */
   private inferHtmlPathForReservedName(entryName: string, scriptPath: string): string | undefined {
     if (!HTML_ENTRY_SET.has(entryName as (typeof HTML_ENTRY_NAMES)[number])) return undefined;
     const dir = dirname(scriptPath);

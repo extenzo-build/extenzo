@@ -17,6 +17,10 @@
 | [exo-with-react-entry-false](./exo-with-react-entry-false) | React 模板（entry 关闭）：popup、options、content、background |
 | [vue-jsx](./vue-jsx) | Vue 3 + JSX + Less：从 VideoRoll-Pro 迁移，多入口（popup/options/sidepanel/capture/download/player 等），extenzo 构建 |
 | [exo-with-single-file](./exo-with-single-file) | 单文件入口模板：popup.html、options.html、background.ts、content.ts |
+| [exo-with-newtab-override](./exo-with-newtab-override) | 内置页面覆盖示例：`newtab` 入口，自动填充 `chrome_url_overrides.newtab` |
+| [exo-with-bookmarks-override](./exo-with-bookmarks-override) | 内置页面覆盖示例：`bookmarks` 入口，自动填充 `chrome_url_overrides.bookmarks` |
+| [exo-with-history-override](./exo-with-history-override) | 内置页面覆盖示例：`history` 入口，自动填充 `chrome_url_overrides.history`（并自动补 `permissions.history`） |
+| [exo-with-sandbox](./exo-with-sandbox) | 内置沙盒页面示例：`sandbox` 入口，自动填充 `sandbox.pages` |
 | [exo-with-wxt](./exo-with-wxt) | **纯 WXT** 示例：使用 [WXT](https://wxt.dev/) 实现的扩展（不依赖 extenzo），含 popup、options、content、background |
 
 除 **exo-with-wxt** 外，每个示例均有独立 `package.json` 与 `exo.config.ts`，在对应目录执行 `pnpm install` 与 `pnpm dev` / `pnpm build` 即可。exo-with-wxt 为纯 WXT 项目，使用 `wxt.config.ts`，同样在目录内执行 `pnpm install` 与 `pnpm dev` / `pnpm build`。

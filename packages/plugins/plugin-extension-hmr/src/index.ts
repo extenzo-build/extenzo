@@ -10,187 +10,109 @@ import { log, logDone, logDoneTimed, warn, error } from "@extenzo/core";
 import { runChromiumRunner } from "./chromium-runner";
 import type { ChromiumRunnerOptions } from "./chromium-runner";
 
-/** Default Chrome executable paths when launch not configured (first existing wins) */
-const DEFAULT_CHROME_PATHS: Record<string, string[]> = {
-  win32: [
-    "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-    "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
-  ],
-  darwin: ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"],
-  linux: [
-    "/usr/bin/google-chrome",
-    "/usr/bin/google-chrome-stable",
-    "/usr/bin/chromium",
-    "/usr/bin/chromium-browser",
-  ],
+// ─── Browser path registry (single map for all browser default paths) ───
+
+type PlatformPaths = Record<string, string[]>;
+
+/** Default executable paths for all supported browsers, grouped by platform. */
+const BROWSER_DEFAULT_PATHS: Record<LaunchTarget, PlatformPaths> = {
+  chrome: {
+    win32: [
+      "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+      "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+    ],
+    darwin: ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"],
+    linux: ["/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/usr/bin/chromium", "/usr/bin/chromium-browser"],
+  },
+  edge: {
+    win32: [
+      "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe",
+      "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+    ],
+    darwin: ["/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge"],
+    linux: ["/usr/bin/microsoft-edge", "/usr/bin/microsoft-edge-stable"],
+  },
+  brave: {
+    win32: [
+      "C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe",
+      "C:\\Program Files (x86)\\BraveSoftware\\Brave-Browser\\Application\\brave.exe",
+    ],
+    darwin: ["/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"],
+    linux: ["/usr/bin/brave-browser", "/usr/bin/brave"],
+  },
+  vivaldi: {
+    win32: [
+      "C:\\Program Files\\Vivaldi\\Application\\vivaldi.exe",
+      "C:\\Program Files (x86)\\Vivaldi\\Application\\vivaldi.exe",
+    ],
+    darwin: ["/Applications/Vivaldi.app/Contents/MacOS/Vivaldi"],
+    linux: ["/usr/bin/vivaldi-stable", "/usr/bin/vivaldi"],
+  },
+  opera: {
+    win32: [
+      "C:\\Program Files\\Opera\\launcher.exe",
+      "C:\\Program Files (x86)\\Opera\\launcher.exe",
+    ],
+    darwin: ["/Applications/Opera.app/Contents/MacOS/Opera"],
+    linux: ["/usr/bin/opera", "/usr/bin/opera-stable"],
+  },
+  santa: {
+    win32: [
+      "C:\\Program Files\\Santa Browser\\Application\\Santa Browser.exe",
+      "C:\\Program Files (x86)\\Santa Browser\\Application\\Santa Browser.exe",
+    ],
+    darwin: ["/Applications/Santa Browser.app/Contents/MacOS/Santa Browser"],
+    linux: ["/usr/bin/santa-browser"],
+  },
+  firefox: {
+    win32: [
+      "C:\\Program Files\\Mozilla Firefox\\firefox.exe",
+      "C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe",
+    ],
+    darwin: ["/Applications/Firefox.app/Contents/MacOS/firefox"],
+    linux: ["/usr/bin/firefox", "/usr/bin/firefox-esr"],
+  },
 };
 
-/** Default Edge executable paths when launch not configured (first existing wins) */
-const DEFAULT_EDGE_PATHS: Record<string, string[]> = {
-  win32: [
-    "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe",
-    "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
-  ],
-  darwin: ["/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge"],
-  linux: ["/usr/bin/microsoft-edge", "/usr/bin/microsoft-edge-stable"],
-};
-
-/** Default Brave executable paths when launch not configured (first existing wins) */
-const DEFAULT_BRAVE_PATHS: Record<string, string[]> = {
-  win32: [
-    "C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe",
-    "C:\\Program Files (x86)\\BraveSoftware\\Brave-Browser\\Application\\brave.exe",
-  ],
-  darwin: ["/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"],
-  linux: ["/usr/bin/brave-browser", "/usr/bin/brave"],
-};
-
-/** Default Vivaldi executable paths when launch not configured (first existing wins) */
-const DEFAULT_VIVALDI_PATHS: Record<string, string[]> = {
-  win32: [
-    "C:\\Program Files\\Vivaldi\\Application\\vivaldi.exe",
-    "C:\\Program Files (x86)\\Vivaldi\\Application\\vivaldi.exe",
-  ],
-  darwin: ["/Applications/Vivaldi.app/Contents/MacOS/Vivaldi"],
-  linux: ["/usr/bin/vivaldi-stable", "/usr/bin/vivaldi"],
-};
-
-/** Default Opera executable paths when launch not configured (first existing wins) */
-const DEFAULT_OPERA_PATHS: Record<string, string[]> = {
-  win32: [
-    "C:\\Program Files\\Opera\\launcher.exe",
-    "C:\\Program Files (x86)\\Opera\\launcher.exe",
-  ],
-  darwin: ["/Applications/Opera.app/Contents/MacOS/Opera"],
-  linux: ["/usr/bin/opera", "/usr/bin/opera-stable"],
-};
-
-/** Default Santa executable paths when launch not configured (first existing wins) */
-const DEFAULT_SANTA_PATHS: Record<string, string[]> = {
-  win32: [
-    "C:\\Program Files\\Santa Browser\\Application\\Santa Browser.exe",
-    "C:\\Program Files (x86)\\Santa Browser\\Application\\Santa Browser.exe",
-  ],
-  darwin: ["/Applications/Santa Browser.app/Contents/MacOS/Santa Browser"],
-  linux: ["/usr/bin/santa-browser"],
-};
-
-/** Default Firefox executable paths when launch not configured (first existing wins) */
-const DEFAULT_FIREFOX_PATHS: Record<string, string[]> = {
-  win32: [
-    "C:\\Program Files\\Mozilla Firefox\\firefox.exe",
-    "C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe",
-  ],
-  darwin: ["/Applications/Firefox.app/Contents/MacOS/firefox"],
-  linux: ["/usr/bin/firefox", "/usr/bin/firefox-esr"],
-};
+// ─── Public types ───
 
 export interface HmrPluginOptions {
   distPath: string;
   autoOpen?: boolean;
   browser?: LaunchTarget;
-  /** Chrome executable path. From config.launch.chrome; else tries default OS paths. */
   chromePath?: string;
-  /** Edge executable path. From config.launch.edge; else tries default OS paths. */
   edgePath?: string;
-  /** Brave executable path. From config.launch.brave; else tries default OS paths. */
   bravePath?: string;
-  /** Vivaldi executable path. From config.launch.vivaldi; else tries default OS paths. */
   vivaldiPath?: string;
-  /** Opera executable path. From config.launch.opera; else tries default OS paths. */
   operaPath?: string;
-  /** Santa executable path. From config.launch.santa; else tries default OS paths. */
   santaPath?: string;
-  /** Firefox executable path. From config.launch.firefox; else tries default OS paths. */
   firefoxPath?: string;
-  /** Persist chromium user data dir between runs. */
   persist?: boolean;
   wsPort?: number;
   enableReload?: boolean;
-  /** When true (default), content entry change triggers reload manager to refresh the active tab. */
+  /** Whether reload manager should auto-refresh active tab when content entry changes. */
   autoRefreshContentPage?: boolean;
 }
 
-/** Browser paths only; used by getBrowserPath and internal callers */
+/** Browser path options subset. */
 type LaunchPathOptions = Pick<
   HmrPluginOptions,
-  | "chromePath"
-  | "edgePath"
-  | "bravePath"
-  | "vivaldiPath"
-  | "operaPath"
-  | "santaPath"
-  | "firefoxPath"
+  "chromePath" | "edgePath" | "bravePath" | "vivaldiPath" | "operaPath" | "santaPath" | "firefoxPath"
 >;
 
-/** For build -l: launch browser and load built output only; no reloadManager, no WebSocket */
+/** For build -l: launch browser and load built output only; no WebSocket/reloadManager. */
 export type LaunchOnlyOptions = Pick<
   HmrPluginOptions,
-  | "distPath"
-  | "browser"
-  | "chromePath"
-  | "edgePath"
-  | "bravePath"
-  | "vivaldiPath"
-  | "operaPath"
-  | "santaPath"
-  | "firefoxPath"
-  | "persist"
+  "distPath" | "browser" | "chromePath" | "edgePath" | "bravePath" | "vivaldiPath" | "operaPath" | "santaPath" | "firefoxPath" | "persist"
 >;
 
-/** Optional Chromium runner for tests; when set, used instead of runChromiumRunner. */
 export type ChromiumRunnerOverride = (
   opts: ChromiumRunnerOptions
 ) => Promise<{ exit: () => Promise<void> }>;
 
-/** Runner returned by web-ext cmd.run; call exit() during cleanup */
-let extensionRunner: { exit: () => Promise<void> } | null = null;
-let reloadManagerPath: string | null = null;
-let browserLaunched = false;
-let isCleaningUp = false;
-let cleanupHandlersRegistered = false;
-let wsServer: WebSocketServer | null = null;
-let httpServer: ReturnType<typeof createServer> | null = null;
-let lastDistPath: string | null = null;
-let chromiumUserDataDirPath: string | null = null;
-let lastChromiumBrowser: ChromiumLaunchTarget = "chrome";
-let persistEnabled = false;
+// ─── Browser path resolution ───
 
-/** Exported for tests. */
-export async function ensureDistReady(
-  distPath: string,
-  timeoutMs = 15000
-): Promise<boolean> {
-  const manifestPath = resolve(distPath, "manifest.json");
-  const start = Date.now();
-  while (Date.now() - start < timeoutMs) {
-    if (existsSync(manifestPath) && statSync(manifestPath).size > 0) return true;
-    await new Promise((r) => setTimeout(r, 300));
-  }
-  throw new Error(`dist not ready: ${manifestPath}`);
-}
-
-/**
- * Resolve browser executable path: user launch path first, then system default paths.
- * Exported for tests.
- */
-export function getBrowserPath(
-  browser: LaunchTarget,
-  options: LaunchPathOptions
-): string | null {
-  const userPath = getLaunchPathFromOptions(browser, options);
-  if (userPath != null && userPath.trim() !== "") return userPath.trim();
-
-  const platform = process.platform;
-  const paths = buildDefaultPaths(browser, platform);
-  if (!paths) return null;
-  for (const p of paths) {
-    if (existsSync(p)) return p;
-  }
-  return null;
-}
-
-/** Exported for tests. */
+/** Extract user-configured path for the given browser from options. */
 export function getLaunchPathFromOptions(
   browser: LaunchTarget,
   options: LaunchPathOptions
@@ -207,53 +129,50 @@ export function getLaunchPathFromOptions(
   return map[browser];
 }
 
-/** Exported for tests. */
+/** Build default path list for the given browser on the current platform. */
 export function buildDefaultPaths(
   browser: LaunchTarget,
   platform: string
 ): string[] | undefined {
-  if (browser === "chrome") return DEFAULT_CHROME_PATHS[platform];
-  if (browser === "edge") return DEFAULT_EDGE_PATHS[platform];
-  if (browser === "brave") return DEFAULT_BRAVE_PATHS[platform];
-  if (browser === "vivaldi") {
-    const base = DEFAULT_VIVALDI_PATHS[platform];
-    if (platform === "win32") {
-      const userProfile = process.env.USERPROFILE;
-      if (userProfile) {
-        return [
-          resolve(userProfile, "AppData\\Local\\Vivaldi\\Application\\vivaldi.exe"),
-          ...(base ?? []),
-        ];
-      }
+  const basePaths = BROWSER_DEFAULT_PATHS[browser]?.[platform];
+  if (browser === "vivaldi" && platform === "win32") {
+    const userProfile = process.env.USERPROFILE;
+    if (userProfile) {
+      return [
+        resolve(userProfile, "AppData\\Local\\Vivaldi\\Application\\vivaldi.exe"),
+        ...(basePaths ?? []),
+      ];
     }
-    return base;
   }
-  if (browser === "opera") return DEFAULT_OPERA_PATHS[platform];
-  if (browser === "santa") return DEFAULT_SANTA_PATHS[platform];
-  return DEFAULT_FIREFOX_PATHS[platform];
+  return basePaths;
 }
 
-/** Exported for tests. */
+/** Resolve browser executable path: user config first, then system default paths. */
+export function getBrowserPath(
+  browser: LaunchTarget,
+  options: LaunchPathOptions
+): string | null {
+  const userPath = getLaunchPathFromOptions(browser, options);
+  if (userPath != null && userPath.trim() !== "") return userPath.trim();
+
+  const paths = buildDefaultPaths(browser, process.platform);
+  if (!paths) return null;
+  for (const p of paths) {
+    if (existsSync(p)) return p;
+  }
+  return null;
+}
+
 export function isChromiumBrowser(browser: LaunchTarget): browser is ChromiumLaunchTarget {
   return browser !== "firefox";
 }
 
-function startWebSocketServer(port: number, startTime?: number): WebSocketServer {
-  if (wsServer) return wsServer;
-  const t0 = startTime ?? performance.now();
-  httpServer = createServer(handleHttpRequest);
-  wsServer = new WebSocketServer({ server: httpServer });
-  wsServer.on("connection", (ws: WebSocket) => {
-    if (ws.readyState === WebSocket.OPEN) ws.send("connected");
-  });
-  httpServer.listen(port, () => {
-    const ms = Math.round(performance.now() - t0);
-    logDoneTimed("Hot reload WebSocket: ws://localhost:" + port, ms);
-  });
-  return wsServer;
-}
+// ─── WebSocket hot reload server ───
 
-/** Extension error payload from runtime (entry, type, message, stack, time, etc.). */
+let wsServer: WebSocketServer | null = null;
+let httpServer: ReturnType<typeof createServer> | null = null;
+
+/** Extension error report payload structure. */
 type ExtensionErrorPayload = {
   entry?: string;
   type?: string;
@@ -309,18 +228,14 @@ function handleHttpRequest(
   if (req.method === "POST" && req.url === "/extenzo-error") {
     let body = "";
     req.setEncoding("utf8");
-    req.on("data", (chunk: string) => {
-      body += chunk;
-    });
+    req.on("data", (chunk: string) => { body += chunk; });
     req.on("end", () => {
       try {
         const payload = JSON.parse(body) as ExtensionErrorPayload;
         if (payload && (payload.entry != null || payload.message != null)) {
           logExtensionErrorToTerminal(payload);
         }
-      } catch {
-        // ignore parse error
-      }
+      } catch { /* ignore JSON parse errors */ }
       res.writeHead(204).end();
     });
     return;
@@ -328,7 +243,27 @@ function handleHttpRequest(
   res.writeHead(404).end();
 }
 
-/** Message "reload-extension": dev extension calls chrome.runtime.reload(). "toggle-extension": reload manager does disable+enable. "toggle-extension-refresh-tab": same + refresh active tab (only when content entry changed). */
+function startWebSocketServer(port: number, startTime?: number): WebSocketServer {
+  if (wsServer) return wsServer;
+  const t0 = startTime ?? performance.now();
+  httpServer = createServer(handleHttpRequest);
+  wsServer = new WebSocketServer({ server: httpServer });
+  wsServer.on("connection", (ws: WebSocket) => {
+    if (ws.readyState === WebSocket.OPEN) ws.send("connected");
+  });
+  httpServer.listen(port, () => {
+    const ms = Math.round(performance.now() - t0);
+    logDoneTimed("Hot reload WebSocket: ws://localhost:" + port, ms);
+  });
+  return wsServer;
+}
+
+/**
+ * Notify all WebSocket clients to reload the extension.
+ * "reload-extension": via chrome.runtime.reload().
+ * "toggle-extension": via disable+enable.
+ * "toggle-extension-refresh-tab": same as above plus refresh active tab.
+ */
 export function notifyReload(
   kind: "reload-extension" | "toggle-extension",
   opts?: { refreshTab?: boolean }
@@ -342,12 +277,13 @@ export function notifyReload(
   logDone("hotreload success", message, new Date().toLocaleString());
 }
 
-/** Entry names that require runtime.reload; only background. Content and others use disable+enable. */
+// ─── Build signature and reload decision ───
+
+/** Entry names that require runtime.reload (only background). */
 const RELOAD_ENTRY_NAMES = new Set(["background"]);
-/** Entry names that inject into pages; when they change, reload manager should refresh the active tab. */
+/** Entry names injected into pages; when changed, reload manager should refresh active tab. */
 const CONTENT_ENTRY_NAMES = new Set(["content"]);
 
-/** Rspack compilation proxy: entrypoints Map, Entrypoint has chunks (Chunk[]), Chunk has hash. */
 type CompilationLike = {
   entrypoints?: ReadonlyMap<string, EntrypointLike>;
 };
@@ -362,8 +298,8 @@ function getCompilationFromStats(stats: unknown): CompilationLike | null {
   return comp && typeof comp === "object" ? comp : null;
 }
 
-/** Build signature from an entrypoint: prefer chunk hashes, else filenames from getFiles(). No toJson. */
-function getEntrypointSignature(entrypoint: EntrypointLike | undefined, _entryName: string): string | null {
+/** Build signature from entrypoint chunk hashes or file list, avoiding toJson(). */
+function getEntrypointSignature(entrypoint: EntrypointLike | undefined): string | null {
   if (!entrypoint) return null;
   const hashes: string[] = [];
   if (entrypoint.chunks && Array.isArray(entrypoint.chunks)) {
@@ -371,67 +307,43 @@ function getEntrypointSignature(entrypoint: EntrypointLike | undefined, _entryNa
       if (c?.hash) hashes.push(c.hash);
     }
   }
-  if (hashes.length > 0) {
-    hashes.sort();
-    return hashes.join(",");
-  }
-  const getFiles = entrypoint.getFiles;
-  if (typeof getFiles === "function") {
+  if (hashes.length > 0) return hashes.sort().join(",");
+
+  if (typeof entrypoint.getFiles === "function") {
     try {
-      const files = getFiles();
-      if (files && files.length > 0) {
-        const list = [...files].sort();
-        return list.join(",");
-      }
-    } catch {
-      // proxy may throw
-    }
+      const files = entrypoint.getFiles();
+      if (files && files.length > 0) return [...files].sort().join(",");
+    } catch { /* proxy may throw */ }
   }
   return null;
 }
 
-/** Fast path: use compilation.entrypoints + chunk hash (or getFiles) to avoid stats.toJson(). */
-function getReloadEntriesSignatureFromCompilation(compilation: CompilationLike): string | null {
+/** Collect signatures for a set of entry names from the compilation. */
+function getEntriesSignature(compilation: CompilationLike, entryNames: Set<string>): string | null {
   const entrypoints = compilation.entrypoints;
   if (!entrypoints || typeof entrypoints.get !== "function") return null;
-  const hashes: string[] = [];
-  for (const name of RELOAD_ENTRY_NAMES) {
-    const sig = getEntrypointSignature(entrypoints.get(name), name);
-    if (sig) hashes.push(sig);
+  const sigs: string[] = [];
+  for (const name of entryNames) {
+    const sig = getEntrypointSignature(entrypoints.get(name));
+    if (sig) sigs.push(sig);
   }
-  return hashes.length > 0 ? hashes.sort().join("|") : null;
+  return sigs.length > 0 ? sigs.sort().join("|") : null;
 }
 
-/** Fast path for content entry signature. */
-function getContentEntriesSignatureFromCompilation(compilation: CompilationLike): string | null {
-  const entrypoints = compilation.entrypoints;
-  if (!entrypoints || typeof entrypoints.get !== "function") return null;
-  const hashes: string[] = [];
-  for (const name of CONTENT_ENTRY_NAMES) {
-    const sig = getEntrypointSignature(entrypoints.get(name), name);
-    if (sig) hashes.push(sig);
-  }
-  return hashes.length > 0 ? hashes.sort().join("|") : null;
-}
-
-/** Collect hash of chunks for background entry from compilation; only background triggers full reload. No toJson. */
 function getReloadEntriesSignature(stats: unknown): string | null {
   const compilation = getCompilationFromStats(stats);
-  if (!compilation) return null;
-  return getReloadEntriesSignatureFromCompilation(compilation);
+  return compilation ? getEntriesSignature(compilation, RELOAD_ENTRY_NAMES) : null;
 }
 
-/** Collect hash of content entry chunks; when this changes, reload manager should refresh active tab. No toJson. */
 function getContentEntriesSignature(stats: unknown): string | null {
   const compilation = getCompilationFromStats(stats);
-  if (!compilation) return null;
-  return getContentEntriesSignatureFromCompilation(compilation);
+  return compilation ? getEntriesSignature(compilation, CONTENT_ENTRY_NAMES) : null;
 }
 
 let lastReloadSignature: string | null = null;
 let lastContentSignature: string | null = null;
 
-/** Decide reload kind: if we can detect background change → reload-extension; else → toggle-extension (default, enable/disable). No toJson. */
+/** Decide reload kind based on build signature: background change → reload-extension, otherwise → toggle-extension. */
 export function getReloadKind(stats: unknown): "reload-extension" | "toggle-extension" {
   const sig = getReloadEntriesSignature(stats);
   if (sig === null) return "toggle-extension";
@@ -440,7 +352,7 @@ export function getReloadKind(stats: unknown): "reload-extension" | "toggle-exte
   return useReload ? "reload-extension" : "toggle-extension";
 }
 
-/** True if content entry chunks changed (used to decide whether reload manager should refresh active tab). Returns false on first build. */
+/** True if content entry chunks changed (returns false on first build). */
 export function isContentChanged(stats: unknown): boolean {
   const sig = getContentEntriesSignature(stats);
   const changed = sig !== null && lastContentSignature !== null && sig !== lastContentSignature;
@@ -448,10 +360,8 @@ export function isContentChanged(stats: unknown): boolean {
   return changed;
 }
 
-/**
- * Create a standalone WebSocket server for e2e: same protocol as HMR (connected + reload-extension).
- * Exported for tests. Does not use or mutate the global wsServer.
- */
+// ─── Test WebSocket server ───
+
 export function createTestWsServer(
   port: number
 ): Promise<{
@@ -468,9 +378,7 @@ export function createTestWsServer(
       resolve({
         close: () =>
           new Promise((done) => {
-            wss.close(() => {
-              http.close(() => done());
-            });
+            wss.close(() => { http.close(() => done()); });
           }),
         notifyReload() {
           wss.clients.forEach((client: WebSocket) => {
@@ -482,6 +390,18 @@ export function createTestWsServer(
     http.on("error", reject);
   });
 }
+
+// ─── Reload manager and browser lifecycle ───
+
+let extensionRunner: { exit: () => Promise<void> } | null = null;
+let reloadManagerPath: string | null = null;
+let browserLaunched = false;
+let isCleaningUp = false;
+let cleanupHandlersRegistered = false;
+let lastDistPath: string | null = null;
+let chromiumUserDataDirPath: string | null = null;
+let lastChromiumBrowser: ChromiumLaunchTarget = "chrome";
+let persistEnabled = false;
 
 /** Exported for tests. */
 export function getCacheTempRoot(distPath: string): string {
@@ -512,6 +432,20 @@ export function findExistingReloadManager(distPath: string): string | null {
   return null;
 }
 
+/** Exported for tests. */
+export async function ensureDistReady(
+  distPath: string,
+  timeoutMs = 15000
+): Promise<boolean> {
+  const manifestPath = resolve(distPath, "manifest.json");
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    if (existsSync(manifestPath) && statSync(manifestPath).size > 0) return true;
+    await new Promise((r) => setTimeout(r, 300));
+  }
+  throw new Error(`dist not ready: ${manifestPath}`);
+}
+
 async function createReloadManagerExtension(
   wsPort: number,
   distPath: string
@@ -527,9 +461,7 @@ async function createReloadManagerExtension(
       const cachedPort = parseInt(await readFile(portCachePath, "utf-8"), 10);
       const cachedVer = parseInt(await readFile(scriptVersionPath, "utf-8"), 10);
       if (cachedPort === wsPort && cachedVer === RELOAD_MANAGER_SCRIPT_VERSION) needsUpdate = false;
-    } catch {
-      // ignore
-    }
+    } catch { /* ignore read errors */ }
   }
   await mkdir(extPath, { recursive: true });
   if (needsUpdate) {
@@ -601,41 +533,35 @@ async function cleanup(): Promise<void> {
     await rm(userDataDir, { recursive: true, force: true }).catch(() => {});
   }
   chromiumUserDataDirPath = null;
-  if (reloadManagerPath) {
-    reloadManagerPath = null;
-  }
-  if (wsServer) {
-    wsServer.close();
-    wsServer = null;
-  }
-  if (httpServer) {
-    httpServer.close();
-    httpServer = null;
-  }
+  reloadManagerPath = null;
+  if (wsServer) { wsServer.close(); wsServer = null; }
+  if (httpServer) { httpServer.close(); httpServer = null; }
 }
 
-/**
- * Start Firefox and load extension via web-ext cmd.run (dynamic import, no spawn/npx).
- * When Firefox is closed, runs onExit so the terminal task can terminate.
- * See: https://extensionworkshop.com/documentation/develop/web-ext-command-reference/#web-ext-run
- */
+/** Register process exit signal handlers (ensures single registration). */
+function registerCleanupHandlers(): void {
+  if (cleanupHandlersRegistered) return;
+  cleanupHandlersRegistered = true;
+  const onSignal = () => {
+    cleanup().then(() => process.exit(0)).catch(() => process.exit(1));
+  };
+  process.on("SIGINT", onSignal);
+  process.on("SIGTERM", onSignal);
+}
+
+// ─── Firefox launch ───
+
 async function runFirefoxWebExt(
   distPath: string,
   browserBinary: string | undefined,
   onExit: () => void
 ): Promise<void> {
   const webExt = await import("web-ext");
-  const runOptions: {
-    sourceDir: string;
-    target: "firefox-desktop";
-    firefox?: string;
-  } = {
+  const runOptions: { sourceDir: string; target: "firefox-desktop"; firefox?: string } = {
     sourceDir: distPath,
     target: "firefox-desktop" as const,
   };
-  if (browserBinary) {
-    runOptions.firefox = browserBinary;
-  }
+  if (browserBinary) runOptions.firefox = browserBinary;
   const runner = await webExt.default.cmd.run(runOptions, { shouldExitProgram: false });
   extensionRunner = runner;
 
@@ -652,192 +578,165 @@ async function runFirefoxWebExt(
   const proc = r.browserProcess ?? r.process ?? r.firefoxProcess;
   if (proc && typeof (proc as { on?: (e: string, h: () => void) => void }).on === "function") {
     (proc as { on(event: string, handler: () => void): void }).on("exit", firefoxExited);
-    return;
   }
-  // When web-ext does not expose exitPromise or process, closing Firefox will not auto-exit; use Ctrl+C.
 }
 
+// ─── Core browser launch logic (shared by dev and build -l) ───
+
+interface LaunchContext {
+  distPath: string;
+  browser: LaunchTarget;
+  pathOpts: LaunchPathOptions;
+  persist: boolean;
+  enableReload: boolean;
+  wsPort: number;
+  chromiumRunnerOverride?: ChromiumRunnerOverride;
+  ensureDistReadyOverride?: (distPath: string) => Promise<boolean>;
+  getBrowserPathOverride?: (b: LaunchTarget, o: LaunchPathOptions) => string | null;
+  onBrowserExit: () => void;
+}
+
+/** Shared browser launch implementation for both dev and build modes. */
+async function launchBrowserCore(ctx: LaunchContext): Promise<void> {
+  const launchStart = performance.now();
+  persistEnabled = ctx.persist;
+  lastDistPath = ctx.distPath;
+  const browserBinary = (ctx.getBrowserPathOverride ?? getBrowserPath)(ctx.browser, ctx.pathOpts);
+
+  const readyFn = ctx.ensureDistReadyOverride ?? (() => ensureDistReady(ctx.distPath));
+  await readyFn(ctx.distPath).catch((e: Error) => { error(e.message); });
+
+  if (ctx.enableReload) {
+    startWebSocketServer(ctx.wsPort, performance.now());
+    if (isChromiumBrowser(ctx.browser)) {
+      reloadManagerPath = await createReloadManagerExtension(ctx.wsPort, ctx.distPath);
+    }
+  }
+
+  if (isChromiumBrowser(ctx.browser)) {
+    await launchChromiumBrowser(ctx, browserBinary, launchStart);
+    return;
+  }
+  await launchFirefoxBrowser(ctx, browserBinary, launchStart);
+}
+
+async function launchChromiumBrowser(
+  ctx: LaunchContext,
+  browserBinary: string | null,
+  launchStart: number
+): Promise<void> {
+  if (!browserBinary) {
+    warn(ctx.browser, "path not found; set", `launch.${ctx.browser}`, "in exo.config, or install the browser at a default location");
+    return;
+  }
+  lastChromiumBrowser = ctx.browser as ChromiumLaunchTarget;
+  chromiumUserDataDirPath = getChromiumUserDataDir(ctx.distPath, ctx.browser as ChromiumLaunchTarget);
+  await mkdir(chromiumUserDataDirPath, { recursive: true });
+
+  const extensions = [ctx.distPath, reloadManagerPath].filter(Boolean) as string[];
+  const runnerFn = ctx.chromiumRunnerOverride ?? runChromiumRunner;
+  extensionRunner = await runnerFn({
+    chromePath: browserBinary,
+    userDataDir: chromiumUserDataDirPath,
+    extensions,
+    startUrl: "chrome://extensions",
+    onExit: ctx.onBrowserExit,
+  });
+  logDoneTimed(ctx.browser + " started, extensions loaded.", Math.round(performance.now() - launchStart));
+}
+
+async function launchFirefoxBrowser(
+  ctx: LaunchContext,
+  browserBinary: string | null,
+  launchStart: number
+): Promise<void> {
+  await runFirefoxWebExt(ctx.distPath, browserBinary || undefined, ctx.onBrowserExit);
+  logDoneTimed("Firefox started via web-ext, extension loaded.", Math.round(performance.now() - launchStart));
+}
+
+// ─── Public API ───
+
+/** Dev mode: launch browser after compilation completes. */
 async function launchBrowser(
   options: HmrPluginOptions,
   chromiumRunnerOverride?: ChromiumRunnerOverride,
   ensureDistReadyOverride?: (distPath: string) => Promise<boolean>,
   getBrowserPathOverride?: (b: LaunchTarget, o: LaunchPathOptions) => string | null
 ): Promise<void> {
-  const launchStart = performance.now();
-  const {
+  const { distPath, browser = "chrome", persist = false, wsPort = 23333, enableReload = true } = options;
+  const onBrowserExit = () => {
+    log("Exiting because the browser was closed.");
+    cleanup().then(() => process.exit(0)).catch(() => process.exit(1));
+  };
+  await launchBrowserCore({
     distPath,
-    browser = "chrome",
-    chromePath,
-    edgePath,
-    bravePath,
-    vivaldiPath,
-    operaPath,
-    santaPath,
-    firefoxPath,
-    persist = false,
-    wsPort = 23333,
-    enableReload = true,
-  } = options;
-  persistEnabled = persist;
-  lastDistPath = distPath;
-  const pathOpts = {
-    chromePath,
-    edgePath,
-    bravePath,
-    vivaldiPath,
-    operaPath,
-    santaPath,
-    firefoxPath,
-  };
-  const browserBinary = (getBrowserPathOverride ?? getBrowserPath)(browser, pathOpts);
-  const readyFn = ensureDistReadyOverride ?? (() => ensureDistReady(distPath));
-  await readyFn(distPath).catch((e: Error) => {
-    error(e.message);
+    browser,
+    pathOpts: {
+      chromePath: options.chromePath, edgePath: options.edgePath, bravePath: options.bravePath,
+      vivaldiPath: options.vivaldiPath, operaPath: options.operaPath, santaPath: options.santaPath,
+      firefoxPath: options.firefoxPath,
+    },
+    persist,
+    enableReload,
+    wsPort,
+    chromiumRunnerOverride,
+    ensureDistReadyOverride,
+    getBrowserPathOverride,
+    onBrowserExit,
   });
-  if (enableReload) {
-    const wsStart = performance.now();
-    startWebSocketServer(wsPort, wsStart);
-    if (isChromiumBrowser(browser)) {
-      reloadManagerPath = await createReloadManagerExtension(wsPort, distPath);
-    }
-  }
-  if (isChromiumBrowser(browser)) {
-    if (!browserBinary) {
-      const launchKey = `launch.${browser}`;
-      warn(
-        browser,
-        "path not found; set",
-        launchKey,
-        "in exo.config, or install the browser at a default location"
-      );
-      return;
-    }
-    lastChromiumBrowser = browser;
-    chromiumUserDataDirPath = getChromiumUserDataDir(distPath, browser);
-    await mkdir(chromiumUserDataDirPath, { recursive: true });
-    const extensions = [distPath, reloadManagerPath].filter(Boolean) as string[];
-    const runnerFn = chromiumRunnerOverride ?? runChromiumRunner;
-    extensionRunner = await runnerFn({
-      chromePath: browserBinary,
-      userDataDir: chromiumUserDataDirPath,
-      extensions,
-      startUrl: "chrome://extensions",
-      onExit: () => {
-        log("Exiting because the browser was closed.");
-        cleanup()
-          .then(() => process.exit(0))
-          .catch(() => process.exit(1));
-      },
-    });
-    const ms = Math.round(performance.now() - launchStart);
-    logDoneTimed(browser + " started via Chromium runner, extensions loaded.", ms);
-    return;
-  }
-  const onFirefoxExit = (): void => {
-    cleanup()
-      .then(() => process.exit(0))
-      .catch(() => process.exit(1));
-  };
-  await runFirefoxWebExt(distPath, browserBinary || undefined, onFirefoxExit);
-  const ms = Math.round(performance.now() - launchStart);
-  logDoneTimed("Firefox started via web-ext cmd.run, extension loaded.", ms);
 }
 
 /**
- * For build -l: launch browser and load dist only; no reloadManager, no WebSocket.
- * Returned Promise: Chromium resolves when browser closes (then onExit calls process.exit); Firefox never resolves, process exits via SIGINT/SIGTERM.
+ * Build -l mode: launch browser and load dist only; no reloadManager / WebSocket.
+ * Chromium: resolves when browser closes; Firefox: exits via SIGINT/SIGTERM.
  */
 export function launchBrowserOnly(
   options: LaunchOnlyOptions,
   chromiumRunnerOverride?: ChromiumRunnerOverride
 ): Promise<void> {
-  const {
-    distPath,
-    browser = "chrome",
-    chromePath,
-    edgePath,
-    bravePath,
-    vivaldiPath,
-    operaPath,
-    santaPath,
-    firefoxPath,
-    persist = false,
-  } = options;
+  const { distPath, browser = "chrome", persist = false } = options;
   persistEnabled = persist;
   lastDistPath = distPath;
-
-  const pathOpts = {
-    chromePath,
-    edgePath,
-    bravePath,
-    vivaldiPath,
-    operaPath,
-    santaPath,
-    firefoxPath,
-  };
-  const browserBinary = getBrowserPath(browser, pathOpts);
-
-  if (!cleanupHandlersRegistered) {
-    cleanupHandlersRegistered = true;
-    const onSignal = () => {
-      cleanup().then(() => process.exit(0)).catch(() => process.exit(1));
-    };
-    process.on("SIGINT", onSignal);
-    process.on("SIGTERM", onSignal);
-  }
+  registerCleanupHandlers();
 
   let resolveClosed: () => void;
-  const closedPromise = new Promise<void>((r) => {
-    resolveClosed = r;
-  });
+  const closedPromise = new Promise<void>((r) => { resolveClosed = r; });
 
-  const runnerFn = chromiumRunnerOverride ?? runChromiumRunner;
+  const onBrowserExit = () => {
+    log("Exiting because the browser was closed.");
+    cleanup().then(() => { resolveClosed(); process.exit(0); }).catch(() => process.exit(1));
+  };
+
   const doLaunch = async (): Promise<void> => {
-    const launchStart = performance.now();
-    await ensureDistReady(distPath).catch((e: Error) => {
-      throw e;
+    const browserBinary = getBrowserPath(browser, {
+      chromePath: options.chromePath, edgePath: options.edgePath, bravePath: options.bravePath,
+      vivaldiPath: options.vivaldiPath, operaPath: options.operaPath, santaPath: options.santaPath,
+      firefoxPath: options.firefoxPath,
     });
+
+    await ensureDistReady(distPath);
+
     if (isChromiumBrowser(browser)) {
-      lastChromiumBrowser = browser;
       if (!browserBinary) {
-        const launchKey = `launch.${browser}`;
-        throw new Error(
-          `${browser} path not found; set ${launchKey} in exo.config, or install the browser at a default location`
-        );
+        throw new Error(`${browser} path not found; set launch.${browser} in exo.config, or install the browser at a default location`);
       }
+      lastChromiumBrowser = browser;
       chromiumUserDataDirPath = getChromiumUserDataDir(distPath, browser);
       await mkdir(chromiumUserDataDirPath, { recursive: true });
-      const onExit = () => {
-        log("Exiting because the browser was closed.");
-        cleanup()
-          .then(() => {
-            resolveClosed();
-            process.exit(0);
-          })
-          .catch(() => process.exit(1));
-      };
+      const runnerFn = chromiumRunnerOverride ?? runChromiumRunner;
       extensionRunner = await runnerFn({
         chromePath: browserBinary,
         userDataDir: chromiumUserDataDirPath,
         extensions: [distPath],
         startUrl: "chrome://extensions",
-        onExit,
+        onExit: onBrowserExit,
       });
-      const ms = Math.round(performance.now() - launchStart);
+      const ms = Math.round(performance.now());
       logDoneTimed(browser + " started (build launch), extension loaded.", ms);
       return;
     }
-    const onFirefoxExit = (): void => {
-      cleanup()
-        .then(() => {
-          resolveClosed();
-          process.exit(0);
-        })
-        .catch(() => process.exit(1));
-    };
-    await runFirefoxWebExt(distPath, browserBinary ?? undefined, onFirefoxExit);
-    const ms = Math.round(performance.now() - launchStart);
-    logDoneTimed("Firefox started (build launch), extension loaded.", ms);
+    await runFirefoxWebExt(distPath, browserBinary ?? undefined, onBrowserExit);
+    logDoneTimed("Firefox started (build launch), extension loaded.", 0);
   };
 
   return doLaunch().then(() => closedPromise);
@@ -850,34 +749,25 @@ export function statsHasErrors(stats: unknown): boolean {
   return Boolean(s.hasErrors?.());
 }
 
-/** Optional deps for tests (e.g. mock Chromium runner, force dist ready to fail). */
+/** Test dependency injection interface. */
 export interface HmrPluginTestDeps {
   runChromiumRunner?: ChromiumRunnerOverride;
-  /** When provided, used instead of ensureDistReady; e.g. () => Promise.reject() to test catch. */
   ensureDistReady?: (distPath: string) => Promise<boolean>;
-  /** When provided, used instead of getBrowserPath; e.g. () => null to test "path not found" branch. */
   getBrowserPath?: (browser: LaunchTarget, opts: LaunchPathOptions) => string | null;
 }
 
 /**
- * Rspack plugin: in dev, start browser after first compile; on each compile (file change) trigger extension reload via WebSocket.
- * Register via tools.rspack.appendPlugins(hmrPlugin(options)) so the real compiler is used.
+ * HMR Rspack plugin: in dev mode, launches browser after first compile;
+ * on each compile (file change), notifies extension reload via WebSocket.
  */
 export function hmrPlugin(
   options: HmrPluginOptions,
   testDeps?: HmrPluginTestDeps
 ) {
   const {
-    distPath,
-    autoOpen = true,
-    browser = "chrome",
-    wsPort = 23333,
-    enableReload = true,
-    autoRefreshContentPage = true,
+    distPath, autoOpen = true, browser = "chrome",
+    wsPort = 23333, enableReload = true, autoRefreshContentPage = true,
   } = options;
-  const runnerOverride = testDeps?.runChromiumRunner;
-  const ensureDistReadyOverride = testDeps?.ensureDistReady;
-  const getBrowserPathOverride = testDeps?.getBrowserPath;
 
   return {
     name: "extenzo-hmr",
@@ -887,26 +777,14 @@ export function hmrPlugin(
 
       if (enableReload) {
         hooks.done.tap("extenzo-hmr-reload", async (stats) => {
-          // if (statsHasErrors(stats)) return;
-          // Wait for build output to be written (especially background chunk) before notifying reload.
           await new Promise((r) => setTimeout(r, 60));
           const kind = getReloadKind(stats);
-          const refreshTab =
-            kind === "toggle-extension" &&
-            isContentChanged(stats) &&
-            autoRefreshContentPage;
+          const refreshTab = kind === "toggle-extension" && isContentChanged(stats) && autoRefreshContentPage;
           notifyReload(kind, refreshTab ? { refreshTab: true } : undefined);
         });
       }
 
-      if (!cleanupHandlersRegistered) {
-        cleanupHandlersRegistered = true;
-        const onSignal = () => {
-          cleanup().then(() => process.exit(0)).catch(() => process.exit(1));
-        };
-        process.on("SIGINT", onSignal);
-        process.on("SIGTERM", onSignal);
-      }
+      registerCleanupHandlers();
 
       hooks.done.tap("extenzo-hmr", async (stats) => {
         if (!autoOpen || browserLaunched) return;
@@ -915,24 +793,10 @@ export function hmrPlugin(
         await new Promise((r) => setTimeout(r, 1000));
         try {
           await launchBrowser(
-            {
-              distPath,
-              autoOpen,
-              browser,
-              chromePath: options.chromePath,
-              edgePath: options.edgePath,
-              bravePath: options.bravePath,
-              vivaldiPath: options.vivaldiPath,
-              operaPath: options.operaPath,
-              santaPath: options.santaPath,
-              firefoxPath: options.firefoxPath,
-              persist: options.persist,
-              wsPort,
-              enableReload,
-            },
-            runnerOverride,
-            ensureDistReadyOverride,
-            getBrowserPathOverride
+            options,
+            testDeps?.runChromiumRunner,
+            testDeps?.ensureDistReady,
+            testDeps?.getBrowserPath
           );
         } catch (e) {
           error("Failed to launch browser:", e);

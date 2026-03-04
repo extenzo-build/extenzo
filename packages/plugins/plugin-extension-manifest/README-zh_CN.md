@@ -4,7 +4,9 @@
 
 ---
 
-Rsbuild 插件：构建结束后写入 manifest.json（按浏览器），并移除 background/content 产生的多余 HTML。由 CLI 流水线注入。
+Rsbuild 插件：构建结束后根据 CLI `-l`/`--launch` 或 config.browser 目标写入 manifest.json（按浏览器区分）。由 CLI 流水线注入。
 
-- 使用 `@extenzo/core` 的 `resolveManifestChromium` / `resolveManifestFirefox`
-- 按 BROWSER 环境变量写入 manifest
+- 使用 `@extenzo/core` 的 `resolveManifestForTarget` 构建最终 manifest
+- 处理 content script 输出（JS/CSS），展开 `[exo.content]` 占位符
+- 自动检测 shadow/iframe content UI 用法以控制 manifest 中的 CSS 自动填充
+- 校验入口 HTML 规则（如 popup 必须有 HTML、MV3 下 background 不能有 HTML）

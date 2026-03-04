@@ -469,6 +469,22 @@ describe("Pipeline", () => {
     }
   });
 
+  it("run with config.rsbuild as object (alias for rsbuildConfig) merges config", async () => {
+    const mockResolved = createMockConfig(testRoot);
+    (mockResolved as unknown as Record<string, unknown>).rsbuild = { output: { assetPrefix: "/test/" } };
+    const mockEntries = createMockEntries(testRoot);
+    const configLoader = {
+      resolve: () => ({ config: mockResolved, baseEntries: mockEntries, entries: mockEntries }),
+    } as unknown as ConfigLoader;
+    const cliParser = {
+      parse: () => ({ command: "build", target: undefined, launch: undefined, unknownLaunch: undefined, unknownTarget: undefined, persist: false }),
+    } as unknown as CliParser;
+    const pipeline = new Pipeline(configLoader, cliParser);
+    const ctx = await pipeline.run(testRoot, ["build"]);
+    expect(ctx.rsbuildConfig.output).toBeDefined();
+    expect((ctx.rsbuildConfig.output as Record<string, unknown>).assetPrefix).toBe("/test/");
+  });
+
   it("devWriteToDiskFilter returns false for hot-update filenames", () => {
     expect(devWriteToDiskFilter("main.hot-update.js")).toBe(false);
     expect(devWriteToDiskFilter("static/js/main.js")).toBe(true);

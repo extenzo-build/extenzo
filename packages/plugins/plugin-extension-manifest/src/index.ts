@@ -13,6 +13,9 @@ import { resolveManifestForTarget } from "@extenzo/core";
 
 const CONTENT_CSS_GLOBAL_KEY = "__EXTENZO_CONTENT_CSS_FILES__";
 const CONTENT_CSS_TEXTS_GLOBAL_KEY = "__EXTENZO_CONTENT_CSS_TEXTS__";
+type ContentScriptOutputWithPolicy = ContentScriptOutput & {
+  autoFillCssInManifest?: boolean;
+};
 
 /**
  * Writes manifest.json after build. Entry and HTML (html: false for background/content) are handled by plugin-extension-entry.
@@ -47,10 +50,16 @@ export function extensionPlugin(
                 (msg) => console.warn(msg),
                 contentScriptOutput
               );
-              validateEntryHtmlRules(entries, manifestObj);
+              const finalManifest = applyContentCssManifestPolicy(
+                manifestObj,
+                manifest,
+                browser,
+                contentScriptOutput
+              );
+              validateEntryHtmlRules(entries, finalManifest);
               writeFileSync(
                 resolve(distPath, "manifest.json"),
-                JSON.stringify(manifestObj, null, 2),
+                JSON.stringify(finalManifest, null, 2),
                 "utf-8"
               );
             });
@@ -70,9 +79,10 @@ const REQUIRED_HTML_ENTRIES = new Set(["popup", "options", "sidepanel", "offscre
 function collectContentScriptOutput(
   compilation: { entrypoints?: unknown; assets?: Record<string, unknown> },
   entries: EntryInfo[]
-): ContentScriptOutput | undefined {
+): ContentScriptOutputWithPolicy | undefined {
   const hasContent = entries.some((e) => e.name === "content");
   if (!hasContent) return undefined;
+  const autoFillCssInManifest = !shouldDisableManifestCssAutoFill(entries);
 
   const fromEntrypoint = tryGetContentEntryFiles(compilation);
   const byNames = collectContentScriptOutputByNames(compilation);
@@ -82,10 +92,11 @@ function collectContentScriptOutput(
       fromEntrypoint.css.length > 0
         ? fromEntrypoint.css
         : (byNames?.css ?? []);
-    return { js: fromEntrypoint.js, css };
+    return { js: fromEntrypoint.js, css, autoFillCssInManifest };
   }
 
-  return byNames;
+  if (!byNames) return undefined;
+  return { ...byNames, autoFillCssInManifest };
 }
 
 function tryGetContentEntryFiles(compilation: { entrypoints?: unknown }): ContentScriptOutput | undefined {
@@ -152,9 +163,87 @@ function collectContentScriptOutputByNames(compilation: {
   return { js, css };
 }
 
+function shouldDisableManifestCssAutoFill(entries: EntryInfo[]): boolean {
+  const contentEntry = entries.find((entry) => entry.name === "content");
+  if (!contentEntry) return false;
+  return hasShadowOrIframeContentUIUsage(contentEntry.scriptPath);
+}
+
+function hasShadowOrIframeContentUIUsage(scriptPath: string): boolean {
+  if (!existsSync(scriptPath)) return false;
+  let source = "";
+  try {
+    source = readFileSync(scriptPath, "utf-8");
+  } catch {
+    return false;
+  }
+  if (/defineShadowContentUI|defineIframeContentUI/.test(source)) return true;
+  return /wrapper\s*:\s*["'](?:shadow|iframe)["']/.test(source);
+}
+
+function applyContentCssManifestPolicy(
+  outputManifest: ManifestRecord,
+  inputManifest: ExtenzoResolvedConfig["manifest"],
+  browser: BrowserTarget,
+  contentScriptOutput?: ContentScriptOutputWithPolicy
+): ManifestRecord {
+  if (!contentScriptOutput || contentScriptOutput.autoFillCssInManifest !== false) {
+    return outputManifest;
+  }
+  if (hasUserDefinedContentCss(inputManifest, browser)) return outputManifest;
+  return removeContentScriptCss(outputManifest);
+}
+
+function hasUserDefinedContentCss(
+  manifest: ExtenzoResolvedConfig["manifest"],
+  browser: BrowserTarget
+): boolean {
+  const branch = pickManifestBranch(manifest, browser);
+  if (!branch) return false;
+  const scripts = branch.content_scripts;
+  if (!Array.isArray(scripts)) return false;
+  return scripts.some((item) => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return false;
+    const css = (item as { css?: unknown }).css;
+    return Array.isArray(css) && css.length > 0;
+  });
+}
+
+function pickManifestBranch(
+  manifest: ExtenzoResolvedConfig["manifest"],
+  browser: BrowserTarget
+): ManifestRecord | null {
+  if (!manifest || typeof manifest !== "object" || Array.isArray(manifest)) return null;
+  if (!("chromium" in manifest) && !("firefox" in manifest)) {
+    return manifest as ManifestRecord;
+  }
+  const byBrowser = manifest as { chromium?: unknown; firefox?: unknown };
+  const selected = browser === "firefox" ? byBrowser.firefox : byBrowser.chromium;
+  if (selected && typeof selected === "object" && !Array.isArray(selected)) {
+    return selected as ManifestRecord;
+  }
+  const fallback = browser === "firefox" ? byBrowser.chromium : byBrowser.firefox;
+  if (fallback && typeof fallback === "object" && !Array.isArray(fallback)) {
+    return fallback as ManifestRecord;
+  }
+  return null;
+}
+
+function removeContentScriptCss(manifest: ManifestRecord): ManifestRecord {
+  const scripts = manifest.content_scripts;
+  if (!Array.isArray(scripts)) return manifest;
+  const next = scripts.map((item) => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return item;
+    const out = { ...(item as Record<string, unknown>) };
+    delete out.css;
+    return out;
+  });
+  return { ...manifest, content_scripts: next };
+}
+
 function injectContentCssRuntimeMeta(
   distPath: string,
-  contentScriptOutput?: ContentScriptOutput
+  contentScriptOutput?: ContentScriptOutputWithPolicy
 ): void {
   if (!contentScriptOutput) return;
   if (contentScriptOutput.css.length === 0 || contentScriptOutput.js.length === 0) return;

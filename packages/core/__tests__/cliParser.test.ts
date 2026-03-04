@@ -81,6 +81,27 @@ describe("CliParser", () => {
       expect(r.unknownLaunch).toBe("unknown");
     });
 
+    it("parses -t=firefox (short equals format)", () => {
+      const r = parseCliArgs(["dev", "-t=firefox"]);
+      expect(r.target).toBe("firefox");
+    });
+
+    it("parses --target=chromium (long equals format)", () => {
+      const r = parseCliArgs(["build", "--target=chromium"]);
+      expect(r.target).toBe("chromium");
+    });
+
+    it("parses -l=chrome (short equals format)", () => {
+      const r = parseCliArgs(["dev", "-l=chrome"]);
+      expect(r.launch).toBe("chrome");
+    });
+
+    it("returns unknownLaunch for -l=unknown_value", () => {
+      const r = parseCliArgs(["dev", "-l=unknown_value"]);
+      expect(r.launch).toBeUndefined();
+      expect(r.unknownLaunch).toBe("unknown_value");
+    });
+
     it("does not consume next arg as -t value when it starts with -", () => {
       const r = parseCliArgs(["build", "-t", "-next"]);
       expect(r.target).toBeUndefined();

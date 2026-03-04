@@ -16,6 +16,9 @@ import {
   statsHasErrors,
   launchBrowserOnly,
   ensureDistReady,
+  getReloadKind,
+  isContentChanged,
+  createTestWsServer,
 } from "../src/index.ts";
 
 describe("plugin-extension-hmr", () => {
@@ -286,5 +289,168 @@ describe("plugin-extension-hmr", () => {
     expect(runnerInvoked).toBe(true);
     const cacheDir = resolve(distPath, "..", "cache");
     if (existsSync(cacheDir)) rmSync(cacheDir, { recursive: true, force: true });
+  });
+
+  it("getReloadKind returns toggle-extension for null stats", () => {
+    expect(getReloadKind(null)).toBe("toggle-extension");
+  });
+
+  it("getReloadKind returns toggle-extension when stats has no compilation", () => {
+    expect(getReloadKind("not-an-object")).toBe("toggle-extension");
+  });
+
+  it("getReloadKind returns toggle-extension when compilation is not an object", () => {
+    expect(getReloadKind({ compilation: "invalid" })).toBe("toggle-extension");
+  });
+
+  it("getReloadKind returns toggle-extension when no background entrypoint exists", () => {
+    const stats = { compilation: { entrypoints: new Map() } };
+    expect(getReloadKind(stats)).toBe("toggle-extension");
+  });
+
+  it("getReloadKind returns toggle-extension when entrypoints lacks get method", () => {
+    const stats = { compilation: { entrypoints: {} } };
+    expect(getReloadKind(stats)).toBe("toggle-extension");
+  });
+
+  it("getReloadKind returns reload-extension on first build with background entry", () => {
+    const stats = {
+      compilation: {
+        entrypoints: new Map([
+          ["background", { chunks: [{ hash: "initial-hash-1" }] }],
+        ]),
+      },
+    };
+    expect(getReloadKind(stats)).toBe("reload-extension");
+  });
+
+  it("getReloadKind returns toggle-extension when background hash is unchanged", () => {
+    const stats = {
+      compilation: {
+        entrypoints: new Map([
+          ["background", { chunks: [{ hash: "initial-hash-1" }] }],
+        ]),
+      },
+    };
+    expect(getReloadKind(stats)).toBe("toggle-extension");
+  });
+
+  it("getReloadKind returns reload-extension when background hash changes", () => {
+    const stats = {
+      compilation: {
+        entrypoints: new Map([
+          ["background", { chunks: [{ hash: "changed-hash-2" }] }],
+        ]),
+      },
+    };
+    expect(getReloadKind(stats)).toBe("reload-extension");
+  });
+
+  it("getReloadKind falls back to getFiles when chunks have no hash", () => {
+    const stats = {
+      compilation: {
+        entrypoints: new Map([
+          ["background", { chunks: [{}], getFiles: () => ["bg.js"] }],
+        ]),
+      },
+    };
+    expect(getReloadKind(stats)).toBe("reload-extension");
+  });
+
+  it("getReloadKind returns toggle-extension when getFiles throws", () => {
+    const stats = {
+      compilation: {
+        entrypoints: new Map([
+          ["background", {
+            chunks: [{}],
+            getFiles: () => { throw new Error("proxy"); },
+          }],
+        ]),
+      },
+    };
+    expect(getReloadKind(stats)).toBe("toggle-extension");
+  });
+
+  it("getReloadKind returns toggle-extension when entrypoint has no chunks or files", () => {
+    const stats = {
+      compilation: { entrypoints: new Map([["background", {}]]) },
+    };
+    expect(getReloadKind(stats)).toBe("toggle-extension");
+  });
+
+  it("isContentChanged returns false for null stats", () => {
+    expect(isContentChanged(null)).toBe(false);
+  });
+
+  it("isContentChanged returns false on first build with content entry", () => {
+    const stats = {
+      compilation: {
+        entrypoints: new Map([
+          ["content", { chunks: [{ hash: "content-v1" }] }],
+        ]),
+      },
+    };
+    expect(isContentChanged(stats)).toBe(false);
+  });
+
+  it("isContentChanged returns true when content hash changes", () => {
+    const stats = {
+      compilation: {
+        entrypoints: new Map([
+          ["content", { chunks: [{ hash: "content-v2" }] }],
+        ]),
+      },
+    };
+    expect(isContentChanged(stats)).toBe(true);
+  });
+
+  it("isContentChanged returns false when content hash is the same", () => {
+    const stats = {
+      compilation: {
+        entrypoints: new Map([
+          ["content", { chunks: [{ hash: "content-v2" }] }],
+        ]),
+      },
+    };
+    expect(isContentChanged(stats)).toBe(false);
+  });
+
+  it("createTestWsServer starts and notifyReload does not throw", async () => {
+    const port = 29500 + Math.floor(Math.random() * 500);
+    const server = await createTestWsServer(port);
+    try {
+      expect(() => server.notifyReload()).not.toThrow();
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("getBrowserPath falls back to system paths when user path is empty string", () => {
+    const result = getBrowserPath("chrome", { chromePath: "" });
+    expect(result).not.toBe("");
+  });
+
+  it("getBrowserPath falls back to system paths when user path is whitespace only", () => {
+    const result = getBrowserPath("chrome", { chromePath: "   " });
+    expect(result).not.toBe("   ");
+  });
+
+  it("buildDefaultPaths vivaldi on win32 without USERPROFILE returns base paths only", () => {
+    const prev = process.env.USERPROFILE;
+    delete process.env.USERPROFILE;
+    try {
+      const paths = buildDefaultPaths("vivaldi", "win32");
+      expect(paths).toBeDefined();
+      expect(Array.isArray(paths)).toBe(true);
+      expect(paths!.every((p) => !p.includes("AppData\\Local"))).toBe(true);
+    } finally {
+      if (prev !== undefined) process.env.USERPROFILE = prev;
+    }
+  });
+
+  it("getLaunchPathFromOptions returns undefined when no path is configured", () => {
+    expect(getLaunchPathFromOptions("chrome", {})).toBeUndefined();
+    expect(getLaunchPathFromOptions("firefox", {})).toBeUndefined();
+    expect(getLaunchPathFromOptions("edge", {})).toBeUndefined();
   });
 });

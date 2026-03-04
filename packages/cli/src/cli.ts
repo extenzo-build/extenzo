@@ -19,27 +19,24 @@ import {
   setExoLoggerRawWrites,
   parseCliArgs,
 } from "@extenzo/core";
+import type { PipelineContext } from "@extenzo/core";
 import { launchBrowserOnly } from "@extenzo/plugin-extension-hmr";
 
 const root = process.cwd();
 
+/** ANSI light purple for Rsbuild branding (256 color 141). */
+const PURPLE = "\x1b[38;5;141m";
+const RESET = "\x1b[0m";
+
 function getVersion(): string {
   try {
-    const pkgPath = resolve(
-      dirname(fileURLToPath(import.meta.url)),
-      "..",
-      "package.json"
-    );
+    const pkgPath = resolve(dirname(fileURLToPath(import.meta.url)), "..", "package.json");
     const pkg = JSON.parse(readFileSync(pkgPath, "utf-8")) as { version?: string };
     return pkg.version ?? "0.0.0";
   } catch {
     return "0.0.0";
   }
 }
-
-/** ANSI light purple for Rsbuild branding (256 color 141) */
-const PURPLE = "\x1b[38;5;141m";
-const RESET = "\x1b[0m";
 
 function getRsbuildVersion(projectRoot: string): string {
   const require = createRequire(import.meta.url);
@@ -50,18 +47,12 @@ function getRsbuildVersion(projectRoot: string): string {
       return existsSync(p) ? p : null;
     },
     () => {
-      try {
-        return require.resolve("@rsbuild/core/package.json", { paths: [projectRoot] });
-      } catch {
-        return null;
-      }
+      try { return require.resolve("@rsbuild/core/package.json", { paths: [projectRoot] }); }
+      catch { return null; }
     },
     () => {
-      try {
-        return require.resolve("@rsbuild/core/package.json", { paths: [resolve(cliDir, ".."), resolve(cliDir, "..", "..")] });
-      } catch {
-        return null;
-      }
+      try { return require.resolve("@rsbuild/core/package.json", { paths: [resolve(cliDir, ".."), resolve(cliDir, "..", "..")] }); }
+      catch { return null; }
     },
   ];
   for (const getPath of candidates) {
@@ -70,23 +61,20 @@ function getRsbuildVersion(projectRoot: string): string {
     try {
       const pkg = JSON.parse(readFileSync(pkgPath, "utf-8")) as { version?: string };
       return pkg.version ?? "?";
-    } catch {
-      // continue to next candidate
-    }
+    } catch { /* try next candidate */ }
   }
   return "?";
 }
 
+/** Recursively compute directory size in bytes. */
 function getDistSizeSync(dirPath: string): number {
   if (!existsSync(dirPath)) return -1;
   const stat = statSync(dirPath);
   if (!stat.isDirectory()) return stat.size;
   let total = 0;
-  const names = readdirSync(dirPath);
-  for (const name of names) {
-    const full = resolve(dirPath, name);
-    const s = statSync(full);
-    total += s.isDirectory() ? getDistSizeSync(full) : s.size;
+  for (const name of readdirSync(dirPath)) {
+    const s = statSync(resolve(dirPath, name));
+    total += s.isDirectory() ? getDistSizeSync(resolve(dirPath, name)) : s.size;
   }
   return total;
 }
@@ -97,7 +85,7 @@ function formatBytes(bytes: number): string {
   return (bytes / (1024 * 1024)).toFixed(2) + " MB";
 }
 
-/** Whether the final rsbuild config has JS source map enabled (any format). */
+/** Whether the final Rsbuild config has JS source map enabled (any format). */
 function isSourceMapEnabled(rsbuildConfig: { output?: { sourceMap?: unknown } }): boolean {
   const sm = rsbuildConfig?.output?.sourceMap;
   if (sm === true) return true;
@@ -105,7 +93,7 @@ function isSourceMapEnabled(rsbuildConfig: { output?: { sourceMap?: unknown } })
   return false;
 }
 
-/** Get total size of build output from rsbuild build result (stats.assets). */
+/** Get total size of build output from Rsbuild build result (stats.assets). */
 function getBuildOutputSize(result: unknown): number | null {
   const stats = (result as { stats?: { toJson?: (opts: unknown) => { assets?: Array<{ size?: number }> } } })?.stats;
   if (!stats?.toJson) return null;
@@ -126,6 +114,35 @@ function getBuildOutputSize(result: unknown): number | null {
 function hasConfigFile(): boolean {
   return CONFIG_FILES.some((file) => existsSync(resolve(root, file)));
 }
+
+// ─── Shared Rsbuild instance creation ───
+
+async function createRsbuildInstance(ctx: PipelineContext) {
+  setOutputPrefixRsbuild();
+  const createStart = performance.now();
+  const { createRsbuild } = await import("@rsbuild/core");
+  const rsbuild = await createRsbuild({
+    rsbuildConfig: ctx.rsbuildConfig,
+    cwd: ctx.root,
+    loadEnv: {
+      cwd: ctx.root,
+      prefixes: ctx.config.envPrefix ?? [""],
+    },
+  });
+  logDoneTimed("Create Rsbuild", Math.round(performance.now() - createStart));
+  return rsbuild;
+}
+
+/** Log extension size info to terminal. */
+function logExtensionSize(distDir: string, rsbuildConfig: { output?: { sourceMap?: unknown } }): void {
+  const size = getDistSizeSync(distDir);
+  if (size < 0) return;
+  const sizeStr = formatBytes(size);
+  const suffix = isSourceMapEnabled(rsbuildConfig) ? " (with inline-source-map)" : "";
+  logDoneWithValue("Extension size:", sizeStr + suffix);
+}
+
+// ─── exo.config file watcher ───
 
 const EXO_CONFIG_DEBOUNCE_MS = 300;
 
@@ -149,50 +166,29 @@ function watchExoConfig(
     const watcher = watch(configPath, { persistent: true }, (eventType, filename) => {
       if (filename && (eventType === "change" || eventType === "rename")) run();
     });
-    return {
-      close() {
-        try {
-          watcher.close();
-        } catch {
-          // ignore
-        }
-      },
-    };
+    return { close() { try { watcher.close(); } catch { /* ignore */ } } };
   } catch {
     return { close() {} };
   }
 }
 
-/** Run dev server; on exo.config change, close server and watcher then re-run in-process (no browser kill). */
+// ─── Dev / Build commands ───
+
+/** Dev mode: auto-restart dev server on exo.config change. */
 async function runDev(root: string, argv: string[]): Promise<void> {
   const pipelineStart = performance.now();
   const ctx = await runPipeline(root, argv);
   logDoneTimed("Pipeline ready", Math.round(performance.now() - pipelineStart));
 
   process.env.NODE_ENV = ctx.isDev ? "development" : "production";
-
-  setOutputPrefixRsbuild();
-  const createStart = performance.now();
-  const { createRsbuild } = await import("@rsbuild/core");
-  const rsbuild = await createRsbuild({
-    rsbuildConfig: ctx.rsbuildConfig,
-    cwd: ctx.root,
-    loadEnv: {
-      cwd: ctx.root,
-      prefixes: ctx.config.envPrefix ?? [""],
-    },
-  });
-  logDoneTimed("Create Rsbuild", Math.round(performance.now() - createStart));
+  const rsbuild = await createRsbuildInstance(ctx);
 
   const configPath = getResolvedConfigFilePath(ctx.root);
   let devServerRef: Awaited<ReturnType<typeof rsbuild.startDevServer>> | null = null;
   let watcherRef: { close: () => void } | null = null;
 
   const onExoConfigChange = async (): Promise<void> => {
-    if (watcherRef) {
-      watcherRef.close();
-      watcherRef = null;
-    }
+    if (watcherRef) { watcherRef.close(); watcherRef = null; }
     if (devServerRef?.server?.close) await devServerRef.server.close();
     if (configPath) clearConfigCache(configPath);
     process.env.EXO_CONFIG_RESTART = "1";
@@ -206,64 +202,21 @@ async function runDev(root: string, argv: string[]): Promise<void> {
   if (configPath) watcherRef = watchExoConfig(configPath, onExoConfigChange);
   const devServerStart = performance.now();
   devServerRef = await rsbuild.startDevServer({ getPortSilently: true });
-  const devMs = Math.round(performance.now() - devServerStart);
   const urls = devServerRef?.urls ?? [];
   const mainUrl = urls[0] ?? `http://localhost:${devServerRef?.port ?? "?"}`;
-  logDoneTimed("Dev server " + mainUrl, devMs);
+  logDoneTimed("Dev server " + mainUrl, Math.round(performance.now() - devServerStart));
 
   const devDistDir = (rsbuild.context as { distPath?: string } | undefined)?.distPath ?? ctx.distPath;
-  setTimeout(() => {
-    const size = getDistSizeSync(devDistDir);
-    if (size >= 0) {
-      const sizeStr = formatBytes(size);
-      const suffix = isSourceMapEnabled(ctx.rsbuildConfig) ? " (with inline-source-map)" : "";
-      logDoneWithValue("Extension size:", sizeStr + suffix);
-    }
-  }, 2500);
+  setTimeout(() => logExtensionSize(devDistDir, ctx.rsbuildConfig), 2500);
 }
 
-async function main(): Promise<void> {
-  wrapExtenzoOutput();
-  setExoLoggerRawWrites(getRawWrites());
-  log(
-    "Extenzo " +
-      getVersion() +
-      " with " +
-      PURPLE +
-      "Rsbuild " +
-      getRsbuildVersion(root) +
-      RESET
-  );
-
-  if (!hasConfigFile()) throw createConfigNotFoundError(root);
-
-  const argv = process.argv.slice(2);
-  const parsed = parseCliArgs(argv);
-  const isDev = parsed.command === "dev";
-
-  process.env.NODE_ENV = isDev ? "development" : "production";
-
-  if (isDev) {
-    await runDev(root, argv);
-    return;
-  }
-
+/** Build mode: compile + optional zip + optional browser launch. */
+async function runBuild(root: string, argv: string[]): Promise<void> {
   const pipelineStart = performance.now();
   const ctx = await runPipeline(root, argv);
   logDoneTimed("Pipeline ready", Math.round(performance.now() - pipelineStart));
 
-  setOutputPrefixRsbuild();
-  const createStart = performance.now();
-  const { createRsbuild } = await import("@rsbuild/core");
-  const rsbuild = await createRsbuild({
-    rsbuildConfig: ctx.rsbuildConfig,
-    cwd: ctx.root,
-    loadEnv: {
-      cwd: ctx.root,
-      prefixes: ctx.config.envPrefix ?? [""],
-    },
-  });
-  logDoneTimed("Create Rsbuild", Math.round(performance.now() - createStart));
+  const rsbuild = await createRsbuildInstance(ctx);
 
   const buildStart = performance.now();
   const buildResult = await rsbuild.build();
@@ -275,12 +228,11 @@ async function main(): Promise<void> {
     const zipPath = await zipDist(ctx.distPath, ctx.root, ctx.config.outDir);
     logDone("Zipped output to", zipPath);
   }
-  const distDir =
-    (rsbuild.context as { distPath?: string } | undefined)?.distPath || ctx.distPath;
+
+  const distDir = (rsbuild.context as { distPath?: string } | undefined)?.distPath || ctx.distPath;
   const distSize = getBuildOutputSize(buildResult) ?? getDistSizeSync(distDir);
-  if (distSize >= 0) {
-    logDoneWithValue("Extension size:", formatBytes(distSize));
-  }
+  if (distSize >= 0) logDoneWithValue("Extension size:", formatBytes(distSize));
+
   if (ctx.launchRequested) {
     const launch = ctx.config.launch as Record<string, string | undefined> | undefined;
     await launchBrowserOnly({
@@ -295,6 +247,24 @@ async function main(): Promise<void> {
       firefoxPath: launch?.firefox,
       persist: (ctx as { persist?: boolean }).persist,
     });
+  }
+}
+
+async function main(): Promise<void> {
+  wrapExtenzoOutput();
+  setExoLoggerRawWrites(getRawWrites());
+  log("Extenzo " + getVersion() + " with " + PURPLE + "Rsbuild " + getRsbuildVersion(root) + RESET);
+
+  if (!hasConfigFile()) throw createConfigNotFoundError(root);
+
+  const argv = process.argv.slice(2);
+  const parsed = parseCliArgs(argv);
+  process.env.NODE_ENV = parsed.command === "dev" ? "development" : "production";
+
+  if (parsed.command === "dev") {
+    await runDev(root, argv);
+  } else {
+    await runBuild(root, argv);
   }
 }
 
