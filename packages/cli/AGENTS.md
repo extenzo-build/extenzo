@@ -21,4 +21,4 @@ Provides the `extenzo` executable: when running `extenzo dev` or `extenzo build`
 ## When changing this package
 
 - New commands or flags require updates in `cli.ts` and `@extenzo/core`’s CliParser/constants
-- Pipeline order or plugin injection lives in `pipeline.ts`; keep plugin-extension-entry, plugin-extension-manifest, plugin-extension-hmr contracts in mind
+- Pipeline order or plugin injection lives in `pipeline.ts`; keep rsbuild-plugin-extension-entry, rsbuild-plugin-extension-manifest, rsbuild-plugin-extension-hmr contracts in mind

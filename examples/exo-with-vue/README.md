@@ -2,7 +2,7 @@
 
 Minimal browser extension template with Vue 3: **popup**, **options**, **content script**, **background** and simple messaging.
 
-**Dependencies**: With `@extenzo/plugin-vue` you only need to add **vue** (runtime) in your app. You do **not** need to manually install `@rsbuild/plugin-vue`, `@rsbuild/plugin-vue-jsx`, `@rsbuild/plugin-babel`, `@vue/babel-plugin-jsx`, or `@vue/compiler-sfc` — the plugin brings them in.
+**Dependencies**: With `@extenzo/rsbuild-plugin-vue` you only need to add **vue** (runtime) in your app. You do **not** need to manually install `@rsbuild/plugin-vue`, `@rsbuild/plugin-vue-jsx`, `@rsbuild/plugin-babel`, `@vue/babel-plugin-jsx`, or `@vue/compiler-sfc` — the plugin brings them in.
 
 ## Structure
 

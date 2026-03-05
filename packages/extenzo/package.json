@@ -30,6 +30,6 @@
   "dependencies": {
     "@extenzo/cli": "workspace:*",
     "@extenzo/core": "workspace:*",
-    "@extenzo/plugin-extension-monitor": "workspace:*"
+    "@extenzo/rsbuild-plugin-extension-monitor": "workspace:*"
   }
 }

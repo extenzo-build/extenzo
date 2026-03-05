@@ -20,7 +20,7 @@ import {
   parseCliArgs,
 } from "@extenzo/core";
 import type { PipelineContext } from "@extenzo/core";
-import { launchBrowserOnly } from "@extenzo/plugin-extension-hmr";
+import { launchBrowserOnly } from "@extenzo/rsbuild-plugin-extension-hmr";
 
 const root = process.cwd();
 
@@ -113,6 +113,31 @@ function getBuildOutputSize(result: unknown): number | null {
 
 function hasConfigFile(): boolean {
   return CONFIG_FILES.some((file) => existsSync(resolve(root, file)));
+}
+
+function printHelp(): void {
+  const version = getVersion();
+  console.log(`
+  extenzo v${version}
+
+  Build tool for browser extensions
+
+  Usage:
+    extenzo <command> [options]
+
+  Commands:
+    dev                        Start development server with HMR
+    build                      Build for production
+
+  Options:
+    -t, --target <browser>     Target browser (chromium | firefox)  [default: chromium]
+    -l, --launch <browser>     Launch browser after build (chrome | edge | brave | firefox | ...)
+    -p, --persist              Persist browser profile between launches
+    -r, --report               Enable Rsdoctor build report (opens analysis after build)
+    --debug                    Enable debug mode
+    --help                     Show this help message
+    --version                  Show version number
+`);
 }
 
 // ─── Shared Rsbuild instance creation ───
@@ -251,13 +276,24 @@ async function runBuild(root: string, argv: string[]): Promise<void> {
 }
 
 async function main(): Promise<void> {
+  const argv = process.argv.slice(2);
+
+  if (argv.includes("--help") || argv.includes("-h")) {
+    printHelp();
+    return;
+  }
+
+  if (argv.includes("--version") || argv.includes("-v")) {
+    console.log(getVersion());
+    return;
+  }
+
   wrapExtenzoOutput();
   setExoLoggerRawWrites(getRawWrites());
   log("Extenzo " + getVersion() + " with " + PURPLE + "Rsbuild " + getRsbuildVersion(root) + RESET);
 
   if (!hasConfigFile()) throw createConfigNotFoundError(root);
 
-  const argv = process.argv.slice(2);
   const parsed = parseCliArgs(argv);
   process.env.NODE_ENV = parsed.command === "dev" ? "development" : "production";
 

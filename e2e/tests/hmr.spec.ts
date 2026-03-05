@@ -4,7 +4,7 @@ import {
   createTestWsServer,
   getBrowserPath,
   type LaunchPathOptions,
-} from "@extenzo/plugin-extension-hmr";
+} from "@extenzo/rsbuild-plugin-extension-hmr";
 
 const HMR_TEST_PORT = 30901;
 

@@ -24,3 +24,4 @@ export default defineConfig({
 ## Related
 
 - [zip](/guide/zip): when `true`, `outDir.zip` is created under outputRoot.
+- [Report](/config/report): Rsdoctor build report under `outputRoot/report` when `extenzo build -r` or `report: true`.

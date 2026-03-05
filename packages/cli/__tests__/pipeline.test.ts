@@ -201,7 +201,7 @@ describe("Pipeline", () => {
       "utf-8"
     );
     const mockResolved = createMockConfig(testRoot, {
-      plugins: [{ name: "extenzo-vue" }] as unknown as never,
+      plugins: [{ name: "rsbuild-plugin-vue" }] as unknown as never,
     });
     const mockEntries = createMockEntries(testRoot);
     const configLoader = {
@@ -214,8 +214,8 @@ describe("Pipeline", () => {
     const ctx = await pipeline.run(testRoot, ["build"]);
     expect(ctx.rsbuildConfig.plugins).toBeDefined();
     const names = (ctx.rsbuildConfig.plugins as { name?: string }[]).map((p) => p.name);
-    expect(names).toContain("extenzo-entry");
-    expect(names).toContain("extenzo-extension");
+    expect(names).toContain("rsbuild-plugin-extension-entry");
+    expect(names).toContain("rsbuild-plugin-extension-manifest");
   });
 
   it("run with config.plugins as single plugin (non-array) merges correctly", async () => {
@@ -335,7 +335,7 @@ describe("Pipeline", () => {
     const pipeline = new Pipeline(configLoader, cliParser);
     const ctx = await pipeline.run(testRoot, ["build"]);
     const names = (ctx.rsbuildConfig.plugins as { name?: string }[]).map((p) => p.name);
-    expect(names).not.toContain("extenzo-entry");
+    expect(names).not.toContain("rsbuild-plugin-extension-entry");
   });
 
   it("run with config.debug true in dev adds monitor plugin", async () => {
@@ -350,7 +350,7 @@ describe("Pipeline", () => {
     const pipeline = new Pipeline(configLoader, cliParser);
     const ctx = await pipeline.run(testRoot, ["dev"]);
     const names = (ctx.rsbuildConfig.plugins as { name?: string }[]).map((p) => p.name);
-    expect(names).toContain("extenzo-monitor");
+    expect(names).toContain("rsbuild-plugin-extension-monitor");
   });
 
   it("run with --debug in dev adds monitor plugin even when config has no debug", async () => {
@@ -365,7 +365,7 @@ describe("Pipeline", () => {
     const pipeline = new Pipeline(configLoader, cliParser);
     const ctx = await pipeline.run(testRoot, ["dev", "--debug"]);
     const names = (ctx.rsbuildConfig.plugins as { name?: string }[]).map((p) => p.name);
-    expect(names).toContain("extenzo-monitor");
+    expect(names).toContain("rsbuild-plugin-extension-monitor");
   });
 
   it("run with config.browser non-string ignores and uses default", async () => {

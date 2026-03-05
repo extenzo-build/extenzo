@@ -1,0 +1,26 @@
+{
+  "name": "extenzo-example-wxt-template",
+  "version": "0.0.1",
+  "private": true,
+  "description": "WXT browser extension template: popup, options, content, background + messaging, build with analyze",
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "build": "wxt build",
+    "zip": "wxt zip"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "webextension-polyfill": "^0.10.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.326",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@types/webextension-polyfill": "^0.10.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "typescript": "^5.0.0",
+    "wxt": "^0.20.0"
+  }
+}

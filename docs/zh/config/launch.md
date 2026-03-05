@@ -40,7 +40,7 @@
 ## 作用
 
 - 仅对 **extenzo dev** 生效；`extenzo build` 不会启动浏览器。
-- 由 [@extenzo/plugin-extension-hmr](https://github.com/extenzo-build/extenzo/tree/main/packages/plugins/plugin-extension-hmr) 在首次构建完成后调用：Chrome 通过 `--load-extension` 加载产物目录，Firefox 通过 `web-ext run`。
+- 由 [@extenzo/rsbuild-plugin-extension-hmr](https://github.com/extenzo-build/extenzo/tree/main/packages/plugins/rsbuild-plugin-extension-hmr) 在首次构建完成后调用：Chrome 通过 `--load-extension` 加载产物目录，Firefox 通过 `web-ext run`。
 
 ## 示例
 
@@ -87,4 +87,4 @@ export default defineConfig({
 
 ## 相关说明
 
-- 开发时 HMR 与重载由 [@extenzo/plugin-extension-hmr](https://github.com/extenzo-build/extenzo/tree/main/packages/plugins/plugin-extension-hmr) 负责，无需在 launch 中做额外配置。
+- 开发时 HMR 与重载由 [@extenzo/rsbuild-plugin-extension-hmr](https://github.com/extenzo-build/extenzo/tree/main/packages/plugins/rsbuild-plugin-extension-hmr) 负责，无需在 launch 中做额外配置。

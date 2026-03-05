@@ -3,24 +3,18 @@ import { existsSync, readFileSync } from "fs";
 import { spawnSync } from "child_process";
 import type { ExtenzoResolvedConfig } from "@extenzo/core";
 import { log, warn } from "@extenzo/core";
+import { detectFromLockfile } from "@extenzo/pkg-manager";
+import type { PackageManager } from "@extenzo/pkg-manager";
+
+export type { PackageManager };
 
 /** Recommended/required devDependencies for extension dev; auto-installed by framework when missing */
 const EXTENSION_DEV_DEPS = ["@types/chrome"] as const;
 
 /** Plugin name → runtime deps required in user project (peer style; auto-install when missing) */
 const PLUGIN_PEER_DEPS: Record<string, readonly string[]> = {
-  "extenzo-vue": ["vue"],
+  "rsbuild-plugin-vue": ["vue"],
 };
-
-export type PackageManager = "pnpm" | "npm" | "yarn" | "bun";
-
-function detectPackageManager(root: string): PackageManager {
-  if (existsSync(resolve(root, "pnpm-lock.yaml"))) return "pnpm";
-  if (existsSync(resolve(root, "bun.lockb"))) return "bun";
-  if (existsSync(resolve(root, "yarn.lock"))) return "yarn";
-  if (existsSync(resolve(root, "package-lock.json"))) return "npm";
-  return "pnpm";
-}
 
 /** Exported for tests. */
 export function readProjectPackageJson(root: string): { dependencies?: Record<string, string>; devDependencies?: Record<string, string> } | null {
@@ -97,6 +91,11 @@ export type RunInstallFn = (
   dev: boolean
 ) => boolean;
 
+export interface EnsureDependenciesOptions {
+  silent?: boolean;
+  runInstall?: RunInstallFn;
+}
+
 /**
  * Check that extension dev and plugin deps are installed; install via current package manager if missing.
  * Set EXTENZO_SKIP_DEPS=1 to skip (e.g. CI or user-managed deps).
@@ -105,7 +104,7 @@ export type RunInstallFn = (
 export async function ensureDependencies(
   root: string,
   config: ExtenzoResolvedConfig,
-  options?: { silent?: boolean; runInstall?: RunInstallFn }
+  options?: EnsureDependenciesOptions
 ): Promise<{ installed: string[] }> {
   if (process.env.EXTENZO_SKIP_DEPS === "1") return { installed: [] };
 
@@ -115,7 +114,7 @@ export async function ensureDependencies(
   if (!options?.silent) {
     log("Ensuring dev dependencies:", toInstall.join(", "));
   }
-  const pm = detectPackageManager(root);
+  const pm = detectFromLockfile(root);
   const installFn = options?.runInstall ?? runInstall;
   const ok = installFn(root, pm, toInstall, true);
   if (!ok && !options?.silent) {

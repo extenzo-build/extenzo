@@ -92,7 +92,7 @@ describe("ensureDeps", () => {
       }),
       "utf-8"
     );
-    const config = createMinimalResolvedConfig([{ name: "extenzo-vue" }]);
+    const config = createMinimalResolvedConfig([{ name: "rsbuild-plugin-vue" }]);
     config.root = testRoot;
     const result = await ensureDependencies(testRoot, config, { silent: true });
     expect(Array.isArray(result.installed)).toBe(true);
