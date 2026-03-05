@@ -25,18 +25,6 @@
     "e2e:build:monitor": "node scripts/build-with-monitor.mjs",
     "e2e:ui": "playwright test -c e2e --ui",
     "e2e:headed": "playwright test -c e2e --headed",
-    "examples:build": "pnpm --filter 'extenzo-example-*' run build",
-    "examples:dev": "pnpm --filter 'extenzo-example-*' run dev",
-    "examples:dev:react-template": "pnpm --filter extenzo-example-react-template run dev",
-    "examples:dev:vue-template": "pnpm --filter extenzo-example-vue-template run dev",
-    "examples:dev:devtools-native-ts": "pnpm --filter extenzo-example-devtools-native-ts run dev",
-    "examples:dev:react-shadcn": "pnpm --filter extenzo-example-react-shadcn run dev",
-    "examples:dev:ffmpeg-worker": "pnpm --filter extenzo-example-ffmpeg-worker run dev",
-    "examples:build:react-template": "pnpm --filter extenzo-example-react-template run build",
-    "examples:build:vue-template": "pnpm --filter extenzo-example-vue-template run build",
-    "examples:build:devtools-native-ts": "pnpm --filter extenzo-example-devtools-native-ts run build",
-    "examples:build:react-shadcn": "pnpm --filter extenzo-example-react-shadcn run build",
-    "examples:build:manual-install": "pnpm --filter extenzo-example-manual-install run build",
     "build": "pnpm run packages:build && pnpm run examples:build",
     "docs:dev": "pnpm --filter extenzo-docs dev",
     "docs:build": "pnpm --filter extenzo-docs build",
@@ -44,11 +32,12 @@
     "changeset": "changeset",
     "version": "changeset version",
     "release": "pnpm run packages:build && pnpm publish -r",
-    "ci:publish": "pnpm publish -r --access public"
+    "ci:publish": "pnpm publish -r --access public",
+    "test:cross-pm": "pnpm run packages:build && node scripts/test-cross-pm.mjs"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.0",
-    "@extenzo/plugin-extension-hmr": "workspace:*",
+    "@extenzo/rsbuild-plugin-extension-hmr": "workspace:*",
     "@playwright/test": "^1.58.2",
     "lcov-result-merger": "^5.0.1",
     "ws": "^8.18.0"

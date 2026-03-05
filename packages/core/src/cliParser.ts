@@ -9,6 +9,7 @@ import { createInvalidBrowserError, createUnknownCommandError } from "./errors.t
 
 const LAUNCH_FLAGS = ["-l", "--launch"];
 const TARGET_FLAGS = ["-t", "--target"];
+const REPORT_FLAGS = ["-r", "--report"];
 
 const LAUNCH_ALIASES: Record<string, LaunchTarget> = {
   chrome: "chrome",
@@ -43,6 +44,8 @@ export interface CliParseResult {
   persist?: boolean;
   /** When true, same as debug: true in exo.config (e.g. enable monitor in dev). From --debug. */
   debug?: boolean;
+  /** When true, enable Rsdoctor build report (RSDOCTOR=true). From -r/--report. */
+  report?: boolean;
 }
 
 function parseLaunchValue(value: string): LaunchTarget | null {
@@ -60,7 +63,8 @@ export class CliParser {
     const { target, unknown: unknownTarget } = this.getTargetFromArgv(argv);
     const persist = this.getPersistFromArgv(argv);
     const debug = this.getDebugFromArgv(argv);
-    return { command, target, launch, unknownLaunch, unknownTarget, persist, debug };
+    const report = this.getReportFromArgv(argv);
+    return { command, target, launch, unknownLaunch, unknownTarget, persist, debug, report };
   }
 
   private getTargetFromArgv(argv: string[]): { target?: BrowserTarget; unknown?: string } {
@@ -111,6 +115,10 @@ export class CliParser {
 
   private getDebugFromArgv(argv: string[]): true | undefined {
     return argv.some((arg) => arg === "--debug") ? true : undefined;
+  }
+
+  private getReportFromArgv(argv: string[]): true | undefined {
+    return argv.some((arg) => REPORT_FLAGS.includes(arg)) ? true : undefined;
   }
 
   assertSupportedBrowser(value: string): asserts value is LaunchTarget | "chromium" {

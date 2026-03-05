@@ -8,7 +8,7 @@
 |--------|--------|----------------|
 | **dev + writeToDisk** | [src/pipeline.ts](../src/pipeline.ts) – `buildHmrOverrides` | Sets `dev.hmr: false`, `dev.liveReload: false`, and `dev.writeToDisk: (filename) => !filename.includes('.hot-update.')` so no Rsbuild HMR client is injected (no WebSocket errors in extension); normal assets are still written to disk for the extension. |
 | **Extension reload** | Same file – `tools.rspack` | Injects plugin-extension-hmr so the extension reloads when build output changes. |
-| **Watch ignore output** | [@extenzo/plugin-extension-entry](../../plugins/plugin-entry/src/index.ts) – `onBeforeCreateCompiler` | Adds the build output path (`distPath` = `.extenzo/<outDir>`) to Rspack’s `watchOptions.ignored`, so file changes in the output directory do not trigger another build. |
+| **Watch ignore output** | [@extenzo/rsbuild-plugin-extension-entry](../../plugins/rsbuild-plugin-extension-entry/src/index.ts) – `onBeforeCreateCompiler` | Adds the build output path (`distPath` = `.extenzo/<outDir>`) to Rspack’s `watchOptions.ignored`, so file changes in the output directory do not trigger another build. |
 
 ## Why filter writeToDisk
 

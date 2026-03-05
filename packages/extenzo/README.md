@@ -55,7 +55,7 @@ Return a config object from `defineConfig`. Supported fields:
 | Field | Description |
 |-------|-------------|
 | **manifest** | Extension manifest. Single object or split as `chromium` / `firefox` |
-| **plugins** | Rsbuild plugins array (like Vite). Use function calls, e.g. `plugins: [vue()]` (from `@extenzo/plugin-vue`) or `plugins: [pluginReact()]` (from `@rsbuild/plugin-react`) |
+| **plugins** | Rsbuild plugins array (like Vite). Use function calls, e.g. `plugins: [vue()]` (from `@extenzo/rsbuild-plugin-vue`) or `plugins: [pluginReact()]` (from `@rsbuild/plugin-react`) |
 | **rsbuildConfig** | Override or extend Rsbuild config (like Vite’s build options). **Object**: deep-merged with base. **Function**: `(base) => config` for full control |
 | **entry** | Custom entries: object, key = entry name (reserved: popup, options, sidepanel, background, devtools, content; others custom), value = path string relative to baseDir (e.g. `'content/index.ts'`). Omit to use default discovery from baseDir |
 | **appDir** | App directory; default is `app/`. Also the base for **entry** paths |
@@ -83,7 +83,7 @@ On missing config, no entries, invalid command or invalid `-b`, the CLI throws *
 
 ```ts
 import { defineConfig } from "extenzo";
-import vue from "@extenzo/plugin-vue";
+import vue from "@extenzo/rsbuild-plugin-vue";
 
 export default defineConfig({
   appDir: "src",
@@ -149,10 +149,10 @@ Browser paths: set **launch** in config to override; otherwise the framework tri
 - `packages/cli`: **@extenzo/cli** – CLI entry and **Pipeline** (parse → config → Rsbuild config → hooks; injects ConfigLoader / CliParser)
 - `packages/core`: Core modules; filenames match class names (camelCase): **ConfigLoader** (configLoader.ts), **CliParser** (cliParser.ts), **EntryDiscoverer** (entryDiscoverer.ts), **EntryResolver** (entryResolver.ts), **ManifestBuilder** (manifestBuilder.ts); constants, ExtenzoError, mergeRsbuildConfig, defineConfig, types
 - `packages/utils`: Utilities (webextension-polyfill etc.); use `@extenzo/utils` as needed
-- `packages/plugins/plugin-entry**: **Internal** – resolves dirs and entries, sets entry/html/output (package: `@extenzo/plugin-extension-entry`)
-- `packages/plugins/plugin-extension`: **Internal** – writes manifest.json (package: `@extenzo/plugin-extension-manifest`)
-- `packages/plugins/plugin-extension-hmr**: **Internal** – dev HMR and browser launch
-- `packages/plugins/plugin-vue`: Vue 3 + Vue JSX + Less + Babel; use `plugins: [vue()]`
+- `packages/plugins/rsbuild-plugin-extension-entry**: **Internal** – resolves dirs and entries, sets entry/html/output (package: `@extenzo/rsbuild-plugin-extension-entry`)
+- `packages/plugins/rsbuild-plugin-extension-manifest`: **Internal** – writes manifest.json (package: `@extenzo/rsbuild-plugin-extension-manifest`)
+- `packages/plugins/rsbuild-plugin-extension-hmr**: **Internal** – dev HMR and browser launch
+- `packages/plugins/rsbuild-plugin-vue`: Vue 3 + Vue JSX + Less + Babel; use `plugins: [vue()]`
 - `packages/create-extenzo-app`: Scaffold CLI; generates project with `plugins: [vue()]` or `plugins: [pluginReact()]` (use `@rsbuild/plugin-react` for React)
 
-The framework runs plugin-extension-entry, plugin-extension-manifest and plugin-extension-hmr by default. Users add framework plugins via `plugins: [vue()]` etc. and override Rsbuild via `rsbuildConfig`.
+The framework runs rsbuild-plugin-extension-entry, rsbuild-plugin-extension-manifest and rsbuild-plugin-extension-hmr by default. Users add framework plugins via `plugins: [vue()]` etc. and override Rsbuild via `rsbuildConfig`.

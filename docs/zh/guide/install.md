@@ -33,7 +33,7 @@ yarn add -D extenzo
 ```ts
 // exo.config.ts
 import { defineConfig } from "extenzo";
-import { pluginReact } from "@rsbuild/plugin-react"; // 或 vue from "@extenzo/plugin-vue"
+import { pluginReact } from "@rsbuild/plugin-react"; // 或 vue from "@extenzo/rsbuild-plugin-vue"
 
 export default defineConfig({
   appDir: "src",

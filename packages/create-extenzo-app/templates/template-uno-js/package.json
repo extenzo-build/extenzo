@@ -1,0 +1,23 @@
+{
+  "name": "my-extension",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "extenzo dev",
+    "build": "extenzo build"
+  },
+  "dependencies": {
+    "extenzo": "^0.1.0",
+    "@rsbuild/core": "^1.6.0",
+    "webextension-polyfill": "^0.10.0",
+    "@extenzo/utils": "^0.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@rsbuild/plugin-react": "^1.2.0",
+    "unocss": "^0.62.0",
+    "@unocss/postcss": "^0.62.0"
+  }
+}

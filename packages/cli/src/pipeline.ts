@@ -14,11 +14,11 @@ import type {
   LaunchTarget,
   BrowserTarget,
 } from "@extenzo/core";
-import { entryPlugin } from "@extenzo/plugin-extension-entry";
-import { extensionPlugin } from "@extenzo/plugin-extension-manifest";
-import { hmrPlugin, type HmrPluginOptions } from "@extenzo/plugin-extension-hmr";
-import { monitorPlugin } from "@extenzo/plugin-extension-monitor";
-import { getVueRsbuildPlugins } from "@extenzo/plugin-vue";
+import { entryPlugin } from "@extenzo/rsbuild-plugin-extension-entry";
+import { extensionPlugin } from "@extenzo/rsbuild-plugin-extension-manifest";
+import { hmrPlugin, type HmrPluginOptions } from "@extenzo/rsbuild-plugin-extension-hmr";
+import { monitorPlugin } from "@extenzo/rsbuild-plugin-extension-monitor";
+import { getVueRsbuildPlugins } from "@extenzo/rsbuild-plugin-vue";
 import { ensureDependencies } from "./ensureDeps.ts";
 
 type LoosePlugin = RsbuildConfig["plugins"] extends (infer P)[] ? P : never;
@@ -71,6 +71,7 @@ export class Pipeline {
 
     const { config: rawConfig, baseEntries, entries } = this.configLoader.resolve(root);
     const config = parseResult.debug === true ? { ...rawConfig, debug: true } : rawConfig;
+    const report = this.resolveReport(parseResult.report, config.report);
     await ensureDependencies(root, config);
 
     const outDir = config.outDir;
@@ -87,18 +88,21 @@ export class Pipeline {
 
     const hmrCtx: PipelineContext = {
       root, command: parseResult.command, browser, launchTarget,
-      launchRequested: false, persist, config, baseEntries, entries,
+      launchRequested: false, persist, report, config, baseEntries, entries,
       rsbuildConfig: base, isDev, distPath,
     };
 
     const hmrOverrides = this.buildHmrOverrides(isDev, hmrCtx);
     const merged = mergeRsbuildConfig(base, userConfig);
     const baseConfig = hmrOverrides ? mergeRsbuildConfig(merged, hmrOverrides) : merged;
+    const rsbuildConfig = report
+      ? await this.mergeRsdoctorPlugin(baseConfig, root, outputRoot)
+      : baseConfig;
 
     const ctx: PipelineContext = {
       ...hmrCtx,
       launchRequested: Boolean(parseResult.launch),
-      rsbuildConfig: baseConfig,
+      rsbuildConfig,
     };
 
     await config.hooks?.afterCliParsed?.(ctx);
@@ -128,7 +132,7 @@ export class Pipeline {
     const arr = Array.isArray(list) ? list : [list];
     for (const p of arr) {
       const name = (p as { name?: string } | null)?.name;
-      if (name === "extenzo-vue") {
+      if (name === "rsbuild-plugin-vue") {
         const vuePlugins = getVueRsbuildPlugins(appRoot);
         if (Array.isArray(vuePlugins)) out.push(...(vuePlugins as LoosePlugin[]));
       }
@@ -192,14 +196,10 @@ export class Pipeline {
       enableReload: true,
       autoRefreshContentPage: ctx.config.hotReload?.autoRefreshContentPage ?? true,
     };
-    const rspackFn = (rspackConfig: unknown, utils: { appendPlugins?: (p: unknown) => void }) => {
-      if (utils?.appendPlugins) utils.appendPlugins(hmrPlugin(hmrOpts));
-      return rspackConfig;
-    };
     return {
       dev: { hmr: false, liveReload: false, writeToDisk: devWriteToDiskFilter },
       server: { printUrls: false },
-      tools: { rspack: rspackFn as RsbuildConfig["tools"] extends { rspack?: infer R } ? R : never },
+      plugins: [hmrPlugin(hmrOpts) as LoosePlugin],
     };
   }
 
@@ -236,6 +236,35 @@ export class Pipeline {
 
   private resolvePersist(cliPersist: boolean | undefined, configPersist: boolean | undefined): boolean {
     return Boolean(cliPersist || configPersist);
+  }
+
+  private resolveReport(cliReport: boolean | undefined, configReport: boolean | undefined): boolean {
+    return Boolean(cliReport || configReport);
+  }
+
+  /**
+   * When report is true, add Rsdoctor plugin with reportDir under .extenzo/report (outputRoot/report)
+   * so report output is not inside dist (plugin default uses build output path).
+   */
+  private async mergeRsdoctorPlugin(
+    config: RsbuildConfig,
+    root: string,
+    outputRoot: string
+  ): Promise<RsbuildConfig> {
+    const reportDir = resolve(root, outputRoot, "report");
+    const { RsdoctorRspackPlugin } = await import("@rsdoctor/rspack-plugin");
+    const tools = config.tools as { rspack?: { plugins?: unknown[] } } | undefined;
+    const existing = tools?.rspack?.plugins ?? [];
+    const rsdoctorPlugin = new RsdoctorRspackPlugin({
+      output: { reportDir },
+    });
+    return mergeRsbuildConfig(config, {
+      tools: {
+        rspack: {
+          plugins: [...existing, rsdoctorPlugin],
+        },
+      },
+    } as RsbuildConfig);
   }
 
   private getConfigBrowser(config: PipelineContext["config"]): string | undefined {

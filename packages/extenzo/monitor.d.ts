@@ -1,1 +1,1 @@
-export { setupExtenzoMonitor, reportLoadError, startHmrReloadClient } from "@extenzo/plugin-extension-monitor/runtime";
+export { setupExtenzoMonitor, reportLoadError, startHmrReloadClient } from "@extenzo/rsbuild-plugin-extension-monitor/runtime";

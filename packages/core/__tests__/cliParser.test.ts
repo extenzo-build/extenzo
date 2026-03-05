@@ -56,6 +56,15 @@ describe("CliParser", () => {
       expect(r2.debug).toBeUndefined();
     });
 
+    it("parses -r/--report", () => {
+      const r = parseCliArgs(["build", "-r"]);
+      expect(r.report).toBe(true);
+      const r2 = parseCliArgs(["build", "--report"]);
+      expect(r2.report).toBe(true);
+      const r3 = parseCliArgs(["dev"]);
+      expect(r3.report).toBeUndefined();
+    });
+
     it("returns unknownLaunch when -l value is invalid", () => {
       const r = parseCliArgs(["build", "-l", "safari"]);
       expect(r.target).toBeUndefined();

@@ -1,6 +1,6 @@
 
 import { defineConfig } from "extenzo";
-import vue from "@extenzo/plugin-vue";
+import vue from "@extenzo/rsbuild-plugin-vue";
 import { pluginLess } from "@rsbuild/plugin-less";
 
 const baseManifest = {
