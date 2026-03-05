@@ -48,7 +48,7 @@
     "webextension-polyfill": "^0.10.0"
   },
   "devDependencies": {
-    "@extenzo/plugin-vue": "workspace:*",
+    "@extenzo/rsbuild-plugin-vue": "workspace:*",
     "@rsbuild/plugin-less": "^1.5.0",
     "@tailwindcss/postcss": "^4.1.17",
     "@types/chrome": "^0.0.326",

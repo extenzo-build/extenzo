@@ -17,6 +17,7 @@
     "test:coverage": "rstest run --coverage"
   },
   "dependencies": {
+    "@extenzo/pkg-manager": "workspace:*",
     "chalk": "^5.3.0",
     "prompts": "^2.4.2",
     "kolorist": "^1.8.0",

@@ -47,6 +47,8 @@ export interface PipelineContext {
   launchRequested?: boolean;
   /** Whether to persist Chromium temp user data dir (-p/--persist or config.persist) */
   persist?: boolean;
+  /** When true, enable Rsdoctor (RSDOCTOR=true) for build report. From -r/--report or config.report */
+  report?: boolean;
   /** Resolved user config (including hooks) */
   config: ExtenzoResolvedConfig;
   /** Base entries from discovery only (before merging entry config) */
@@ -159,6 +161,11 @@ export interface ExtenzoUserConfig {
    * Default false. Only has effect in dev; build ignores this.
    */
   debug?: boolean;
+  /**
+   * When true, enables Rsdoctor build report (RSDOCTOR=true). Build/dev will open analysis page after build.
+   * Default false. CLI -r/--report overrides this.
+   */
+  report?: boolean;
   /**
    * @deprecated Use rsbuildConfig instead. Kept for compatibility; only function form applies.
    */

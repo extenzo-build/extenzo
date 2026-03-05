@@ -4,7 +4,7 @@
 
 ## 技术栈
 
-- Vue 3 + Vue JSX (`@extenzo/plugin-vue` → `@rsbuild/plugin-vue-jsx` + `@rsbuild/plugin-babel`)
+- Vue 3 + Vue JSX (`@extenzo/rsbuild-plugin-vue` → `@rsbuild/plugin-vue-jsx` + `@rsbuild/plugin-babel`)
 - Less (`@rsbuild/plugin-less`)
 - Tailwind CSS v4 + PostCSS
 - 多入口：background、content、popup、options、sidepanel、offscreen、capture、download、player、favourites

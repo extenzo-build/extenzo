@@ -38,3 +38,4 @@ export default defineConfig({
 ## 相关配置
 
 - [zip](/guide/zip)：为 `true` 时在 outputRoot 下生成 `outDir.zip`。
+- [Report](/config/report)：使用 `extenzo build -r` 或 `report: true` 时，在 `outputRoot/report` 下生成 Rsdoctor 构建报告。

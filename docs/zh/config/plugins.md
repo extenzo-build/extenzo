@@ -1,6 +1,6 @@
 # plugins
 
-`plugins` 为 **Rsbuild 插件数组**，与 Vite 类似，使用函数调用形式，例如 `plugins: [vue()]`、`plugins: [pluginReact()]`。用于接入 Vue（`@extenzo/plugin-vue`）、React（`@rsbuild/plugin-react`）或其它 Rsbuild 插件。
+`plugins` 为 **Rsbuild 插件数组**，与 Vite 类似，使用函数调用形式，例如 `plugins: [vue()]`、`plugins: [pluginReact()]`。用于接入 Vue（`@extenzo/rsbuild-plugin-vue`）、React（`@rsbuild/plugin-react`）或其它 Rsbuild 插件。
 
 ## 类型与默认值
 
@@ -13,10 +13,10 @@
 
 | 插件 | 作用 |
 |------|------|
-| **plugin-extension-entry** | 根据 [entry](/config/entry) 与 [appDir](/config/app-dir) 解析入口，设置 Rsbuild 的 entry、HTML 模板、output 路径、public 复制等 |
-| **plugin-extension-manifest** | 构建结束后将解析好的 [manifest](/config/manifest) 写入产物目录的 `manifest.json`（按 `-b` 选择 chromium/firefox），展开 [exo.content] 占位符并移除空 css |
-| **plugin-extension-hmr** | 开发模式下启动 WebSocket 与浏览器重载（仅 dev 时注入） |
-| **plugin-extension-monitor** | 仅开发且 `--debug` 或 `debug: true` 时：错误监控、带 Ask AI（ChatGPT、Cursor）与主题切换的面板 |
+| **rsbuild-plugin-extension-entry** | 根据 [entry](/config/entry) 与 [appDir](/config/app-dir) 解析入口，设置 Rsbuild 的 entry、HTML 模板、output 路径、public 复制等 |
+| **rsbuild-plugin-extension-manifest** | 构建结束后将解析好的 [manifest](/config/manifest) 写入产物目录的 `manifest.json`（按 `-b` 选择 chromium/firefox），展开 [exo.content] 占位符并移除空 css |
+| **rsbuild-plugin-extension-hmr** | 开发模式下启动 WebSocket 与浏览器重载（仅 dev 时注入） |
+| **rsbuild-plugin-extension-monitor** | 仅开发且 `--debug` 或 `debug: true` 时：错误监控、带 Ask AI（ChatGPT、Cursor）与主题切换的面板 |
 
 ## 用户插件：Vue / React
 
@@ -25,7 +25,7 @@
 ```ts
 // exo.config.ts
 import { defineConfig } from "extenzo";
-import vue from "@extenzo/plugin-vue";
+import vue from "@extenzo/rsbuild-plugin-vue";
 // 或 React：
 import { pluginReact } from "@rsbuild/plugin-react";
 
@@ -35,7 +35,7 @@ export default defineConfig({
 });
 ```
 
-- **@extenzo/plugin-vue**：为 Vue 单文件组件、Vue 运行时等提供 Rsbuild 支持。
+- **@extenzo/rsbuild-plugin-vue**：为 Vue 单文件组件、Vue 运行时等提供 Rsbuild 支持。
 - **@rsbuild/plugin-react**：为 React、JSX/TSX 提供 Rsbuild 支持，直接使用即可。
 
 ## 与 Rsbuild 插件混用
@@ -45,7 +45,7 @@ export default defineConfig({
 ```ts
 // exo.config.ts
 import { defineConfig } from "extenzo";
-import vue from "@extenzo/plugin-vue";
+import vue from "@extenzo/rsbuild-plugin-vue";
 import { pluginLess } from "@rsbuild/plugin-less";
 
 export default defineConfig({
@@ -57,11 +57,11 @@ export default defineConfig({
 
 框架会按以下顺序组装最终 Rsbuild 插件列表：
 
-1. **plugin-extension-entry**（框架注入）
+1. **rsbuild-plugin-extension-entry**（框架注入）
 2. **用户 plugins**（含 Vue/React 展开后的子插件）
-3. **plugin-extension-manifest**（框架注入）
+3. **rsbuild-plugin-extension-manifest**（框架注入）
 
-因此无需也不应手动添加 plugin-extension-entry、plugin-extension-manifest、plugin-extension-hmr。
+因此无需也不应手动添加 rsbuild-plugin-extension-entry、rsbuild-plugin-extension-manifest、rsbuild-plugin-extension-hmr。
 
 ## 单插件写法
 
@@ -76,4 +76,4 @@ export default defineConfig({
 ## 相关配置
 
 - [rsbuildConfig](/config/rsbuild-config)：若需追加或覆盖 Rsbuild 配置（如 alias、define、额外插件），可使用 rsbuildConfig 对象或函数。
-- [entry](/config/entry)、[manifest](/config/manifest)：由 plugin-extension-entry、plugin-extension-manifest 消费。
+- [entry](/config/entry)、[manifest](/config/manifest)：由 rsbuild-plugin-extension-entry、rsbuild-plugin-extension-manifest 消费。

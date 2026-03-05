@@ -40,7 +40,7 @@ Default paths are defined in extenzo; the first existing path is used:
 ## Role
 
 - Only affects **extenzo dev**; `extenzo build` does not start a browser.
-- Used by [@extenzo/plugin-extension-hmr](https://github.com/extenzo-build/extenzo/tree/main/packages/plugins/plugin-extension-hmr) after the first build: Chrome via `--load-extension`, Firefox via `web-ext run`.
+- Used by [@extenzo/rsbuild-plugin-extension-hmr](https://github.com/extenzo-build/extenzo/tree/main/packages/plugins/rsbuild-plugin-extension-hmr) after the first build: Chrome via `--load-extension`, Firefox via `web-ext run`.
 
 ## Examples
 
@@ -84,4 +84,4 @@ With `extenzo dev -l chrome` only `launch.chrome` is needed; with `-l edge/brave
 
 ## Related
 
-- HMR and reload in dev are handled by [@extenzo/plugin-extension-hmr](https://github.com/extenzo-build/extenzo/tree/main/packages/plugins/plugin-extension-hmr); no extra launch config is required.
+- HMR and reload in dev are handled by [@extenzo/rsbuild-plugin-extension-hmr](https://github.com/extenzo-build/extenzo/tree/main/packages/plugins/rsbuild-plugin-extension-hmr); no extra launch config is required.

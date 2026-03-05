@@ -33,7 +33,7 @@ Create `exo.config.ts` (or `exo.config.js`) at the project root, and ensure you 
 ```ts
 // exo.config.ts
 import { defineConfig } from "extenzo";
-import { pluginReact } from "@rsbuild/plugin-react"; // or vue from "@extenzo/plugin-vue"
+import { pluginReact } from "@rsbuild/plugin-react"; // or vue from "@extenzo/rsbuild-plugin-vue"
 
 export default defineConfig({
   appDir: "src",

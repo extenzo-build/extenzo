@@ -63,7 +63,7 @@ export default defineConfig({
 | **define** | `rsbuildConfig: { source: { define: { __BUILD_TIME__: JSON.stringify(Date.now()) } } }` |
 | **alias** | `rsbuildConfig: { resolve: { alias: { "@": "/src" } } }` |
 | **Extra plugins** | In function form: `base.plugins = [...(base.plugins ?? []), myPlugin()]` or merge |
-| **output** | Prefer merging in function form so you don’t override framework `distPath`, `assetPrefix`, etc. |
+| **output** | Prefer merging in function form so you don't override framework `distPath`, `assetPrefix`, etc. |
 
 ## Notes
 
