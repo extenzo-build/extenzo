@@ -25,29 +25,66 @@ const ENTRY_SCRIPT_REGEX =
   /<script\b[^>]*data-extenzo-entry[^>]*>[\s\S]*?<\/script>/gi;
 const HEAD_CLOSE_REGEX = /<\/head\s*>/i;
 
+/** Matches a single script tag with src attribute (for fallback). */
+const SCRIPT_WITH_SRC_REGEX =
+  /<script\b[^>]*\ssrc\s*=\s*["']([^"']+)["'][^>]*>[\s\S]*?<\/script>/gi;
+
 /**
- * Parses HTML at htmlPath for the script tag with data-extenzo-entry and src.
+ * Finds the first <script src="..."> in HTML (head or body) with protocol-less src.
+ * Returns { src, fullTag, tagStartIndex } or undefined.
+ */
+function findFirstScriptWithRelativeSrc(html: string): { src: string; fullTag: string; tagStartIndex: number } | undefined {
+  const reg = new RegExp(SCRIPT_WITH_SRC_REGEX.source, "gi");
+  let match: RegExpExecArray | null;
+  while ((match = reg.exec(html)) !== null) {
+    const src = match[1];
+    if (!isScriptSrcRelative(src)) continue;
+    return { src, fullTag: match[0], tagStartIndex: match.index };
+  }
+  return undefined;
+}
+
+/**
+ * Parses HTML at htmlPath for the entry script.
+ * Entry is either: (1) script with data-extenzo-entry and protocol-less src, or
+ * (2) if none found, the first script in HTML (head or body) with protocol-less src.
  * Returns src, inject position (head vs body), and HTML with that script tag removed.
- * If no such tag is found or it has no src, returns undefined.
+ * If no such tag is found or it has no valid src, returns undefined.
  */
 export function parseExtenzoEntryFromHtml(
   htmlPath: string
 ): ExtenzoEntryScriptResult | undefined {
   const raw = readFileSync(htmlPath, "utf-8");
+
   const reg = new RegExp(ENTRY_SCRIPT_REGEX.source, "gi");
   const match = reg.exec(raw);
-  if (!match) return undefined;
-  const tag = match[0];
-  const tagStartIndex = match.index;
-  const srcMatch = tag.match(/src\s*=\s*["']([^"']+)["']/i);
-  if (!srcMatch?.[1]) return undefined;
-  const src = srcMatch[1];
+  if (match) {
+    const tag = match[0];
+    const tagStartIndex = match.index;
+    const srcMatch = tag.match(/src\s*=\s*["']([^"']+)["']/i);
+    if (srcMatch?.[1] && isScriptSrcRelative(srcMatch[1])) {
+      const src = srcMatch[1];
+      const headCloseMatch = raw.match(HEAD_CLOSE_REGEX);
+      const headCloseIndex = headCloseMatch?.index ?? -1;
+      const inject: ScriptInjectPosition =
+        headCloseIndex >= 0 && tagStartIndex < headCloseIndex ? "head" : "body";
+      const strippedHtml = raw.replace(ENTRY_SCRIPT_REGEX, "").trimEnd();
+      return { src, inject, strippedHtml };
+    }
+  }
+
+  const fallback = findFirstScriptWithRelativeSrc(raw);
+  if (!fallback) return undefined;
   const headCloseMatch = raw.match(HEAD_CLOSE_REGEX);
   const headCloseIndex = headCloseMatch?.index ?? -1;
   const inject: ScriptInjectPosition =
-    headCloseIndex >= 0 && tagStartIndex < headCloseIndex ? "head" : "body";
-  const strippedHtml = raw.replace(ENTRY_SCRIPT_REGEX, "").trimEnd();
-  return { src, inject, strippedHtml };
+    headCloseIndex >= 0 && fallback.tagStartIndex < headCloseIndex ? "head" : "body";
+  const strippedHtml = raw.replace(fallback.fullTag, "").trimEnd();
+  return {
+    src: fallback.src,
+    inject,
+    strippedHtml,
+  };
 }
 
 /**

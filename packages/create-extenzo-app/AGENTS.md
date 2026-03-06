@@ -12,5 +12,5 @@ Interactive project creation for extenzo: downloads a pre-built template from th
 ## When changing this package
 
 - Interactive CLI logic lives in `src/cli.ts`; types and constants in `src/templates.ts`; download/extraction logic in `src/download.ts`
-- Actual template files live in `templates/template-{framework}-{language}/` — each directory is a complete, self-contained project skeleton
-- When adding a new framework or option, create a corresponding `templates/template-{framework}-{language}/` directory and update `FRAMEWORKS` in `src/templates.ts`
+- Actual template files live at **repo root** `templates/template-{framework}-{language}/`; the CLI downloads from the GitHub tarball, so the repo must have `templates/` at root.
+- When adding a new framework or option, create a corresponding `templates/template-{framework}-{language}/` at repo root and update `FRAMEWORKS` in `src/templates.ts`
