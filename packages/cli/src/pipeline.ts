@@ -257,6 +257,7 @@ export class Pipeline {
     const existing = tools?.rspack?.plugins ?? [];
     const rsdoctorPlugin = new RsdoctorRspackPlugin({
       output: { reportDir },
+      mode: 'brief'
     });
     return mergeRsbuildConfig(config, {
       tools: {

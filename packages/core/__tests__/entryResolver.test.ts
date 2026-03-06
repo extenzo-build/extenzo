@@ -251,7 +251,7 @@ describe("EntryResolver", () => {
       expect(popup?.html).toBe(true);
     });
 
-    it("throws when html entry has data-extenzo-entry with non-relative src", async () => {
+    it("skips html entry when data-extenzo-entry has non-relative src and no body/same-dir script", async () => {
       const { mkdirSync, writeFileSync, rmSync } = await import("fs");
       const { join } = await import("path");
       const { tmpdir } = await import("os");
@@ -262,9 +262,8 @@ describe("EntryResolver", () => {
         '<html><script data-extenzo-entry src="/absolute/path.ts"></script></html>',
         "utf-8"
       );
-      expect(() =>
-        resolveEntries({ entry: { popup: "popup.html" } }, "/root", baseDir)
-      ).toThrow();
+      const entries = resolveEntries({ entry: { popup: "popup.html" } }, "/root", baseDir);
+      expect(entries.some((e) => e.name === "popup")).toBe(false);
       rmSync(baseDir, { recursive: true, force: true });
     });
 

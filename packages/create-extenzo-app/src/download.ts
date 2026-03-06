@@ -3,7 +3,7 @@ import { join, dirname } from "node:path";
 import { gunzipSync } from "node:zlib";
 
 const GITHUB_REPO = "gxy5202/extenzo";
-const TEMPLATE_BASE = "packages/create-extenzo-app/templates";
+const TEMPLATE_BASE = "templates";
 
 export interface TarHeader {
   name: string;

@@ -68,6 +68,52 @@ describe("htmlEntry", () => {
       const result = parseExtenzoEntryFromHtml(htmlPath) as ExtenzoEntryScriptResult;
       expect(result.inject).toBe("body");
     });
+
+    it("uses first protocol-less script in HTML when no data-extenzo-entry", () => {
+      tempDir = path.join(tmpdir(), `htmlEntry-${Date.now()}`);
+      mkdirSync(tempDir, { recursive: true });
+      const htmlPath = path.join(tempDir, "index.html");
+      writeFileSync(
+        htmlPath,
+        '<html><head></head><body><div id="app"></div><script type="module" src="./index.ts"></script></body></html>',
+        "utf-8"
+      );
+      const result = parseExtenzoEntryFromHtml(htmlPath) as ExtenzoEntryScriptResult;
+      expect(result).toBeDefined();
+      expect(result!.src).toBe("./index.ts");
+      expect(result!.inject).toBe("body");
+      expect(result!.strippedHtml).not.toContain('<script type="module" src="./index.ts"></script>');
+    });
+
+    it("uses first script in head when fallback and only relative script is in head", () => {
+      tempDir = path.join(tmpdir(), `htmlEntry-${Date.now()}`);
+      mkdirSync(tempDir, { recursive: true });
+      const htmlPath = path.join(tempDir, "index.html");
+      writeFileSync(
+        htmlPath,
+        '<html><head><script src="./main.ts"></script></head><body><script src="https://cdn.example.com/lib.js"></script></body></html>',
+        "utf-8"
+      );
+      const result = parseExtenzoEntryFromHtml(htmlPath) as ExtenzoEntryScriptResult;
+      expect(result).toBeDefined();
+      expect(result!.src).toBe("./main.ts");
+      expect(result!.inject).toBe("head");
+    });
+
+    it("falls back to body script when data-extenzo-entry has protocol src", () => {
+      tempDir = path.join(tmpdir(), `htmlEntry-${Date.now()}`);
+      mkdirSync(tempDir, { recursive: true });
+      const htmlPath = path.join(tempDir, "index.html");
+      writeFileSync(
+        htmlPath,
+        '<html><body><script data-extenzo-entry src="https://cdn.example.com/app.js"></script><script src="./local.ts"></script></body></html>',
+        "utf-8"
+      );
+      const result = parseExtenzoEntryFromHtml(htmlPath) as ExtenzoEntryScriptResult;
+      expect(result).toBeDefined();
+      expect(result!.src).toBe("./local.ts");
+      expect(result!.inject).toBe("body");
+    });
   });
 
   describe("getScriptInjectIfMatches", () => {
@@ -135,7 +181,7 @@ describe("htmlEntry", () => {
       );
     });
 
-    it("throws when src is a protocol URL", () => {
+    it("throws when no entry script (only protocol or absolute src and no body fallback)", () => {
       tempDir = path.join(tmpdir(), `htmlEntry-strict-proto-${Date.now()}`);
       mkdirSync(tempDir, { recursive: true });
       const htmlPath = path.join(tempDir, "index.html");
@@ -145,11 +191,11 @@ describe("htmlEntry", () => {
         "utf-8"
       );
       expect(() => resolveScriptFromHtmlStrict(htmlPath)).toThrow(
-        "data-extenzo-entry src must be relative"
+        "data-extenzo-entry script must have a src attribute (relative path)"
       );
     });
 
-    it("throws when src is an absolute path", () => {
+    it("throws when only absolute path src and no body fallback", () => {
       tempDir = path.join(tmpdir(), `htmlEntry-strict-abs-${Date.now()}`);
       mkdirSync(tempDir, { recursive: true });
       const htmlPath = path.join(tempDir, "index.html");
@@ -159,7 +205,7 @@ describe("htmlEntry", () => {
         "utf-8"
       );
       expect(() => resolveScriptFromHtmlStrict(htmlPath)).toThrow(
-        "data-extenzo-entry src must be relative"
+        "data-extenzo-entry script must have a src attribute (relative path)"
       );
     });
   });
