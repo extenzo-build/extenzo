@@ -8,7 +8,20 @@ pnpm create extenzo-app
 npx create-extenzo-app
 ```
 
-Choose framework (Vanilla / Vue / React) and language (JavaScript / TypeScript) to generate project structure and config.
+You can pass an optional project name and options:
+
+```bash
+create-extenzo-app [project-name] [options]
+```
+
+- **Project name**: First argument (default: `my-extension`). If the directory already exists, you'll be prompted to overwrite.
+- **Options**:
+  - `--framework <name>` — Skip prompt: `vanilla` | `vue` | `react` | `preact` | `svelte` | `solid` | `uno` (React + UnoCSS)
+  - `--language <lang>` — Skip prompt: `js` | `ts`
+  - `--help` — Show help
+  - `--version` — Show version
+
+Choose framework (Vanilla / Vue / React / Preact / Svelte / Solid / React+UnoCSS) and language (JavaScript / TypeScript) to generate project structure and config. The CLI detects your package manager and prints the correct install and dev commands in the next steps.
 
 ## Option 2: Add to an existing project
 

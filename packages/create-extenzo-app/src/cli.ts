@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import prompts from "prompts";
 import { blue, green, red, yellow, dim } from "kolorist";
 import minimist from "minimist";
-import { downloadTemplate } from "./download.ts";
+import { downloadTemplate, tryLocalTemplates } from "./download.ts";
 import { FRAMEWORKS, LANGUAGES, getTemplateName } from "./templates.ts";
 import { detectPackageManager, getInstallCommand, getRunCommand } from "@extenzo/pkg-manager";
 import type { Framework, Language } from "./templates.ts";
@@ -102,7 +102,11 @@ async function main(): Promise<void> {
   console.log(yellow("\n  Downloading template...\n"));
 
   try {
-    await downloadTemplate(templateName, root);
+    if (tryLocalTemplates(templateName, root)) {
+      // used local templates from repo
+    } else {
+      await downloadTemplate(templateName, root);
+    }
   } catch (err) {
     console.error(red(`\n  Failed to download template: ${(err as Error).message}\n`));
     process.exit(1);

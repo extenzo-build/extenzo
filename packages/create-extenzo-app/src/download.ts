@@ -1,9 +1,29 @@
-import { mkdirSync, writeFileSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { mkdirSync, writeFileSync, existsSync, cpSync } from "node:fs";
+import { join, dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
 
 const GITHUB_REPO = "gxy5202/extenzo";
 const TEMPLATE_BASE = "templates";
+
+/** Resolve extenzo repo root (where templates/ lives) when running from packages/create-extenzo-app. */
+function getRepoRoot(): string {
+  const fromDist = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
+  return fromDist;
+}
+
+/**
+ * If running inside the extenzo repo and templates/<templateName> exists, copy it to destDir.
+ * Returns true if local copy was used, false otherwise.
+ */
+export function tryLocalTemplates(templateName: string, destDir: string): boolean {
+  const repoRoot = getRepoRoot();
+  const templatePath = join(repoRoot, TEMPLATE_BASE, templateName);
+  if (!existsSync(templatePath)) return false;
+  mkdirSync(destDir, { recursive: true });
+  cpSync(templatePath, destDir, { recursive: true });
+  return true;
+}
 
 export interface TarHeader {
   name: string;

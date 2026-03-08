@@ -8,7 +8,20 @@ pnpm create extenzo-app
 npx create-extenzo-app
 ```
 
-按提示选择框架（Vanilla / Vue / React）和语言（JavaScript / TypeScript），会生成完整项目结构和配置。
+可传入可选的项目名和选项：
+
+```bash
+create-extenzo-app [项目名] [选项]
+```
+
+- **项目名**：第一个参数（默认：`my-extension`）。若目录已存在，会提示是否覆盖。
+- **选项**：
+  - `--framework <name>` — 跳过选择：`vanilla` | `vue` | `react` | `preact` | `svelte` | `solid` | `uno`（React + UnoCSS）
+  - `--language <lang>` — 跳过选择：`js` | `ts`
+  - `--help` — 显示帮助
+  - `--version` — 显示版本
+
+按提示选择框架（Vanilla / Vue / React / Preact / Svelte / Solid / React+UnoCSS）和语言（JavaScript / TypeScript），会生成完整项目结构和配置。CLI 会自动识别包管理器，并在后续步骤中给出对应的安装与开发命令。
 
 ## 方式二：在现有项目中集成
 
