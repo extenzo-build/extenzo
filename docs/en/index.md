@@ -21,7 +21,7 @@ features:
     details: Full-bundle mode minimizes the dev/prod gap; Rsbuild + build watch give hot reload with consistent output and no loss of build speed.
     icon: 📦
   - title: Zero-config start
-    details: Scaffold a project or install extenzo, add exo.config.ts at the root, and start; Vanilla, Vue, and React supported.
+    details: Scaffold a project or install extenzo, add exo.config.ts at the root, and start; Vanilla, Vue, React, Preact, Svelte, Solid, and React+UnoCSS supported.
     icon: 🚀
   - title: Dual browser support
     details: One codebase; manifest chromium/firefox branches and CLI -l chrome | edge | brave | vivaldi | opera | santa | firefox for build and dev.

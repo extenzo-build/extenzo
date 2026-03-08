@@ -17,7 +17,7 @@ features:
     details: 底层基于Rsbuild。Full bundle 模式保证开发与打包体验一致且不丢失极致的性能。
     icon: 📦
   - title: 框架无关
-    details: 你可以用不使用任何框架，也可以使用Vue、React、Svelte、Solid、Preact等框架
+    details: 你可以用 Vanilla，也可以使用 Vue、React、Preact、Svelte、Solid 或 React+UnoCSS 等框架。
     icon: 📦
   - title: 极简的配置
     details: 安装 extenzo 后，在根目录添加 exo.config.ts 即可开始，无需复杂的配置即可完成插件开发。
