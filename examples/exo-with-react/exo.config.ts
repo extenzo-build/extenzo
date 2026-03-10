@@ -6,7 +6,7 @@ const manifest = {
   version: "0.0.1",
   manifest_version: 3,
   description: "React template with popup, options, content, background",
-  permissions: ["storage", "activeTab"],
+  permissions: ["storage", "activeTab", "tabs"],
   action: {
     default_popup: "popup/index.html",
     default_icon: { 16: "/icons/icon_16.png", 48: "/icons/icon_48.png" },

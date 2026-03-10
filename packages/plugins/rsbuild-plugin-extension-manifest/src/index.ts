@@ -2,6 +2,7 @@ import type { Compiler } from "@rspack/core";
 import type { RsbuildPluginAPI } from "@rsbuild/core";
 import { resolve } from "path";
 import { writeFileSync, existsSync, mkdirSync, readFileSync } from "fs";
+import { writeFile as writeFileAsync } from "fs/promises";
 import type {
   ExtenzoResolvedConfig,
   EntryInfo,
@@ -9,7 +10,7 @@ import type {
   ManifestRecord,
   ContentScriptOutput,
 } from "@extenzo/core";
-import { resolveManifestForTarget } from "@extenzo/core";
+import { resolveManifestForTarget, getExtenzoVersion } from "@extenzo/core";
 
 const CONTENT_CSS_GLOBAL_KEY = "__EXTENZO_CONTENT_CSS_FILES__";
 const CONTENT_CSS_TEXTS_GLOBAL_KEY = "__EXTENZO_CONTENT_CSS_TEXTS__";
@@ -28,6 +29,7 @@ export function extensionPlugin(
 ) {
   const { root, outDir, outputRoot, manifest } = resolvedConfig;
   const distPath = resolve(root, outputRoot, outDir);
+  const metaDir = resolve(root, outputRoot);
 
   return {
     name: "rsbuild-plugin-extension-manifest",
@@ -62,6 +64,11 @@ export function extensionPlugin(
                 JSON.stringify(finalManifest, null, 2),
                 "utf-8"
               );
+
+              // Fire-and-forget meta.md generation for AI consumption; do not block main flow.
+              void writeMetaMarkdown(metaDir, finalManifest, entries).catch(() => {
+                // Intentionally ignore meta write errors to keep build/dev unaffected.
+              });
             });
           },
         });
@@ -275,6 +282,103 @@ function readCssAssetText(distPath: string, file: string): string {
   } catch {
     return "";
   }
+}
+
+function pickArray(field: unknown): string[] {
+  if (!Array.isArray(field)) return [];
+  return field
+    .map((item) => (typeof item === "string" ? item : null))
+    .filter((v): v is string => Boolean(v));
+}
+
+function formatPermissionsSection(manifest: ManifestRecord): string {
+  const permissions = pickArray((manifest as { permissions?: unknown }).permissions);
+  const hostPermissions = pickArray((manifest as { host_permissions?: unknown }).host_permissions);
+  const optionalPermissions = pickArray(
+    (manifest as { optional_permissions?: unknown }).optional_permissions
+  );
+
+  const lines: string[] = [];
+  lines.push("## 2. Permissions");
+  lines.push("");
+  lines.push("### 2.1 Permissions");
+  lines.push(
+    permissions.length > 0 ? permissions.map((p) => `- ${p}`).join("\n") : "- None"
+  );
+  lines.push("");
+  lines.push("### 2.2 Host permissions");
+  lines.push(
+    hostPermissions.length > 0 ? hostPermissions.map((p) => `- ${p}`).join("\n") : "- None"
+  );
+  lines.push("");
+  lines.push("### 2.3 Optional permissions");
+  lines.push(
+    optionalPermissions.length > 0
+      ? optionalPermissions.map((p) => `- ${p}`).join("\n")
+      : "- None"
+  );
+  return lines.join("\n");
+}
+
+function formatEntriesSection(entries: EntryInfo[]): string {
+  const lines: string[] = [];
+  lines.push("## 3. Entries");
+  lines.push("");
+  if (entries.length === 0) {
+    lines.push("- None");
+    return lines.join("\n");
+  }
+  for (const entry of entries) {
+    const script = entry.scriptPath ?? "";
+    lines.push(`- ${entry.name}: ${script}`);
+  }
+  return lines.join("\n");
+}
+
+function buildMetaMarkdown(manifest: ManifestRecord, entries: EntryInfo[]): string {
+  const name = (manifest as { name?: unknown }).name;
+  const description = (manifest as { description?: unknown }).description;
+  const version = (manifest as { version?: unknown }).version;
+  const frameworkVersion = getExtenzoVersion();
+  const manifestVersion = getManifestVersion(manifest);
+
+  const basicLines: string[] = [];
+  basicLines.push("# Extension Meta");
+  basicLines.push("");
+  basicLines.push("## 1. Basic information");
+  basicLines.push("");
+  basicLines.push("- Framework: extenzo");
+  basicLines.push(`- Name: ${typeof name === "string" ? name : "Unknown"}`);
+  basicLines.push(`- Description: ${typeof description === "string" ? description : "None"}`);
+  basicLines.push(`- Version: ${typeof version === "string" ? version : "Unknown"}`);
+  basicLines.push(
+    `- Framework version: ${typeof frameworkVersion === "string" ? frameworkVersion : "Unknown"}`
+  );
+  basicLines.push(
+    `- Manifest version: ${manifestVersion === 2 || manifestVersion === 3 ? manifestVersion : "Unknown"}`
+  );
+  basicLines.push("");
+
+  const permissionsSection = formatPermissionsSection(manifest);
+  const entriesSection = formatEntriesSection(entries);
+
+  return [basicLines.join("\n"), permissionsSection, "", entriesSection, ""].join("\n");
+}
+
+async function writeMetaMarkdown(
+  metaDir: string,
+  manifest: ManifestRecord,
+  entries: EntryInfo[]
+): Promise<void> {
+  try {
+    if (!existsSync(metaDir)) mkdirSync(metaDir, { recursive: true });
+  } catch {
+    // If directory cannot be created, skip meta write.
+    return;
+  }
+  const content = buildMetaMarkdown(manifest, entries);
+  const metaPath = resolve(metaDir, "meta.md");
+  await writeFileAsync(metaPath, content, "utf-8");
 }
 
 function validateEntryHtmlRules(entries: EntryInfo[], manifest: ManifestRecord): void {

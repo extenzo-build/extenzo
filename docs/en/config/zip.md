@@ -9,7 +9,7 @@
 
 ## Behavior
 
-- **`true` or omitted**: After build, creates `{outDir}.zip` under [outputRoot](/config/output-root), e.g. `.extenzo/dist.zip`, containing the full [outDir](/config/out-dir) contents.
+- **`true` or omitted**: After build, creates `{outDir}.zip` under [outputRoot](/config/output-root), e.g. `.extenzo/extension.zip`, containing the full [outDir](/config/out-dir) contents.
 - **`false`**: Only outputs the directory, no zip.
 
 ## Examples
@@ -18,9 +18,9 @@
 
 ```ts
 export default defineConfig({
-  outDir: "dist",
+  outDir: "extension",
   outputRoot: ".extenzo",
-  // zip true → .extenzo/dist.zip
+  // zip true → .extenzo/extension.zip
 });
 ```
 
@@ -29,7 +29,7 @@ export default defineConfig({
 ```ts
 export default defineConfig({
   zip: false,
-  // only .extenzo/dist, no zip
+  // only .extenzo/extension, no zip
 });
 ```
 

@@ -1,0 +1,52 @@
+import { Tab, Tabs } from '@rspress/core/theme';
+
+# React
+
+Add `@rsbuild/plugin-react` to **plugins** in `exo.config.ts` to enable React and JSX/TSX.
+
+## Setup
+
+<Tabs>
+  <Tab label="pnpm">
+
+```bash
+pnpm add react react-dom @rsbuild/plugin-react -D
+```
+
+  </Tab>
+  <Tab label="npm">
+
+```bash
+npm install react react-dom @rsbuild/plugin-react -D
+```
+
+  </Tab>
+  <Tab label="yarn">
+
+```bash
+yarn add react react-dom @rsbuild/plugin-react -D
+```
+
+  </Tab>
+  <Tab label="bun">
+
+```bash
+bun add react react-dom @rsbuild/plugin-react -D
+```
+
+  </Tab>
+</Tabs>
+
+```ts
+// exo.config.ts
+import { defineConfig } from "extenzo";
+import { pluginReact } from "@rsbuild/plugin-react";
+
+export default defineConfig({
+  plugins: [pluginReact()],
+});
+```
+
+## Related
+
+- [Basics](/guide/manifest), [entry](/guide/entry).

@@ -153,6 +153,7 @@ chrome.runtime.onInstalled.addListener((params: any) => {
 
   switch (reason) {
     case "install":
+      chrome.tabs.create({ url: chrome.runtime.getURL("welcome.html") });
       createURL(
         `https://videoroll.app/${
           chrome.i18n.getUILanguage().includes("zh") ? "zh" : "en"
@@ -160,6 +161,7 @@ chrome.runtime.onInstalled.addListener((params: any) => {
       );
       break;
     case "update":
+      chrome.tabs.create({ url: chrome.runtime.getURL("welcome.html") });
       createURL(
         `https://docs.videoroll.app/${
           chrome.i18n.getUILanguage().includes("zh") ? "cn" : "en"

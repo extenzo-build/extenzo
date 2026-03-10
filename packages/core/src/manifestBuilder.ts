@@ -32,6 +32,14 @@ function isChromiumFirefoxManifest(m: ManifestConfig): m is ChromiumFirefoxManif
 }
 
 /** Pick manifest object for build by exo rules; returns warning text when target does not match. */
+export function getManifestRecordForTarget(
+  config: ManifestConfig,
+  target: BrowserTarget
+): ManifestRecord {
+  return pickManifestForTarget(config, target).manifest;
+}
+
+/** Pick manifest object for build by exo rules; returns warning text when target does not match. */
 function pickManifestForTarget(
   config: ManifestConfig,
   target: BrowserTarget
@@ -243,7 +251,22 @@ function autoFillEntryFields(
     if (fill) fill(out, path);
   }
 
+  if (mv === 3 && needsSidePanelPermission(out, placeholderMap)) {
+    ensurePermission(out, "sidePanel");
+  }
+
   return out;
+}
+
+function needsSidePanelPermission(
+  out: ManifestRecord,
+  placeholderMap: Record<string, string>
+): boolean {
+  if (placeholderMap.sidepanel != null) return true;
+  const sp = out.side_panel;
+  if (sp == null || typeof sp !== "object" || Array.isArray(sp)) return false;
+  const path = (sp as { default_path?: string }).default_path;
+  return typeof path === "string" && path.trim() !== "";
 }
 
 /** Replace [exo.xxx] in string with placeholderMap path; keep placeholder if no mapping. */

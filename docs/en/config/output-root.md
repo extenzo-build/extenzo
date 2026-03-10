@@ -1,6 +1,6 @@
 # outputRoot
 
-`outputRoot` is the **parent directory** of the build output, default `".extenzo"`. The full output path is `outputRoot/[outDir](/config/out-dir)`, e.g. `.extenzo/dist` by default.
+`outputRoot` is the **parent directory** of the build output, default `".extenzo"`. The full output path is `outputRoot/[outDir](/config/out-dir)`, e.g. `.extenzo/extension` by default.
 
 ## Type and default
 
@@ -9,7 +9,7 @@
 
 ## Why .extenzo
 
-Using `.extenzo/dist` instead of root `dist` avoids tools (e.g. Tailwind v4) scanning the root and treating `dist` as source, which can cause circular builds or extra watch.
+Using `.extenzo/extension` instead of root `dist` avoids tools (e.g. Tailwind v4) scanning the root and treating the output dir as source, which can cause circular builds or extra watch.
 
 ## Examples
 
@@ -17,7 +17,7 @@ Using `.extenzo/dist` instead of root `dist` avoids tools (e.g. Tailwind v4) sca
 
 ```ts
 export default defineConfig({
-  // outputRoot ".extenzo", outDir "dist" → .extenzo/dist
+  // outputRoot ".extenzo", outDir "extension" → .extenzo/extension
 });
 ```
 

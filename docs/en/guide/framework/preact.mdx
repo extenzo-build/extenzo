@@ -1,0 +1,52 @@
+import { Tab, Tabs } from '@rspress/core/theme';
+
+# Preact
+
+Add `@rsbuild/plugin-preact` to **plugins** in `exo.config.ts` to enable Preact and JSX/TSX.
+
+## Setup
+
+<Tabs>
+  <Tab label="pnpm">
+
+```bash
+pnpm add preact @rsbuild/plugin-preact -D
+```
+
+  </Tab>
+  <Tab label="npm">
+
+```bash
+npm install preact @rsbuild/plugin-preact -D
+```
+
+  </Tab>
+  <Tab label="yarn">
+
+```bash
+yarn add preact @rsbuild/plugin-preact -D
+```
+
+  </Tab>
+  <Tab label="bun">
+
+```bash
+bun add preact @rsbuild/plugin-preact -D
+```
+
+  </Tab>
+</Tabs>
+
+```ts
+// exo.config.ts
+import { defineConfig } from "extenzo";
+import { pluginPreact } from "@rsbuild/plugin-preact";
+
+export default defineConfig({
+  plugins: [pluginPreact()],
+});
+```
+
+## Related
+
+- [Basics](/guide/manifest), [entry](/guide/entry).

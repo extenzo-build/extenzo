@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { transformerNotationHighlight } from "@shikijs/transformers";
 import fileTree from "rspress-plugin-file-tree";
+import tailwindcss from "@tailwindcss/postcss";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -10,6 +11,11 @@ export default defineConfig({
   root: ".",
   plugins: [fileTree()],
   globalStyles: path.join(__dirname, "styles/theme.css"),
+  tools: {
+    postcss: (_opts, { addPlugins }) => {
+      addPlugins(tailwindcss());
+    },
+  },
   lang: "zh",
   route: {
     exclude: ["config/**", "advanced/**", "packages/**"],

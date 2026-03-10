@@ -55,7 +55,7 @@ describe("ConfigLoader", () => {
       const { config, baseEntries, entries } = resolveExtenzoConfig(fixtureDir);
       expect(config.root).toBe(fixtureDir);
       expect(config.appDir).toMatch(/config-loader[\\/]src$/);
-      expect(config.outDir).toBe("dist");
+      expect(config.outDir).toBe("extension");
       expect(config.outputRoot).toBe(".extenzo");
       expect(entries.length).toBeGreaterThan(0);
       expect(entries.map((e) => e.name)).toContain("background");
@@ -64,7 +64,7 @@ describe("ConfigLoader", () => {
     it("uses default appDir and outDir when not set in config", () => {
       const { config, entries } = resolveExtenzoConfig(minimalFixtureDir);
       expect(config.appDir).toBe(path.join(minimalFixtureDir, "app"));
-      expect(config.outDir).toBe("dist");
+      expect(config.outDir).toBe("extension");
       expect(entries.some((e) => e.name === "background")).toBe(true);
     });
 

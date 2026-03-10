@@ -55,7 +55,7 @@ function formatError(err: unknown): string {
  * Used in CLI top-level catch for clear error reporting.
  */
 export function exitWithError(err: unknown, exitCode = 1): never {
-  exoError("\n" + formatError(err));
+  exoError(formatError(err));
   process.exit(exitCode);
 }
 

@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+@source "./**/*.tsx";
+
+/* Theme-aware CSS variables (light/dark) for home page */
+:root {
+  --exo-home-bg: #fafafa;
+  --exo-home-text: #1a1a1a;
+  --exo-home-muted: #6b7280;
+  --exo-home-border: #e5e7eb;
+  --exo-home-block-bg: #ffffff;
+  --exo-home-card-bg: rgba(255, 255, 255, 0.9);
+  --exo-home-card-hover: #ffffff;
+  --exo-hero-gradient: linear-gradient(135deg, #fafafa 0%, #f5f5f5 40%, rgba(249, 115, 22, 0.06) 100%);
+  --exo-term-bg: #f6f8fa;
+  --exo-term-bar-bg: #eaeef2;
+  --exo-term-border: #d0d7de;
+  --exo-term-prompt: #57606a;
+  --exo-term-value: #1a1a1a;
+  --exo-term-exo: #c2410c;
+  --exo-term-done: #1a7f37;
+  --exo-term-purple: #8250df;
+  --exo-term-time: #656d76;
+  --exo-term-cyan: #0969da;
+  --exo-term-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.dark {
+  --exo-home-bg: #0d0d0d;
+  --exo-home-text: #ffffff;
+  --exo-home-muted: #8b949e;
+  --exo-home-border: #21262d;
+  --exo-home-block-bg: #161b22;
+  --exo-home-card-bg: rgba(22, 27, 34, 0.6);
+  --exo-home-card-hover: rgba(22, 27, 34, 0.9);
+  --exo-hero-gradient: linear-gradient(135deg, #0d0d0d 0%, #111318 35%, rgba(249, 115, 22, 0.08) 100%);
+  --exo-term-bg: #0d1117;
+  --exo-term-bar-bg: #161b22;
+  --exo-term-border: #30363d;
+  --exo-term-prompt: #8b949e;
+  --exo-term-value: #e6edf3;
+  --exo-term-exo: #e85d04;
+  --exo-term-done: #3fb950;
+  --exo-term-purple: #a371f7;
+  --exo-term-time: #8b949e;
+  --exo-term-cyan: #58a6ff;
+  --exo-term-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes exo-skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Skeleton lines (custom gradient animation) */
+.exo-skeleton-line {
+  height: 10px;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--exo-term-border) 0%,
+    var(--exo-home-border) 50%,
+    var(--exo-term-border) 100%
+  );
+  background-size: 200% 100%;
+  animation: exo-skeleton-shimmer 1.6s ease-in-out infinite;
+}
+.exo-skeleton-line--title {
+  height: 14px;
+  width: 60%;
+  margin-bottom: 0.25rem;
+}
+.exo-skeleton-line--short {
+  width: 75%;
+}
+
+/* Hide scrollbar but keep scroll behavior (terminal body) */
+.exo-terminal-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.exo-terminal-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.exo-home {
+  width: 100%;
+  padding-left: var(--rp-content-padding-x);
+  padding-right: var(--rp-content-padding-x);
+}
+/* Remove Rspress content area max-width when it wraps the home so width can follow viewport */
+:has(> .exo-home) {
+  max-width: none !important;
+  width: 100% !important;
+}

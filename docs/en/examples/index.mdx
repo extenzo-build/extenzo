@@ -1,0 +1,65 @@
+import { Tab, Tabs } from '@rspress/core/theme';
+
+# Examples
+
+This page lists extension examples in the extenzo repo. Each example is a separate directory with its own `package.json` and `exo.config.ts`. Run install in the repo root (pnpm / npm / yarn / bun), then run dev or build in the example directory.
+
+| Example | Description | Repo link |
+|---------|-------------|-----------|
+| **exo-with-vue** | Vue 3 template: popup, options, content, background with simple messaging. | [examples/exo-with-vue](https://github.com/extenzo-build/extenzo/tree/main/examples/exo-with-vue) |
+| **exo-with-react** | React template: popup, options, content, background with simple messaging. | [examples/exo-with-react](https://github.com/extenzo-build/extenzo/tree/main/examples/exo-with-react) |
+| **exo-with-preact** | Preact template: popup, options, content, background with simple messaging. | [examples/exo-with-preact](https://github.com/extenzo-build/extenzo/tree/main/examples/exo-with-preact) |
+| **exo-with-svelte** | Svelte template: popup, options, content, background with simple messaging. | [examples/exo-with-svelte](https://github.com/extenzo-build/extenzo/tree/main/examples/exo-with-svelte) |
+| **exo-with-solid** | Solid template: popup, options, content, background with simple messaging. | [examples/exo-with-solid](https://github.com/extenzo-build/extenzo/tree/main/examples/exo-with-solid) |
+| **exo-with-uno** | React + UnoCSS: popup, options, content, background; atomic CSS via PostCSS. | [examples/exo-with-uno](https://github.com/extenzo-build/extenzo/tree/main/examples/exo-with-uno) |
+| **exo-with-react-shadcn** | React + shadcn/ui: popup, options, content, background, sidepanel; Tailwind + component library. | [examples/exo-with-react-shadcn](https://github.com/extenzo-build/extenzo/tree/main/examples/exo-with-react-shadcn) |
+| **exo-with-devtools** | Plain TypeScript: background + devtools_page only, no React/Vue; demonstrates a DevTools extension. | [examples/exo-with-devtools](https://github.com/extenzo-build/extenzo/tree/main/examples/exo-with-devtools) |
+
+## How to run
+
+From the extenzo repo root, run install, then go to an example directory:
+
+<Tabs>
+  <Tab label="pnpm">
+
+```bash
+pnpm install
+cd examples/exo-with-vue   # or another example
+pnpm dev                   # dev mode
+pnpm build                 # build
+```
+
+  </Tab>
+  <Tab label="npm">
+
+```bash
+npm install
+cd examples/exo-with-vue   # or another example
+npm run dev                # dev mode
+npm run build              # build
+```
+
+  </Tab>
+  <Tab label="yarn">
+
+```bash
+yarn install
+cd examples/exo-with-vue   # or another example
+yarn dev                   # dev mode
+yarn build                 # build
+```
+
+  </Tab>
+  <Tab label="bun">
+
+```bash
+bun install
+cd examples/exo-with-vue   # or another example
+bun run dev                # dev mode
+bun run build              # build
+```
+
+  </Tab>
+</Tabs>
+
+Output goes to `.extenzo/extension` (or the example's outputRoot/outDir). Load that directory in the browser; with dev mode, the framework can open the browser and load the extension automatically.
