@@ -104,7 +104,7 @@ export interface ExtenzoUserConfig {
   /** @deprecated Use appDir instead. */
   srcDir?: string;
   /**
-   * Output directory name under outputRoot (e.g. "dist" → output at .extenzo/dist). Default "dist".
+   * Output directory name under outputRoot (e.g. "extension" → output at .extenzo/extension). Default "extension".
    */
   outDir?: string;
   /**

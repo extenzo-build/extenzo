@@ -1,7 +1,14 @@
 import browser from "webextension-polyfill";
 
+function openWelcomePage(): void {
+  const url = browser.runtime.getURL("welcome.html");
+  browser.tabs.create({ url }).catch(() => {});
+}
 
-browser.runtime.onInstalled.addListener(() => {
+browser.runtime.onInstalled.addListener((details) => {
+  if (details.reason === "install" || details.reason === "update") {
+    openWelcomePage();
+  }
   console.log("[background] Extension installed");
 });
 

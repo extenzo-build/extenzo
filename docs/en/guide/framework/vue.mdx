@@ -1,0 +1,52 @@
+import { Tab, Tabs } from '@rspress/core/theme';
+
+# Vue
+
+Add `@extenzo/rsbuild-plugin-vue` to **plugins** in `exo.config.ts` to enable Vue 3 (SFC, Vue runtime).
+
+## Setup
+
+<Tabs>
+  <Tab label="pnpm">
+
+```bash
+pnpm add vue @extenzo/rsbuild-plugin-vue -D
+```
+
+  </Tab>
+  <Tab label="npm">
+
+```bash
+npm install vue @extenzo/rsbuild-plugin-vue -D
+```
+
+  </Tab>
+  <Tab label="yarn">
+
+```bash
+yarn add vue @extenzo/rsbuild-plugin-vue -D
+```
+
+  </Tab>
+  <Tab label="bun">
+
+```bash
+bun add vue @extenzo/rsbuild-plugin-vue -D
+```
+
+  </Tab>
+</Tabs>
+
+```ts
+// exo.config.ts
+import { defineConfig } from "extenzo";
+import vue from "@extenzo/rsbuild-plugin-vue";
+
+export default defineConfig({
+  plugins: [vue()],
+});
+```
+
+## Related
+
+- [Basics](/guide/manifest), [entry](/guide/entry).

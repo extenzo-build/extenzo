@@ -287,6 +287,33 @@ describe("ManifestBuilder", () => {
       );
     });
 
+    it("adds sidePanel permission when sidepanel entry present", () => {
+      const builder = new ManifestBuilder();
+      const manifest = { ...baseManifest };
+      const out = builder.buildForBrowser(
+        { chromium: manifest },
+        [entry("sidepanel", "/s/index.js", "/s/index.html")],
+        "chromium"
+      );
+      const perms = (out as { permissions?: string[] }).permissions;
+      expect(Array.isArray(perms) && perms.includes("sidePanel")).toBe(true);
+    });
+
+    it("adds sidePanel permission when user manually set side_panel.default_path", () => {
+      const builder = new ManifestBuilder();
+      const manifest = {
+        ...baseManifest,
+        side_panel: { default_path: "sidepanel/custom.html" },
+      };
+      const out = builder.buildForBrowser(
+        { chromium: manifest },
+        [],
+        "chromium"
+      );
+      const perms = (out as { permissions?: string[] }).permissions;
+      expect(Array.isArray(perms) && perms.includes("sidePanel")).toBe(true);
+    });
+
     it("replaces [exo.newtab] in chrome_url_overrides when newtab entry present", () => {
       const builder = new ManifestBuilder();
       const manifest = {

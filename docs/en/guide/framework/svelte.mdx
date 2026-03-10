@@ -1,0 +1,52 @@
+import { Tab, Tabs } from '@rspress/core/theme';
+
+# Svelte
+
+Add `@rsbuild/plugin-svelte` to **plugins** in `exo.config.ts` to enable Svelte (`.svelte` files).
+
+## Setup
+
+<Tabs>
+  <Tab label="pnpm">
+
+```bash
+pnpm add svelte @rsbuild/plugin-svelte -D
+```
+
+  </Tab>
+  <Tab label="npm">
+
+```bash
+npm install svelte @rsbuild/plugin-svelte -D
+```
+
+  </Tab>
+  <Tab label="yarn">
+
+```bash
+yarn add svelte @rsbuild/plugin-svelte -D
+```
+
+  </Tab>
+  <Tab label="bun">
+
+```bash
+bun add svelte @rsbuild/plugin-svelte -D
+```
+
+  </Tab>
+</Tabs>
+
+```ts
+// exo.config.ts
+import { defineConfig } from "extenzo";
+import { pluginSvelte } from "@rsbuild/plugin-svelte";
+
+export default defineConfig({
+  plugins: [pluginSvelte()],
+});
+```
+
+## Related
+
+- [Basics](/guide/manifest), [entry](/guide/entry).

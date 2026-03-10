@@ -1,0 +1,62 @@
+import { Tab, Tabs } from '@rspress/core/theme';
+
+# Solid
+
+在 `exo.config.ts` 的 **plugins** 中接入 `@rsbuild/plugin-babel` 与 `@rsbuild/plugin-solid` 即可启用 Solid 与 JSX/TSX 支持。Solid 的 JSX 依赖 Babel 编译，因此需要同时添加 Babel 插件。
+
+## 安装与配置
+
+<Tabs>
+  <Tab label="pnpm">
+
+```bash
+pnpm add solid-js @rsbuild/plugin-babel @rsbuild/plugin-solid -D
+```
+
+  </Tab>
+  <Tab label="npm">
+
+```bash
+npm install solid-js @rsbuild/plugin-babel @rsbuild/plugin-solid -D
+```
+
+  </Tab>
+  <Tab label="yarn">
+
+```bash
+yarn add solid-js @rsbuild/plugin-babel @rsbuild/plugin-solid -D
+```
+
+  </Tab>
+  <Tab label="bun">
+
+```bash
+bun add solid-js @rsbuild/plugin-babel @rsbuild/plugin-solid -D
+```
+
+  </Tab>
+</Tabs>
+
+```ts
+// exo.config.ts
+import { defineConfig } from "extenzo";
+import { pluginBabel } from "@rsbuild/plugin-babel";
+import { pluginSolid } from "@rsbuild/plugin-solid";
+
+export default defineConfig({
+  plugins: [
+    pluginBabel({ include: /\.(?:jsx|tsx)$/ }),
+    pluginSolid(),
+  ],
+});
+```
+
+## 说明
+
+- **@rsbuild/plugin-solid**：为 Solid 提供 Rsbuild 支持，内部使用 babel-preset-solid。
+- **@rsbuild/plugin-babel**：需配合使用，且建议用 `include` 限定 `.jsx`/`.tsx` 以减小编译开销。
+- 与 Vue、React、Preact、Svelte 等互斥，与 Less/Sass 等可混用。
+
+## 相关
+
+- [2. 基础](/guide/manifest)：manifest、[entry](/guide/entry/concept) 等配置与框架无关。

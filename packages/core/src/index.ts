@@ -12,6 +12,7 @@ export {
   resolveManifestChromium,
   resolveManifestFirefox,
   resolveManifestForTarget,
+  getManifestRecordForTarget,
 } from "./manifestBuilder.ts";
 export type { ContentScriptOutput } from "./manifestBuilder.ts";
 export { mergeRsbuildConfig } from "@rsbuild/core";
@@ -73,4 +74,6 @@ export type {
 } from "./types.ts";
 export { parseExtenzoEntryFromHtml } from "./htmlEntry.ts";
 export type { ExtenzoEntryScriptResult } from "./htmlEntry.ts";
-export { log, logDone, logDoneTimed, logDoneWithValue, formatDuration, warn, error, setExoLoggerRawWrites } from "./logger.ts";
+export { log, logDone, logDoneTimed, logDoneWithValue, formatDuration, warn, error, setExoLoggerRawWrites, writeExtensionErrorBlock, logEntriesTable } from "./logger.ts";
+export { getExtenzoVersion } from "./version.ts";
+export type { EntryTableRow, LogEntriesTableOptions } from "./logger.ts";
