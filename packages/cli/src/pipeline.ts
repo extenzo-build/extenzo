@@ -7,6 +7,7 @@ import {
   HMR_WS_PORT,
   DEFAULT_BROWSER,
   warn,
+  getManifestRecordForTarget,
 } from "@extenzo/core";
 import type {
   PipelineContext,
@@ -81,6 +82,7 @@ export class Pipeline {
     const configBrowser = this.getConfigBrowser(config);
     const launchTarget = this.resolveLaunchTarget(parseResult.launch, configBrowser);
     const browser = this.resolveTarget(parseResult.target, launchTarget, configBrowser);
+    this.warnChromiumMv2(config, browser);
     const persist = this.resolvePersist(parseResult.persist, config.persist);
 
     const base = this.buildBaseRsbuildConfig({ root, config, baseEntries, entries, browser, isDev });
@@ -119,6 +121,16 @@ export class Pipeline {
     }
     if (parseResult.unknownTarget) {
       warn("Unknown target", parseResult.unknownTarget, ", use chromium or firefox. Defaulting to chromium.");
+    }
+  }
+
+  /** Warn when building for Chromium with manifest_version 2 (deprecated). */
+  private warnChromiumMv2(config: PipelineContext["config"], browser: BrowserTarget): void {
+    if (browser !== "chromium") return;
+    const record = getManifestRecordForTarget(config.manifest, browser);
+    const mv = record?.manifest_version;
+    if (mv === 2) {
+      warn("Warning: MV2 has been deprecated for Chrome. Please use MV3.");
     }
   }
 

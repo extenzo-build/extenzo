@@ -7,6 +7,130 @@
     "en": "Home",
     "zh": "首页"
   },
+  "homeHeroLine1": {
+    "en": "Build Better Extensions",
+    "zh": "构建更好的浏览器扩展"
+  },
+  "homeHeroLine2Orange": {
+    "en": "Faster",
+    "zh": "更快"
+  },
+  "homeHeroLine2Purple": {
+    "en": "for Developers and AI",
+    "zh": "为开发者和AI"
+  },
+  "homeHeroTagline": {
+    "en": "Browser extension development framework built on Rsbuild. One config for Chrome and Firefox; dev with HMR, build and ship.",
+    "zh": "加速你的浏览器插件开发。基于 Rsbuild，快速，简单，自由。"
+  },
+  "homeHeroGetStarted": {
+    "en": "Get Started",
+    "zh": "快速开始"
+  },
+  "homeHeroConfig": {
+    "en": "Config",
+    "zh": "配置"
+  },
+  "homeFeaturesSectionTitle": {
+    "en": "Redefining developer experience",
+    "zh": "重新定义开发体验"
+  },
+  "homeFeaturesSectionSubtitle": {
+    "en": "Extenzo makes extension development fast and predictable.",
+    "zh": "Extenzo 让扩展开发更快、更可预期。"
+  },
+  "homeBlock1Title": {
+    "en": "Instant Server Start",
+    "zh": "即时启动开发"
+  },
+  "homeBlock1Desc": {
+    "en": "Run extenzo dev for watch + HMR; the extension loads in the browser and updates on every change.",
+    "zh": "运行 extenzo dev 即 watch + HMR；扩展在浏览器中加载，content_script 与 background 均能无感热更新。"
+  },
+  "homeBlock2Title": {
+    "en": "Optimized Build",
+    "zh": "优化构建与打包"
+  },
+  "homeBlock2Desc": {
+    "en": "One command to build and zip; same Rsbuild pipeline for production-ready output.",
+    "zh": "使用 build 将自动打包 zip 格式；与生产一致的 Rsbuild 流水线。"
+  },
+  "homeFeaturesGridTitle": {
+    "en": "Features",
+    "zh": "功能概览"
+  },
+  "homeFeature1Title": {
+    "en": "Same experience in dev and production",
+    "zh": "一流的开发与生产体验"
+  },
+  "homeFeature1Details": {
+    "en": "Full-bundle mode minimizes the dev/prod gap; Rsbuild + build watch give hot reload with consistent output.",
+    "zh": "底层基于 Rsbuild。Full bundle 模式保证开发与打包体验一致且不丢失极致的性能。"
+  },
+  "homeFeature2Title": {
+    "en": "Framework agnostic",
+    "zh": "框架无关"
+  },
+  "homeFeature2Details": {
+    "en": "Vanilla, Vue, React, Preact, Svelte, Solid, or React+UnoCSS — use what you like.",
+    "zh": "你可以用 Vanilla，也可以使用 Vue、React、Preact、Svelte、Solid 或 React+UnoCSS 等框架。"
+  },
+  "homeFeature3Title": {
+    "en": "Minimal config",
+    "zh": "极简的配置"
+  },
+  "homeFeature3Details": {
+    "en": "Install extenzo, add exo.config.ts at the root, and start — no complex setup.",
+    "zh": "安装 extenzo 后，在根目录添加 exo.config.ts 即可开始，无需复杂的配置即可完成插件开发。"
+  },
+  "homeFeature4Title": {
+    "en": "Full browser support",
+    "zh": "全方位的浏览器支持"
+  },
+  "homeFeature4Details": {
+    "en": "Support for 6+ Chromium-based browsers and Firefox; auto-detect install path and launch.",
+    "zh": "支持多达 6 种基于 Chromium 的浏览器和 Firefox。无需配置即可自动识别浏览器默认安装地址并启动。"
+  },
+  "homeFeature5Title": {
+    "en": "Seamless HMR",
+    "zh": "无感热更新"
+  },
+  "homeFeature5Details": {
+    "en": "Dedicated plugin for extension reload; content_script and background both hot-update.",
+    "zh": "使用独立插件控制插件更新，不仅快速，content_script 和 background 均能实现无感热更新。"
+  },
+  "homeFeature6Title": {
+    "en": "Content UI support",
+    "zh": "支持 content-ui"
+  },
+  "homeFeature6Details": {
+    "en": "Built-in createContentUI for Iframe, ShadowDom, or inline content.",
+    "zh": "提供了内置的 createContentUI 方法，可轻松集成 Iframe、ShadowDom 和原生内容。"
+  },
+  "homeFeature7Title": {
+    "en": "AI-friendly error monitor",
+    "zh": "AI 友好的错误监控"
+  },
+  "homeFeature7Details": {
+    "en": "With --debug, terminal error output; capture all errors without opening DevTools, ready for Ask AI in any editor.",
+    "zh": "使用 --debug 时启用终端错误输出。无需在浏览器操作即可掌握插件所有报错信息，方便你在任何 Editor 中直接 Ask AI。"
+  },
+  "homeFeature8Title": {
+    "en": "Zip on build",
+    "zh": "支持打包 zip"
+  },
+  "homeFeature8Details": {
+    "en": "Running build automatically produces a zip of the extension.",
+    "zh": "使用 build 将自动打包 zip 格式的文件。"
+  },
+  "homeFeature9Title": {
+    "en": "Maximum flexibility",
+    "zh": "自由度极高"
+  },
+  "homeFeature9Details": {
+    "en": "File-based entry discovery or entry config; flexibility for complex projects.",
+    "zh": "支持基于文件自动识别入口，也支持通过 entry 字段配置入口。最大程度为复杂项目提供灵活性。"
+  },
   "guide": {
     "en": "Guide",
     "zh": "指南"

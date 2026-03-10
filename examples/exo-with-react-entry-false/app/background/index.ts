@@ -2,7 +2,12 @@ import browser from "webextension-polyfill";
 
 console.log("[background] Extension loaded (entry: false)");
 
-chrome.runtime.onInstalled.addListener(() => {
+function openWelcomePage(): void {
+  browser.tabs.create({ url: browser.runtime.getURL("welcome.html") }).catch(() => {});
+}
+
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason === "install" || details.reason === "update") openWelcomePage();
   console.log("[background] Extension installed (entry: false)");
 });
 

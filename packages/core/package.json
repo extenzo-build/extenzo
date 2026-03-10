@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@rsbuild/core": "^1.6.0",
+    "cli-table3": "^0.6.5",
     "jiti": "^2.0.0"
   },
   "devDependencies": {

@@ -44,7 +44,7 @@ export const SCRIPT_ONLY_ENTRY_NAMES = ["background", "content"] as const;
 export const EXTENZO_OUTPUT_ROOT = ".extenzo";
 
 /** outputRoot 下的默认输出目录名（用户可通过 outDir 覆盖） */
-export const DEFAULT_OUT_DIR = "dist";
+export const DEFAULT_OUT_DIR = "extension";
 
 /** 默认应用目录（相对于项目根目录） */
 export const DEFAULT_APP_DIR = "app";

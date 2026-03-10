@@ -7,7 +7,7 @@ import { rm } from "node:fs/promises";
 import { createServer } from "node:http";
 import { WebSocketServer, WebSocket } from "ws";
 import type { LaunchTarget, ChromiumLaunchTarget } from "@extenzo/core";
-import { log, logDone, logDoneTimed, warn, error } from "@extenzo/core";
+import { log, logDone, logDoneTimed, warn, error, writeExtensionErrorBlock, getExtenzoVersion } from "@extenzo/core";
 import { runChromiumRunner } from "./chromium-runner";
 import type { ChromiumRunnerOptions } from "./chromium-runner";
 
@@ -185,10 +185,7 @@ type ExtensionErrorPayload = {
   time?: number;
 };
 
-const RED = "\x1b[31m";
-const RED_RESET = "\x1b[0m";
-
-function formatExtensionErrorForTerminal(payload: ExtensionErrorPayload): string {
+function buildExtensionErrorLines(payload: ExtensionErrorPayload): string[] {
   const entry = typeof payload.entry === "string" && payload.entry.trim() ? payload.entry.trim() : "unknown";
   const errorType = typeof payload.type === "string" && payload.type.trim() ? payload.type.trim() : "error";
   const timeStr =
@@ -201,25 +198,23 @@ function formatExtensionErrorForTerminal(payload: ExtensionErrorPayload): string
   const lineno = payload.lineno != null && Number.isFinite(Number(payload.lineno)) ? Number(payload.lineno) : undefined;
   const colno = payload.colno != null && Number.isFinite(Number(payload.colno)) ? Number(payload.colno) : undefined;
   const loc = filename ? (filename + (lineno != null ? `:${lineno}` : "") + (colno != null ? `:${colno}` : "")) : "";
+  const extenzoVersion = getExtenzoVersion();
   const lines: string[] = [
     "--- Extenzo extension error ---",
+    `extenzo version: ${extenzoVersion}`,
     `source: ${entry}`,
     `type: ${errorType}`,
     `time: ${timeStr}`,
     `message: ${message}`,
   ];
   if (loc) lines.push(`location: ${loc}`);
-  if (stack) lines.push(`stack:\n${stack}`);
+  if (stack) lines.push("stack:", ...stack.split("\n"));
   lines.push("---------------------------");
-  return lines.join("\n");
+  return lines;
 }
 
 function logExtensionErrorToTerminal(payload: ExtensionErrorPayload): void {
-  const text = formatExtensionErrorForTerminal(payload);
-  const w = process.stderr.write.bind(process.stderr);
-  for (const line of text.split("\n")) {
-    w(RED + line + RED_RESET + "\n", "utf8");
-  }
+  writeExtensionErrorBlock(buildExtensionErrorLines(payload));
 }
 
 function handleHttpRequest(

@@ -50,7 +50,7 @@ describe("logger", () => {
     expect(err.some((s) => s.includes(EXO_PREFIX) && s.includes("warning message"))).toBe(true);
   });
 
-  it("error writes to stderr with [exo] prefix", () => {
+  it("error writes to stderr with red-background yellow error badge, no [exo] prefix", () => {
     const err: string[] = [];
     setExoLoggerRawWrites({
       stdout: process.stdout.write.bind(process.stdout),
@@ -60,7 +60,10 @@ describe("logger", () => {
       },
     });
     error("error message");
-    expect(err.some((s) => s.includes(EXO_PREFIX) && s.includes("error message"))).toBe(true);
+    const concat = err.join("");
+    expect(concat).not.toContain("[exo]");
+    expect(concat).toContain(" error ");
+    expect(concat).toContain("error message");
   });
 
   it("formatDuration returns seconds for >= 1000ms", () => {

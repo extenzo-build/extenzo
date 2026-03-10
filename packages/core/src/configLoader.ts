@@ -18,7 +18,7 @@ import {
 import { EntryDiscoverer } from "./entryDiscoverer.ts";
 import { EntryResolver } from "./entryResolver.ts";
 import { resolveManifestInput } from "./manifestLoader.ts";
-import { logDoneTimed } from "./logger.ts";
+import { logDoneTimed, logEntriesTable } from "./logger.ts";
 
 const require = createRequire(
   typeof __filename !== "undefined" ? __filename : import.meta.url
@@ -133,6 +133,7 @@ export class ConfigLoader {
     const entries = entryDisabled ? [] : this.entryResolver.resolve(user, root, baseDir);
     if (!entryDisabled && entries.length === 0) throw createNoEntriesError(baseDir);
     logDoneTimed("Parse entries", Math.round(performance.now() - t2));
+    logEntriesTable(entries, { root });
     return { config, baseEntries, entries };
   }
 }

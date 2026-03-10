@@ -42,8 +42,8 @@ describe("constants", () => {
     }
   });
 
-  it("DEFAULT_OUT_DIR is dist", () => {
-    expect(DEFAULT_OUT_DIR).toBe("dist");
+  it("DEFAULT_OUT_DIR is extension", () => {
+    expect(DEFAULT_OUT_DIR).toBe("extension");
   });
 
   it("EXTENZO_OUTPUT_ROOT is .extenzo", () => {
