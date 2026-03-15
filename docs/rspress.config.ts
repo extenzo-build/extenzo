@@ -18,7 +18,8 @@ export default defineConfig({
   },
   lang: "zh",
   route: {
-    exclude: ["config/**", "advanced/**", "packages/**"],
+    // 保留高级与内部包文档为隐藏，但对外暴露 config 配置文档，方便通过侧边栏的「配置」分组访问
+    exclude: ["advanced/**", "packages/**"],
   },
   locales: [
     {

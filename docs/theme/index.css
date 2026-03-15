@@ -11,8 +11,13 @@
   --exo-home-block-bg: #ffffff;
   --exo-home-card-bg: rgba(255, 255, 255, 0.9);
   --exo-home-card-hover: #ffffff;
-  --exo-hero-gradient: linear-gradient(135deg, #fafafa 0%, #f5f5f5 40%, rgba(249, 115, 22, 0.06) 100%);
+  --exo-hero-gradient: radial-gradient(ellipse 100% 80% at 30% 20%, rgba(249, 115, 22, 0.16) 0%, rgba(249, 115, 22, 0.05) 45%, transparent 70%),
+    linear-gradient(160deg, rgba(251, 146, 60, 0.06) 0%, rgba(255, 255, 255, 0.4) 100%);
+  --exo-hero-bg: #fefaf6;
+  --exo-hero-orange-blur: radial-gradient(ellipse 90% 70% at 20% 30%, rgba(249, 115, 22, 0.35) 0%, rgba(251, 146, 60, 0.12) 50%, transparent 75%);
   --exo-term-bg: #f6f8fa;
+  --exo-term-bg-glass: rgba(246, 248, 250, 0.48);
+  --exo-term-glass-underlay: linear-gradient(145deg, rgba(249, 115, 22, 0.08) 0%, rgba(246, 248, 250, 0.4) 50%, rgba(200, 220, 240, 0.3) 100%);
   --exo-term-bar-bg: #eaeef2;
   --exo-term-border: #d0d7de;
   --exo-term-prompt: #57606a;
@@ -23,6 +28,14 @@
   --exo-term-time: #656d76;
   --exo-term-cyan: #0969da;
   --exo-term-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+
+  /* Translate panel: orange + gray; light theme gray = 248,241,233 */
+  --exo-orange-panel-gradient: linear-gradient(160deg, rgba(248, 241, 233, 0.96) 0%, rgba(240, 232, 222, 0.92) 25%, rgba(230, 118, 45, 0.88) 60%, rgba(230, 134, 55, 0.94) 100%);
+  /* Chart gradient gray (for bar/pie stroke); light = 248,241,233 */
+  --exo-chart-gray-start: #f8f1e9;
+  --exo-chart-gray-mid: #eee4dc;
+
+  --exo-home-padding-x: max(calc(( 100vw - var(--rp-content-max-width)  - var(--rp-sidebar-width)  - var(--rp-outline-width)) / 2), 20px);
 }
 
 .dark {
@@ -33,8 +46,13 @@
   --exo-home-block-bg: #161b22;
   --exo-home-card-bg: rgba(22, 27, 34, 0.6);
   --exo-home-card-hover: rgba(22, 27, 34, 0.9);
-  --exo-hero-gradient: linear-gradient(135deg, #0d0d0d 0%, #111318 35%, rgba(249, 115, 22, 0.08) 100%);
+  --exo-hero-gradient: radial-gradient(ellipse 100% 80% at 30% 20%, rgba(249, 115, 22, 0.2) 0%, rgba(249, 115, 22, 0.06) 45%, transparent 70%),
+    linear-gradient(160deg, rgba(251, 146, 60, 0.08) 0%, rgba(13, 17, 23, 0.3) 100%);
+  --exo-hero-bg: #1a1510;
+  --exo-hero-orange-blur: radial-gradient(ellipse 90% 70% at 20% 30%, rgba(249, 115, 22, 0.4) 0%, rgba(251, 146, 60, 0.15) 50%, transparent 75%);
   --exo-term-bg: #0d1117;
+  --exo-term-bg-glass: rgba(13, 17, 23, 0.48);
+  --exo-term-glass-underlay: linear-gradient(145deg, rgba(249, 115, 22, 0.12) 0%, rgba(22, 27, 34, 0.6) 50%, rgba(30, 40, 55, 0.5) 100%);
   --exo-term-bar-bg: #161b22;
   --exo-term-border: #30363d;
   --exo-term-prompt: #8b949e;
@@ -45,6 +63,12 @@
   --exo-term-time: #8b949e;
   --exo-term-cyan: #58a6ff;
   --exo-term-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+
+  /* Translate panel: orange + gray; dark theme gray = 39,30,25 */
+  --exo-orange-panel-gradient: linear-gradient(160deg, rgba(39, 30, 25, 0.94) 0%, rgba(55, 44, 36, 0.9) 25%, rgba(230, 118, 45, 0.82) 60%, rgba(230, 134, 55, 0.9) 100%);
+  /* Chart gradient gray; dark = 39,30,25 */
+  --exo-chart-gray-start: #271e19;
+  --exo-chart-gray-mid: #3c3028;
 }
 
 @keyframes exo-skeleton-shimmer {
@@ -85,10 +109,116 @@
 
 .exo-home {
   width: 100%;
-  padding-left: var(--rp-content-padding-x);
-  padding-right: var(--rp-content-padding-x);
+  padding-left: var(--exo-home-padding-x);
+  padding-right: var(--exo-home-padding-x);
 }
-/* Remove Rspress content area max-width when it wraps the home so width can follow viewport */
+
+/* Hero: rounded rect, no border, orange + blur gradient inside */
+.exo-hero-bg {
+  background-color: var(--exo-hero-bg);
+  background-image: var(--exo-hero-orange-blur);
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-size: 100% 100%;
+}
+
+/* Feature SVG animations */
+@keyframes exo-flow-dash {
+  from { stroke-dashoffset: 20; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes exo-fall-into-box {
+  from { opacity: 0; transform: translateY(-120%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes exo-rotate-circle {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.exo-flow-track {
+  fill: none;
+  stroke: var(--exo-home-muted);
+  stroke-width: 1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.exo-flow-gradient {
+  fill: none;
+  stroke: url(#exo-flow-line-gradient);
+  stroke-width: 1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 6 4;
+  animation: exo-flow-dash 1.2s linear infinite;
+}
+.exo-flow-gradient-vertical {
+  stroke: url(#exo-flow-line-gradient-vertical);
+}
+.exo-zip-flow-gradient {
+  fill: none;
+  stroke: url(#exo-zip-line-gradient);
+  stroke-width: 1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 6 4;
+  animation: exo-flow-dash 1.2s linear infinite;
+}
+.exo-fall-icon {
+  animation: exo-fall-into-box 0.6s ease-out forwards;
+}
+.exo-framework-orbit {
+  animation: exo-rotate-circle 20s linear infinite;
+}
+
+/* Terminal frosted glass background */
+.exo-term-glass {
+  position: relative;
+}
+
+/* Inner gradient layer so the blur has something to show */
+.exo-term-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--exo-term-glass-underlay);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Frosted layer: semi-transparent + blur (blurs ::before behind it) */
+.exo-term-glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--exo-term-bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Content above the glass layers */
+.exo-term-glass > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Remove all hover/focus interaction on package manager tab (icon + label) */
+.rp-tabs__label-with-icon {
+  pointer-events: none;
+  user-select: none;
+}
+button:has(.rp-tabs__label-with-icon) {
+  cursor: default;
+}
+button:has(.rp-tabs__label-with-icon):hover,
+button:has(.rp-tabs__label-with-icon):focus-visible {
+  background: transparent;
+  box-shadow: none;
+  outline: none;
+}
 :has(> .exo-home) {
   max-width: none !important;
   width: 100% !important;

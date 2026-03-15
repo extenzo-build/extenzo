@@ -1,32 +1,32 @@
-import { Tab, Tabs } from '@rspress/core/theme';
+import { Tab, Tabs, TabLabelPnpm, TabLabelNpm, TabLabelYarn, TabLabelBun } from '@rspress/core/theme';
 
 # 安装
 
 ## 方式一：脚手架创建项目
 
 <Tabs>
-  <Tab label="pnpm">
+  <Tab label={<TabLabelPnpm />}>
 
 ```bash
 pnpm create extenzo-app
 ```
 
   </Tab>
-  <Tab label="npm">
+  <Tab label={<TabLabelNpm />}>
 
 ```bash
 npx create-extenzo-app
 ```
 
   </Tab>
-  <Tab label="yarn">
+  <Tab label={<TabLabelYarn />}>
 
 ```bash
 yarn create extenzo-app
 ```
 
   </Tab>
-  <Tab label="bun">
+  <Tab label={<TabLabelBun />}>
 
 ```bash
 bun create extenzo-app
@@ -57,28 +57,28 @@ create-extenzo-app [项目名] [选项]
 将 **extenzo** 作为**开发依赖**安装（一条依赖即包含 CLI 与构建能力）：
 
 <Tabs>
-  <Tab label="pnpm">
+  <Tab label={<TabLabelPnpm />}>
 
 ```bash
 pnpm add -D extenzo
 ```
 
   </Tab>
-  <Tab label="npm">
+  <Tab label={<TabLabelNpm />}>
 
 ```bash
 npm install -D extenzo
 ```
 
   </Tab>
-  <Tab label="yarn">
+  <Tab label={<TabLabelYarn />}>
 
 ```bash
 yarn add -D extenzo
 ```
 
   </Tab>
-  <Tab label="bun">
+  <Tab label={<TabLabelBun />}>
 
 ```bash
 bun add -D extenzo
@@ -127,7 +127,7 @@ export default defineConfig({
 使用 `-l chrome|edge|brave|vivaldi|opera|santa|firefox` 指定目标浏览器，例如：
 
 <Tabs>
-  <Tab label="pnpm">
+  <Tab label={<TabLabelPnpm />}>
 
 ```bash
 pnpm dev
@@ -138,7 +138,7 @@ pnpm build -- -l firefox
 ```
 
   </Tab>
-  <Tab label="npm">
+  <Tab label={<TabLabelNpm />}>
 
 ```bash
 npm run dev
@@ -149,7 +149,7 @@ npm run build -- -l firefox
 ```
 
   </Tab>
-  <Tab label="yarn">
+  <Tab label={<TabLabelYarn />}>
 
 ```bash
 yarn dev
@@ -160,7 +160,7 @@ yarn build -l firefox
 ```
 
   </Tab>
-  <Tab label="bun">
+  <Tab label={<TabLabelBun />}>
 
 ```bash
 bun run dev

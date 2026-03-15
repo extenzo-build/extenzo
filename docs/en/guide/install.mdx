@@ -1,32 +1,32 @@
-import { Tab, Tabs } from '@rspress/core/theme';
+import { Tab, Tabs, TabLabelPnpm, TabLabelNpm, TabLabelYarn, TabLabelBun } from '@rspress/core/theme';
 
 # Installation
 
 ## Option 1: Scaffold a project
 
 <Tabs>
-  <Tab label="pnpm">
+  <Tab label={<TabLabelPnpm />}>
 
 ```bash
 pnpm create extenzo-app
 ```
 
   </Tab>
-  <Tab label="npm">
+  <Tab label={<TabLabelNpm />}>
 
 ```bash
 npx create-extenzo-app
 ```
 
   </Tab>
-  <Tab label="yarn">
+  <Tab label={<TabLabelYarn />}>
 
 ```bash
 yarn create extenzo-app
 ```
 
   </Tab>
-  <Tab label="bun">
+  <Tab label={<TabLabelBun />}>
 
 ```bash
 bun create extenzo-app
@@ -57,28 +57,28 @@ Choose framework (Vanilla / Vue / React / Preact / Svelte / Solid / React+UnoCSS
 Install **extenzo** as a **dev dependency** (one package includes CLI and build):
 
 <Tabs>
-  <Tab label="pnpm">
+  <Tab label={<TabLabelPnpm />}>
 
 ```bash
 pnpm add -D extenzo
 ```
 
   </Tab>
-  <Tab label="npm">
+  <Tab label={<TabLabelNpm />}>
 
 ```bash
 npm install -D extenzo
 ```
 
   </Tab>
-  <Tab label="yarn">
+  <Tab label={<TabLabelYarn />}>
 
 ```bash
 yarn add -D extenzo
 ```
 
   </Tab>
-  <Tab label="bun">
+  <Tab label={<TabLabelBun />}>
 
 ```bash
 bun add -D extenzo
@@ -127,7 +127,7 @@ export default defineConfig({
 Use `-l chrome|edge|brave|vivaldi|opera|santa|firefox` for target browser:
 
 <Tabs>
-  <Tab label="pnpm">
+  <Tab label={<TabLabelPnpm />}>
 
 ```bash
 pnpm dev
@@ -138,7 +138,7 @@ pnpm build -- -l firefox
 ```
 
   </Tab>
-  <Tab label="npm">
+  <Tab label={<TabLabelNpm />}>
 
 ```bash
 npm run dev
@@ -149,7 +149,7 @@ npm run build -- -l firefox
 ```
 
   </Tab>
-  <Tab label="yarn">
+  <Tab label={<TabLabelYarn />}>
 
 ```bash
 yarn dev
@@ -160,7 +160,7 @@ yarn build -l firefox
 ```
 
   </Tab>
-  <Tab label="bun">
+  <Tab label={<TabLabelBun />}>
 
 ```bash
 bun run dev

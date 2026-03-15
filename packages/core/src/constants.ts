@@ -60,23 +60,38 @@ export const SUPPORTED_BROWSERS = ["chromium", "firefox"] as const;
 
 export type BrowserTarget = (typeof SUPPORTED_BROWSERS)[number];
 
-/** Supported launch browsers (CLI --launch / config.browser) */
+/** Supported launch browsers (CLI --launch) */
 export const SUPPORTED_LAUNCH_TARGETS = [
   "chrome",
+  "chromium",
   "edge",
   "brave",
   "vivaldi",
   "opera",
   "santa",
+  "arc",
+  "yandex",
+  "browseros",
+  "custom",
   "firefox",
 ] as const;
 
 export type LaunchTarget = (typeof SUPPORTED_LAUNCH_TARGETS)[number];
 
 /** CLI commands */
-export const CLI_COMMANDS = ["dev", "build"] as const;
+export const CLI_COMMANDS = ["dev", "build", "test"] as const;
 
 export type CliCommand = (typeof CLI_COMMANDS)[number];
+
+/** Rstest config file names (resolution order per https://rstest.rs/guide/basic/configure-rstest) */
+export const RSTEST_CONFIG_FILES = [
+  "rstest.config.cts",
+  "rstest.config.mts",
+  "rstest.config.cjs",
+  "rstest.config.js",
+  "rstest.config.ts",
+  "rstest.config.mjs",
+] as const;
 
 /** Manifest subdir under appDir (second lookup: appDir/manifest/) */
 export const MANIFEST_DIR = "manifest";

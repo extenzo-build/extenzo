@@ -5,8 +5,8 @@
   "description": "React browser extension template: popup, options, content, background + messaging",
   "type": "module",
   "scripts": {
-    "dev": "extenzo dev -p --debug",
-    "build": "extenzo build -r"
+    "dev": "extenzo dev --debug",
+    "build": "extenzo build"
   },
   "dependencies": {
     "@extenzo/utils": "workspace:*",

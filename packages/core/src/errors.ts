@@ -13,6 +13,8 @@ export const EXTENZO_ERROR_CODES = {
   ENTRY_SCRIPT_FROM_HTML: "EXTENZO_ENTRY_SCRIPT_FROM_HTML",
   INVALID_BROWSER: "EXTENZO_INVALID_BROWSER",
   UNKNOWN_COMMAND: "EXTENZO_UNKNOWN_COMMAND",
+  RSTEST_CONFIG_NOT_FOUND: "EXTENZO_RSTEST_CONFIG_NOT_FOUND",
+  RSDOCTOR_NOT_INSTALLED: "EXTENZO_RSDOCTOR_NOT_INSTALLED",
   RSBUILD_CONFIG_ERROR: "EXTENZO_RSBUILD_CONFIG_ERROR",
   BUILD_ERROR: "EXTENZO_BUILD_ERROR",
   ZIP_OUTPUT: "EXTENZO_ZIP_OUTPUT",
@@ -119,7 +121,7 @@ export function createInvalidBrowserError(value: string): ExtenzoError {
     code: EXTENZO_ERROR_CODES.INVALID_BROWSER,
     details: `Current value: "${value}"`,
     hint:
-      "Use -l chrome/edge/brave/vivaldi/opera/santa/firefox or --launch=chrome/edge/brave/vivaldi/opera/santa/firefox; default is chrome when omitted",
+      "Use -l chrome/chromium/edge/brave/vivaldi/opera/santa/arc/yandex/browseros/custom/firefox or --launch=...; use custom only with launch.custom in config",
   });
 }
 
@@ -127,6 +129,23 @@ export function createUnknownCommandError(cmd: string): ExtenzoError {
   return new ExtenzoError("Unknown command", {
     code: EXTENZO_ERROR_CODES.UNKNOWN_COMMAND,
     details: `Command: "${cmd}"`,
-    hint: "Supported: extenzo dev | extenzo build [-l chrome|edge|brave|vivaldi|opera|santa|firefox]",
+    hint: "Supported: extenzo dev | extenzo build | extenzo test [-l chrome|...]; custom requires launch.custom in config",
+  });
+}
+
+export function createRstestConfigNotFoundError(root: string): ExtenzoError {
+  const files = "rstest.config.cts, rstest.config.mts, rstest.config.cjs, rstest.config.js, rstest.config.ts, rstest.config.mjs";
+  return new ExtenzoError("Rstest config file not found", {
+    code: EXTENZO_ERROR_CODES.RSTEST_CONFIG_NOT_FOUND,
+    details: `No rstest.config.* found under ${root}`,
+    hint: `Create one of: ${files}`,
+  });
+}
+
+export function createRsdoctorNotInstalledError(installCommand: string): ExtenzoError {
+  return new ExtenzoError("Rsdoctor plugin not installed", {
+    code: EXTENZO_ERROR_CODES.RSDOCTOR_NOT_INSTALLED,
+    details: "report (-r/--report or config.report) requires @rsdoctor/rspack-plugin",
+    hint: `Install with: ${installCommand}`,
   });
 }

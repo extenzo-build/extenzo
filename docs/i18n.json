@@ -20,7 +20,7 @@
     "zh": "为开发者和AI"
   },
   "homeHeroTagline": {
-    "en": "Browser extension development framework built on Rsbuild. One config for Chrome and Firefox; dev with HMR, build and ship.",
+    "en": "Browser extension development framework built on Rsbuild. One config for Chrome and Firefox; dev with Hot Reload, build and ship.",
     "zh": "加速你的浏览器插件开发。基于 Rsbuild，快速，简单，自由。"
   },
   "homeHeroGetStarted": {
@@ -30,6 +30,10 @@
   "homeHeroConfig": {
     "en": "Config",
     "zh": "配置"
+  },
+  "homeHeroViewOnGithub": {
+    "en": "View on GitHub",
+    "zh": "在 GitHub 查看"
   },
   "homeFeaturesSectionTitle": {
     "en": "Redefining developer experience",
@@ -44,8 +48,8 @@
     "zh": "即时启动开发"
   },
   "homeBlock1Desc": {
-    "en": "Run extenzo dev for watch + HMR; the extension loads in the browser and updates on every change.",
-    "zh": "运行 extenzo dev 即 watch + HMR；扩展在浏览器中加载，content_script 与 background 均能无感热更新。"
+    "en": "Run extenzo dev for watch + Hot Reload; the extension loads in the browser and updates on every change.",
+    "zh": "运行 extenzo dev 即 watch + Hot Reload；扩展在浏览器中加载，content_script 与 background 均能极速HMR。"
   },
   "homeBlock2Title": {
     "en": "Optimized Build",
@@ -58,6 +62,22 @@
   "homeFeaturesGridTitle": {
     "en": "Features",
     "zh": "功能概览"
+  },
+  "homeFeaturesRow1Title": {
+    "en": "For developers",
+    "zh": "为开发者"
+  },
+  "homeFeaturesRow1Subtitle": {
+    "en": "Hot reload, multi-browser support, and minimal config so you can ship extensions faster.",
+    "zh": "热更新、多浏览器支持与极简配置，助你更快交付扩展。"
+  },
+  "homeFeaturesRow2Title": {
+    "en": "For AI",
+    "zh": "为AI"
+  },
+  "homeFeaturesRow2Subtitle": {
+    "en": "Structured meta, terminal errors, and skills — so agents can understand and extend your extension.",
+    "zh": "结构化 meta、终端错误输出与 Skills，让 AI 能理解并扩展你的扩展。"
   },
   "homeFeature1Title": {
     "en": "Same experience in dev and production",
@@ -88,16 +108,16 @@
     "zh": "全方位的浏览器支持"
   },
   "homeFeature4Details": {
-    "en": "Support for 6+ Chromium-based browsers and Firefox; auto-detect install path and launch.",
-    "zh": "支持多达 6 种基于 Chromium 的浏览器和 Firefox。无需配置即可自动识别浏览器默认安装地址并启动。"
+    "en": "Support for mainstream Chromium-based browsers and Firefox; auto-detect install path and launch.",
+    "zh": "支持主流 Chromium 系浏览器和 Firefox。无需配置即可自动识别浏览器默认安装地址并启动。"
   },
   "homeFeature5Title": {
-    "en": "Seamless HMR",
-    "zh": "无感热更新"
+    "en": "Fast HMR",
+    "zh": "极速HMR"
   },
   "homeFeature5Details": {
     "en": "Dedicated plugin for extension reload; content_script and background both hot-update.",
-    "zh": "使用独立插件控制插件更新，不仅快速，content_script 和 background 均能实现无感热更新。"
+    "zh": "使用独立 Reloader 控制扩展更新，不仅快速，content_script 和 background 均能实现极速HMR。"
   },
   "homeFeature6Title": {
     "en": "Content UI support",
@@ -115,13 +135,21 @@
     "en": "With --debug, terminal error output; capture all errors without opening DevTools, ready for Ask AI in any editor.",
     "zh": "使用 --debug 时启用终端错误输出。无需在浏览器操作即可掌握插件所有报错信息，方便你在任何 Editor 中直接 Ask AI。"
   },
+  "homeFeatureBundleAnalysisTitle": {
+    "en": "Rstack Ecosystem",
+    "zh": "Rstack 生态"
+  },
+  "homeFeatureBundleAnalysisDetails": {
+    "en": "Built-in support for Rsdoctor and Rstest to quickly complete bundle analysis, unit and e2e testing.",
+    "zh": "内置支持 Rsdoctor 与 Rstest，可快速完成打包分析及单元、e2e 测试。"
+  },
   "homeFeature8Title": {
     "en": "Zip on build",
-    "zh": "支持打包 zip"
+    "zh": "支持 Zip 输出"
   },
   "homeFeature8Details": {
     "en": "Running build automatically produces a zip of the extension.",
-    "zh": "使用 build 将自动打包 zip 格式的文件。"
+    "zh": "构建时自动输出扩展 zip 包，便于安装与分发。"
   },
   "homeFeature9Title": {
     "en": "Maximum flexibility",
@@ -130,6 +158,22 @@
   "homeFeature9Details": {
     "en": "File-based entry discovery or entry config; flexibility for complex projects.",
     "zh": "支持基于文件自动识别入口，也支持通过 entry 字段配置入口。最大程度为复杂项目提供灵活性。"
+  },
+  "homeFeatureMetaTitle": {
+    "en": "Output meta structure",
+    "zh": "输出 meta 结构"
+  },
+  "homeFeatureMetaDetails": {
+    "en": "Structured meta output for AI and tooling consumption.",
+    "zh": "输出结构化 meta，便于 AI 与工具消费。"
+  },
+  "homeFeatureSkillsTitle": {
+    "en": "Skills support",
+    "zh": "Skills 支持"
+  },
+  "homeFeatureSkillsDetails": {
+    "en": "Extensible skills for agents and automation.",
+    "zh": "可扩展的 Skills，支持 Agent 与自动化。"
   },
   "guide": {
     "en": "Guide",

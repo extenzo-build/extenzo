@@ -14,4 +14,4 @@ export const termTable =
 export const termBody = "p-3 px-4 font-mono text-[0.75rem] leading-[1.7] whitespace-pre-wrap break-all";
 
 export const termBox =
-  "border border-[var(--exo-term-border)] rounded-lg overflow-hidden bg-[var(--exo-term-bg)] shadow-[var(--exo-term-shadow)]";
+  "exo-term-glass border border-[var(--exo-term-border)] rounded-lg overflow-hidden shadow-[var(--exo-term-shadow)]";

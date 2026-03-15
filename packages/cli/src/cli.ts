@@ -3,14 +3,18 @@ import { resolve, dirname } from "path";
 import { existsSync, watch, readFileSync, statSync, readdirSync } from "fs";
 import { fileURLToPath } from "url";
 import { createRequire } from "module";
+import { spawnSync } from "child_process";
 import { runPipeline } from "./pipeline.ts";
 import { wrapExtenzoOutput, getRawWrites, setOutputPrefixRsbuild, setOutputPrefixExo } from "./prefixStream.ts";
 import { zipDist } from "./zipDist.ts";
 import {
   exitWithError,
   createConfigNotFoundError,
+  createRstestConfigNotFoundError,
   CONFIG_FILES,
+  RSTEST_CONFIG_FILES,
   getResolvedConfigFilePath,
+  getResolvedRstestConfigFilePath,
   clearConfigCache,
   log,
   logDone,
@@ -21,6 +25,13 @@ import {
 } from "@extenzo/core";
 import type { PipelineContext } from "@extenzo/core";
 import { launchBrowserOnly } from "@extenzo/rsbuild-plugin-extension-hmr";
+import {
+  detectFromLockfile,
+  getAddCommand,
+  getMissingPackages,
+  isPackageInstalled,
+  type PackageManager,
+} from "@extenzo/pkg-manager";
 
 const root = process.cwd();
 
@@ -115,6 +126,75 @@ function hasConfigFile(): boolean {
   return CONFIG_FILES.some((file) => existsSync(resolve(root, file)));
 }
 
+function hasRstestConfigFile(projectRoot: string): boolean {
+  return RSTEST_CONFIG_FILES.some((file) => existsSync(resolve(projectRoot, file)));
+}
+
+/** Detect browser.enabled from rstest config via regex (avoids loading .ts). */
+function isRstestBrowserEnabled(projectRoot: string): boolean {
+  const configPath = getResolvedRstestConfigFilePath(projectRoot);
+  if (!configPath) return false;
+  try {
+    const content = readFileSync(configPath, "utf-8");
+    return /browser\s*:\s*\{[^}]*enabled\s*:\s*true/.test(content) || /browser\.enabled\s*===?\s*true/.test(content);
+  } catch {
+    return false;
+  }
+}
+
+function getRequiredTestPackages(projectRoot: string): string[] {
+  const required: string[] = ["@rstest/core"];
+  if (isRstestBrowserEnabled(projectRoot)) {
+    required.push("@rstest/browser", "playwright");
+  }
+  return required;
+}
+
+function getRstestBinPath(projectRoot: string): string {
+  const binDir = resolve(projectRoot, "node_modules", ".bin");
+  const name = process.platform === "win32" ? "rstest.cmd" : "rstest";
+  const p = resolve(binDir, name);
+  if (existsSync(p)) return p;
+  const fallback = resolve(binDir, "rstest");
+  if (existsSync(fallback)) return fallback;
+  const require = createRequire(import.meta.url);
+  try {
+    const corePkgPath = require.resolve("@rstest/core/package.json", { paths: [projectRoot] });
+    const coreDir = dirname(corePkgPath);
+    const binInCore = resolve(coreDir, "bin", "rstest.js");
+    if (existsSync(binInCore)) return binInCore;
+  } catch {
+    /* fall through to exitWithError */
+  }
+  exitWithError(new Error("rstest binary not found in node_modules/.bin after installing @rstest/core"));
+}
+
+function runRstest(projectRoot: string, restArgs: string[]): number {
+  const rstestBin = getRstestBinPath(projectRoot);
+  const result = spawnSync(rstestBin, restArgs, { cwd: projectRoot, stdio: "inherit", shell: process.platform === "win32" });
+  return result.status ?? 0;
+}
+
+async function runTest(projectRoot: string, argv: string[]): Promise<void> {
+  if (!hasRstestConfigFile(projectRoot)) throw createRstestConfigNotFoundError(projectRoot);
+
+  const required = getRequiredTestPackages(projectRoot);
+  const missing = getMissingPackages(projectRoot, required);
+  if (missing.length > 0) {
+    const pm = detectFromLockfile(projectRoot);
+    const installCmd = getAddCommand(pm, missing.join(" "), true);
+    exitWithError(
+      new Error(
+        `Missing test dependencies: ${missing.join(", ")}. Please run:\n  ${installCmd}`
+      )
+    );
+  }
+
+  const restArgs = argv.slice(1);
+  const code = runRstest(projectRoot, restArgs);
+  process.exit(code);
+}
+
 function printHelp(): void {
   const version = getVersion();
   console.log(`
@@ -128,6 +208,7 @@ function printHelp(): void {
   Commands:
     dev                        Start development server with HMR
     build                      Build for production
+    test                       Run tests with rstest (unit + optional E2E); forwards args to rstest
 
   Options:
     -t, --target <browser>     Target browser (chromium | firefox)  [default: chromium]
@@ -264,11 +345,16 @@ async function runBuild(root: string, argv: string[]): Promise<void> {
       distPath: ctx.distPath,
       browser: ctx.launchTarget,
       chromePath: launch?.chrome,
+      chromiumPath: launch?.chromium,
       edgePath: launch?.edge,
       bravePath: launch?.brave,
       vivaldiPath: launch?.vivaldi,
       operaPath: launch?.opera,
       santaPath: launch?.santa,
+      arcPath: launch?.arc,
+      yandexPath: launch?.yandex,
+      browserosPath: launch?.browseros,
+      customPath: launch?.custom,
       firefoxPath: launch?.firefox,
       persist: (ctx as { persist?: boolean }).persist,
     });
@@ -291,6 +377,12 @@ async function main(): Promise<void> {
   wrapExtenzoOutput();
   setExoLoggerRawWrites(getRawWrites());
   log("Extenzo " + getVersion() + " with " + PURPLE + "Rsbuild " + getRsbuildVersion(root) + RESET);
+
+  const command = argv[0];
+  if (command === "test") {
+    await runTest(root, argv);
+    return;
+  }
 
   if (!hasConfigFile()) throw createConfigNotFoundError(root);
 

@@ -2,6 +2,8 @@ import browser from "webextension-polyfill";
 
 let lastMessage: unknown = null;
 
+console.log("Content script loaded123.456");
+
 browser.runtime.onMessage.addListener(
   (msg: { type: string; payload?: unknown }) => {
     if (msg.type === "FROM_BACKGROUND") {

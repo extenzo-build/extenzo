@@ -9,6 +9,7 @@ import {
   DEFAULT_APP_DIR,
   EXTENZO_OUTPUT_ROOT,
   CLI_COMMANDS,
+  RSTEST_CONFIG_FILES,
   SUPPORTED_BROWSERS,
   MANIFEST_ENTRY_PATHS,
 } from "../src/constants.ts";
@@ -54,9 +55,15 @@ describe("constants", () => {
     expect(DEFAULT_APP_DIR).toBe("app");
   });
 
-  it("CLI_COMMANDS includes dev and build", () => {
+  it("CLI_COMMANDS includes dev, build and test", () => {
     expect(CLI_COMMANDS).toContain("dev");
     expect(CLI_COMMANDS).toContain("build");
+    expect(CLI_COMMANDS).toContain("test");
+  });
+
+  it("RSTEST_CONFIG_FILES includes rstest.config.ts and rstest.config.mjs", () => {
+    expect(RSTEST_CONFIG_FILES).toContain("rstest.config.ts");
+    expect(RSTEST_CONFIG_FILES).toContain("rstest.config.mjs");
   });
 
   it("SUPPORTED_BROWSERS includes chromium and firefox", () => {
