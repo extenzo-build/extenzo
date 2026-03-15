@@ -8,8 +8,8 @@ Extenzo config can be split into the following feature subsets for reference and
 |--------|-------------|-----|
 | **manifest** | Extension manifest: object/path config, per-browser split (chromium/firefox), or omit to auto-load manifest.json; supports [exo.content] placeholders in content_scripts. | [manifest](/config/manifest) |
 | **entry** | Custom entry map: reserved names (popup, options, background, etc.), value = path relative to baseDir. | [entry](/config/entry) |
-| **appDir** | App directory, default project root; baseDir for entry and root for manifest auto-load. | [appDir](/config/app-dir) |
-| **outDir** | Output directory name, default `"dist"`; full path is outputRoot/outDir. | [outDir](/config/out-dir) |
+| **appDir** | App directory, default `"app"`; baseDir for entry and root for manifest auto-load. | [appDir](/config/app-dir) |
+| **outDir** | Output directory name, default `"extension"`; full path is outputRoot/outDir. | [outDir](/config/out-dir) |
 | **outputRoot** | Parent directory for build output, default `".extenzo"`; with outDir defines full output path. | [outputRoot](/config/output-root) |
 | **zip** | Whether to pack output into a zip after build; default true. | [zip](/config/zip) |
 | **envPrefix** | Prefixes for .env vars injected into client; default `['']` exposes all. | [envPrefix](/config/env-prefix) |

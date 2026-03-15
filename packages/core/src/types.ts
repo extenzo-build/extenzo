@@ -47,8 +47,8 @@ export interface PipelineContext {
   launchRequested?: boolean;
   /** Whether to persist Chromium temp user data dir (-p/--persist or config.persist) */
   persist?: boolean;
-  /** When true, enable Rsdoctor (RSDOCTOR=true) for build report. From -r/--report or config.report */
-  report?: boolean;
+  /** When true, enable Rsdoctor (RSDOCTOR=true) for build report. When object, options for RsdoctorRspackPlugin. From -r/--report or config.report */
+  report?: boolean | RsdoctorReportOptions;
   /** Resolved user config (including hooks) */
   config: ExtenzoResolvedConfig;
   /** Base entries from discovery only (before merging entry config) */
@@ -104,15 +104,11 @@ export interface ExtenzoUserConfig {
   /** @deprecated Use appDir instead. */
   srcDir?: string;
   /**
-   * Output directory name under outputRoot (e.g. "extension" → output at .extenzo/extension). Default "extension".
+   * Output directory name under .extenzo (e.g. "extension" → output at .extenzo/extension). Default "extension".
    */
   outDir?: string;
   /**
-   * Parent folder for build output; default ".extenzo". Actual output path is outputRoot/outDir.
-   */
-  outputRoot?: string;
-  /**
-   * When true or omitted, `extenzo build` packs the output directory into a zip file (e.g. dist.zip).
+   * When true or omitted, `extenzo build` packs the output directory into a zip file at `.extenzo/<outDir>.zip`.
    * Set to false to disable zip output.
    */
   zip?: boolean;
@@ -128,11 +124,17 @@ export interface ExtenzoUserConfig {
    */
   launch?: {
     chrome?: string;
+    chromium?: string;
     edge?: string;
     brave?: string;
     vivaldi?: string;
     opera?: string;
     santa?: string;
+    arc?: string;
+    yandex?: string;
+    browseros?: string;
+    /** Path to custom Chromium-based browser executable; required when browser is "custom". */
+    custom?: string;
     firefox?: string;
   };
   /**
@@ -140,11 +142,6 @@ export interface ExtenzoUserConfig {
    * Default false; CLI -p/--persist has higher priority.
    */
   persist?: boolean;
-  /**
-   * Default launch target when CLI doesn't specify --launch.
-   * Accepts chrome/edge/firefox (chromium treated as chrome).
-   */
-  browser?: LaunchTarget | "chromium";
   /**
    * Hot-reload (WebSocket) options for dev. Port defaults to 23333.
    */
@@ -163,9 +160,10 @@ export interface ExtenzoUserConfig {
   debug?: boolean;
   /**
    * When true, enables Rsdoctor build report (RSDOCTOR=true). Build/dev will open analysis page after build.
-   * Default false. CLI -r/--report overrides this.
+   * When object, passes options to RsdoctorRspackPlugin (see https://rsdoctor.rs/config/options/options).
+   * Default false. CLI -r/--report overrides to true when enabled.
    */
-  report?: boolean;
+  report?: boolean | RsdoctorReportOptions;
   /**
    * @deprecated Use rsbuildConfig instead. Kept for compatibility; only function form applies.
    */
@@ -175,11 +173,12 @@ export interface ExtenzoUserConfig {
   ) => RsbuildConfig | Promise<RsbuildConfig>;
 }
 
-/** Resolved config with root, appDir, outDir, outputRoot; manifest is resolved to object form */
+/** Resolved config with root, appDir, outDir; manifest is resolved to object form */
 export interface ExtenzoResolvedConfig extends Omit<ExtenzoUserConfig, "manifest"> {
   manifest: ManifestConfig;
   appDir: string;
   outDir: string;
+  /** Parent folder for build output (always ".extenzo"). */
   outputRoot: string;
   root: string;
   /** When false, framework does not add plugin-extension-entry; user configures entry in rsbuildConfig */
@@ -207,6 +206,29 @@ export type EntryConfigValue =
 
 /** Where to inject the entry script in HTML (for entries discovered via data-extenzo-entry). */
 export type ScriptInjectPosition = "head" | "body";
+
+/**
+ * Options for RsdoctorRspackPlugin when report is object.
+ * @see https://rsdoctor.rs/config/options/options
+ */
+export interface RsdoctorReportOptions {
+  mode?: "brief" | "normal" | "lite";
+  output?: {
+    reportDir?: string;
+    mode?: "brief" | "normal";
+    options?: Record<string, unknown>;
+    reportCodeType?: string | Record<string, boolean>;
+    [key: string]: unknown;
+  };
+  disableClientServer?: boolean;
+  port?: number;
+  features?: unknown;
+  linter?: unknown;
+  supports?: unknown;
+  brief?: unknown;
+  experiments?: { enableNativePlugin?: boolean; [key: string]: unknown };
+  [key: string]: unknown;
+}
 
 /** Discovered entry info */
 export interface EntryInfo {

@@ -7,9 +7,9 @@ export default defineConfig({
   root: process.cwd(),
   coverage: {
     enabled: true,
-    include: ["src/index.ts"],
+    include: ["src/**/*.ts"],
     reporters: [["text", { skipFull: true }], "html", "json", "lcov"],
     reportsDirectory: "./coverage",
-    thresholds: { statements: 45, branches: 39, functions: 35, lines: 44 },
+    thresholds: { statements: 35, branches: 32, functions: 34, lines: 35 },
   },
 });

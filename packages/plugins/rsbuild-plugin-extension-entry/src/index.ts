@@ -244,7 +244,7 @@ export function entryPlugin(resolvedConfig: ExtenzoResolvedConfig, entries: Entr
       api.onBeforeCreateCompiler(async ({ bundlerConfigs }) => {
         const c = bundlerConfigs[0];
         if (!c) return;
-        disableRspackHmrInPlace(c as Record<string, unknown>);
+        // disableRspackHmrInPlace(c as Record<string, unknown>);
         const distPath = resolve(root, outputRoot, outDir);
         // Register HTML templates as file dependencies so watch mode rebuilds when they change
         const htmlPaths = entries.filter((e) => e.htmlPath).map((e) => e.htmlPath as string);

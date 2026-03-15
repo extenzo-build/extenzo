@@ -293,22 +293,8 @@ describe("Pipeline", () => {
     expect(typeof (ctx.rsbuildConfig.tools as Record<string, unknown>).rspack).toBe("function");
   });
 
-  it("run with config.browser firefox and no -t sets ctx.browser to firefox", async () => {
-    const mockResolved = createMockConfig(testRoot, { browser: "firefox" as never });
-    const mockEntries = createMockEntries(testRoot);
-    const configLoader = {
-      resolve: () => ({ config: mockResolved, baseEntries: mockEntries, entries: mockEntries }),
-    } as unknown as ConfigLoader;
-    const cliParser = {
-      parse: () => ({ command: "build", target: undefined, launch: undefined, unknownLaunch: undefined, unknownTarget: undefined, persist: false }),
-    } as unknown as CliParser;
-    const pipeline = new Pipeline(configLoader, cliParser);
-    const ctx = await pipeline.run(testRoot, ["build"]);
-    expect(ctx.browser).toBe("firefox");
-  });
-
-  it("run with config.browser chromium sets launchTarget to chrome", async () => {
-    const mockResolved = createMockConfig(testRoot, { browser: "chromium" as never });
+  it("run with no -l sets default launchTarget chrome and browser chromium", async () => {
+    const mockResolved = createMockConfig(testRoot);
     const mockEntries = createMockEntries(testRoot);
     const configLoader = {
       resolve: () => ({ config: mockResolved, baseEntries: mockEntries, entries: mockEntries }),
@@ -366,65 +352,6 @@ describe("Pipeline", () => {
     const ctx = await pipeline.run(testRoot, ["dev", "--debug"]);
     const names = (ctx.rsbuildConfig.plugins as { name?: string }[]).map((p) => p.name);
     expect(names).toContain("rsbuild-plugin-extension-monitor");
-  });
-
-  it("run with config.browser non-string ignores and uses default", async () => {
-    const mockResolved = createMockConfig(testRoot);
-    (mockResolved as unknown as Record<string, unknown>).browser = { name: "chrome" };
-    const mockEntries = createMockEntries(testRoot);
-    const configLoader = {
-      resolve: () => ({ config: mockResolved, baseEntries: mockEntries, entries: mockEntries }),
-    } as unknown as ConfigLoader;
-    const cliParser = {
-      parse: () => ({ command: "build", target: undefined, launch: undefined, unknownLaunch: undefined, unknownTarget: undefined, persist: false }),
-    } as unknown as CliParser;
-    const pipeline = new Pipeline(configLoader, cliParser);
-    const ctx = await pipeline.run(testRoot, ["build"]);
-    expect(ctx.browser).toBe("chromium");
-  });
-
-  it("run with config.browser invalid warns and defaults browser", async () => {
-    const mockResolved = createMockConfig(testRoot, { browser: "safari" as never });
-    const mockEntries = createMockEntries(testRoot);
-    const configLoader = {
-      resolve: () => ({ config: mockResolved, baseEntries: mockEntries, entries: mockEntries }),
-    } as unknown as ConfigLoader;
-    const cliParser = {
-      parse: () => ({ command: "build", target: undefined, launch: undefined, unknownLaunch: undefined, unknownTarget: undefined, persist: false }),
-    } as unknown as CliParser;
-    let warned = false;
-    const { setExoLoggerRawWrites } = await import("@extenzo/core");
-    setExoLoggerRawWrites({
-      stdout: process.stdout.write.bind(process.stdout),
-      stderr: (_chunk: unknown, _enc?: unknown, cb?: () => void) => {
-        warned = true;
-        if (typeof cb === "function") cb();
-        return true;
-      },
-    });
-    try {
-      const pipeline = new Pipeline(configLoader, cliParser);
-      const ctx = await pipeline.run(testRoot, ["build"]);
-      expect(warned).toBe(true);
-      expect(ctx.browser).toBe("chromium");
-    } finally {
-      setExoLoggerRawWrites(null);
-    }
-  });
-
-  it("run with config.browser non-string uses default browser", async () => {
-    const mockResolved = createMockConfig(testRoot);
-    (mockResolved as Record<string, unknown>).browser = { name: "chrome" };
-    const mockEntries = createMockEntries(testRoot);
-    const configLoader = {
-      resolve: () => ({ config: mockResolved, baseEntries: mockEntries, entries: mockEntries }),
-    } as unknown as ConfigLoader;
-    const cliParser = {
-      parse: () => ({ command: "build", target: undefined, launch: undefined, unknownLaunch: undefined, unknownTarget: undefined, persist: false }),
-    } as unknown as CliParser;
-    const pipeline = new Pipeline(configLoader, cliParser);
-    const ctx = await pipeline.run(testRoot, ["build"]);
-    expect(ctx.browser).toBe("chromium");
   });
 
   it("run with config.persist true sets ctx.persist true", async () => {

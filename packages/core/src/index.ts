@@ -1,5 +1,5 @@
 export { defineConfig } from "./defineConfig.ts";
-export { ConfigLoader, resolveExtenzoConfig, loadConfigFile, getResolvedConfigFilePath, clearConfigCache } from "./configLoader.ts";
+export { ConfigLoader, resolveExtenzoConfig, loadConfigFile, getResolvedConfigFilePath, getResolvedRstestConfigFilePath, clearConfigCache } from "./configLoader.ts";
 export {
   EntryDiscoverer,
   discoverEntries,
@@ -28,6 +28,8 @@ export {
   createNoEntriesError,
   createInvalidBrowserError,
   createUnknownCommandError,
+  createRstestConfigNotFoundError,
+  createRsdoctorNotInstalledError,
   EXTENZO_ERROR_CODES,
 } from "./errors.ts";
 export type { ExtenzoErrorCode } from "./errors.ts";
@@ -40,6 +42,7 @@ export {
   SUPPORTED_BROWSERS,
   SUPPORTED_LAUNCH_TARGETS,
   CLI_COMMANDS,
+  RSTEST_CONFIG_FILES,
   MANIFEST_ENTRY_PATHS,
   MANIFEST_ENTRY_KEYS,
   MANIFEST_DIR,
@@ -71,6 +74,7 @@ export type {
   LifecycleHooks,
   PipelineContext,
   ScriptInjectPosition,
+  RsdoctorReportOptions,
 } from "./types.ts";
 export { parseExtenzoEntryFromHtml } from "./htmlEntry.ts";
 export type { ExtenzoEntryScriptResult } from "./htmlEntry.ts";

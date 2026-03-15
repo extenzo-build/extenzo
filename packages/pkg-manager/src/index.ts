@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
+import { createRequire } from "node:module";
 
 export type PackageManager = "pnpm" | "npm" | "yarn" | "bun";
 
@@ -42,6 +43,31 @@ export function detectFromLockfile(root: string): PackageManager {
     if (existsSync(resolve(root, file))) return pm;
   }
   return "pnpm";
+}
+
+/**
+ * Check whether a package is installed (resolvable from project root).
+ * Uses Node module resolution so hoisted (e.g. pnpm) deps are detected.
+ */
+export function isPackageInstalled(root: string, pkgName: string): boolean {
+  const require = createRequire(import.meta.url);
+  try {
+    require.resolve(`${pkgName}/package.json`, { paths: [root] });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Return which of the given package names are not installed.
+ */
+export function getMissingPackages(root: string, pkgNames: readonly string[]): string[] {
+  const missing: string[] = [];
+  for (const name of pkgNames) {
+    if (!isPackageInstalled(root, name)) missing.push(name);
+  }
+  return missing;
 }
 
 const INSTALL_MAP: Record<PackageManager, string> = {

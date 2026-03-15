@@ -1,12 +1,12 @@
 # outDir
 
-`outDir` 指定**构建产物目录名**，该目录位于 [outputRoot](/config/output-root) 之下。实际完整输出路径为 `outputRoot/outDir`，默认即 `.extenzo/dist`。
+`outDir` 指定**构建产物目录名**，该目录位于 [outputRoot](/config/output-root) 之下。实际完整输出路径为 `outputRoot/outDir`，默认即 `.extenzo/extension`。
 
 ## 类型与默认值
 
 - **类型**：`string | undefined`
-- **默认值**：`"dist"`
-- **实际路径**：`path.resolve(root, outputRoot, outDir)`，例如默认情况下为 `<项目根>/.extenzo/dist`。
+- **默认值**：`"extension"`
+- **实际路径**：`path.resolve(root, outputRoot, outDir)`，例如默认情况下为 `<项目根>/.extenzo/extension`。
 
 ## 作用
 
@@ -23,8 +23,8 @@
 import { defineConfig } from "extenzo";
 
 export default defineConfig({
-  // outDir 不写，默认为 "dist"
-  // 产物在 .extenzo/dist
+  // outDir 不写，默认为 "extension"
+  // 产物在 .extenzo/extension
 });
 ```
 
