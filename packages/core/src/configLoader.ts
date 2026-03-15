@@ -7,6 +7,7 @@ import {
   DEFAULT_OUT_DIR,
   DEFAULT_APP_DIR,
   EXTENZO_OUTPUT_ROOT,
+  RSTEST_CONFIG_FILES,
 } from "./constants.ts";
 import {
   createConfigLoadError,
@@ -113,7 +114,7 @@ export class ConfigLoader {
       throw createAppDirMissingError(appDir);
     }
     const outDir = user.outDir ?? DEFAULT_OUT_DIR;
-    const outputRoot = user.outputRoot ?? EXTENZO_OUTPUT_ROOT;
+    const outputRoot = EXTENZO_OUTPUT_ROOT;
     const t1 = performance.now();
     const resolvedManifest = resolveManifestInput(user.manifest, root, appDir);
     if (!resolvedManifest) throw createManifestMissingError();
@@ -146,6 +147,15 @@ export function loadConfigFile(root: string): ExtenzoUserConfig | null {
 
 export function getResolvedConfigFilePath(root: string): string | null {
   return defaultLoader.getResolvedConfigFilePath(root);
+}
+
+/** Path to the first existing rstest config file under root, or null if none. */
+export function getResolvedRstestConfigFilePath(root: string): string | null {
+  for (const file of RSTEST_CONFIG_FILES) {
+    const p = resolve(root, file);
+    if (existsSync(p)) return p;
+  }
+  return null;
 }
 
 /** Clear Node module cache for the config file so next resolve() can load fresh config. */

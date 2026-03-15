@@ -13,12 +13,16 @@ const REPORT_FLAGS = ["-r", "--report"];
 
 const LAUNCH_ALIASES: Record<string, LaunchTarget> = {
   chrome: "chrome",
-  chromium: "chrome",
+  chromium: "chromium",
   edge: "edge",
   brave: "brave",
   vivaldi: "vivaldi",
   opera: "opera",
   santa: "santa",
+  arc: "arc",
+  yandex: "yandex",
+  browseros: "browseros",
+  custom: "custom",
   firefox: "firefox",
 };
 
@@ -30,6 +34,10 @@ const TARGET_ALIASES: Record<string, BrowserTarget> = {
   vivaldi: "chromium",
   opera: "chromium",
   santa: "chromium",
+  arc: "chromium",
+  yandex: "chromium",
+  browseros: "chromium",
+  custom: "chromium",
   firefox: "firefox",
 };
 
@@ -124,7 +132,6 @@ export class CliParser {
   assertSupportedBrowser(value: string): asserts value is LaunchTarget | "chromium" {
     const launch = parseLaunchValue(value);
     if (launch) return;
-    if (value.trim().toLowerCase() === "chromium") return;
     throw createInvalidBrowserError(value);
   }
 }

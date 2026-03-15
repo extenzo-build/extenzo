@@ -1,7 +1,9 @@
 import { Tab, Tabs } from '@rspress/core/theme';
 
 # 目录结构
-Extenzo目录结构非常简单，必须的目录主要分为四个部分, `.extenzo`,`app`,`public`和`exo.config.ts`
+
+Extenzo 的核心目录非常简单，主要分为四个部分：`.extenzo`、`app`、`public` 和 `exo.config.ts`：
+
 ```tree
 .extenzo
 app（可配置）
@@ -11,25 +13,46 @@ package.json
 ```
 
 ## .extenzo
-.extenzo目录会自动生成，是Extenzo输出产物和缓存的目录。输出产物（默认为`dist`）会输出到该目录，缓存`cache`目录也会输出在该目录。非必要情况下请不要删除`cache`目录，因为会影响构建速度和记录的浏览器用户配置。开发模式下浏览器加载的真实插件文件为`dist`（可指定输出目录的名称[entry](/guide/entry/file-based.md)）。
+
+`.extenzo` 目录由 Extenzo 自动生成，用于存放**构建产物**和**缓存**：
+
+- 构建产物默认输出到 `.extenzo/extension`（可通过 [`outDir`](/config/out-dir) 修改目录名）。
+- 缓存存放在 `.extenzo/cache`，用于加速后续构建并记录开发时的浏览器用户数据。
+
+非必要情况下请不要手动删除 `cache` 目录，否则会影响构建速度以及浏览器用户配置的复用。
 
 ```tree
 .extenzo/
-├── dist
-├── cache
+├── extension   # 默认构建输出目录（outDir 可配置）
+└── cache       # 构建与开发缓存
 ```
+
+在开发模式下，浏览器实际加载的扩展目录也是 `.extenzo/extension`（或你自定义的 `outputRoot/outDir`），因此修改 `outDir` / `outputRoot` 时需同步检查 manifest 中的路径。
+
 ## exo.config.(js|ts)
-Extenzo的配置文件，不能缺少
+
+`exo.config.ts` / `exo.config.js` 是 Extenzo 的**必需配置文件**，用于声明入口、manifest、输出目录等。详细字段请参考「配置」章节下各小节，例如：
+
+- [`manifest`](/config/manifest)
+- [`entry`](/config/entry)
+- [`appDir`](/config/app-dir)
 
 ## app
-Extenzo会默认解析`app`目录作为所有入口和`manifest`文件的根目录。若需要修改，可以在`exo.config.ts`中修改`appDir`字段
 
-`appDir` 用于指定**应用目录**，默认 `app`。[entry](/guide/entry/file-based.md) 与manifest 的解析都依赖appDir。框架会解析为绝对路径，例如 `appDir: "src"` → `path.resolve(root, "src")`。
+Extenzo 默认以 `app` 目录作为所有入口和 `manifest` 文件的**应用根目录**。若需要修改，可在 `exo.config.ts` 中通过 `appDir` 字段指定：
 
-默认 `appDir` 下的典型目录结构：
+```ts
+export default defineConfig({
+  appDir: "src",
+});
+```
+
+`appDir` 用于指定**应用目录**，默认值为 `"app"`。入口发现（参见 [`entry`](/guide/entry/file-based.md)）和 manifest 自动加载（参见 [`manifest`](/config/manifest)）都基于 `appDir` 解析。框架会将其解析为绝对路径，例如 `appDir: "src"` → `path.resolve(root, "src")`。
+
+一个典型的 `appDir` 目录结构如下。
 
 <Tabs>
-<Tab label="存在目录时">
+  <Tab label="存在子目录时">
 
 ```tree
 app/
@@ -49,34 +72,33 @@ app/
 ├── manifest/
 │   ├── manifest.chromium.json
 │   └── manifest.firefox.json
-└── 
+└── ...
 ```
 
-</Tab>
-<Tab label="不存在目录时">
+  </Tab>
+  <Tab label="仅单文件时">
+
 ```tree
 app/
 ├── background.ts
-│  
 ├── content.ts
-│   
 ├── popup.html
-│ 
 ├── popup.ts
-│   
 ├── manifest.json
-└── 
+└── ...
 ```
-</Tab>
+
+  </Tab>
 </Tabs>
 
 :::note
-更多灵活的入口配置请参考[entry](/guide/entry/concept.md)
+更多关于入口发现与命名规则，参见 [基于文件的入口](/guide/entry/file-based.md) 与 [`entry` 配置](/config/entry)。
 :::
 
-
 ## public
-`public`目录存放所有静态资源，框架会直接复制这些资源到构建产物目录中。比如`public`结构如下
+
+`public` 目录用于存放所有**静态资源**。这些资源会在构建时**原样复制**到输出目录中，不参与打包处理。例如：
+
 ```tree
 public/
 ├── icons/
@@ -86,15 +108,19 @@ public/
 │   └── ja
 ```
 
-输出到`dist`目录下为
+若使用默认配置（`outputRoot=".extenzo"`、`outDir="extension"`），构建后的目录结构大致为：
+
 ```tree
-dist/
+.extenzo/extension/
 ├── icons/
 │   └── icon-128.png
 ├── _locales/
 │   ├── en
 │   └── ja
+└── manifest.json
 ```
+
 ## 相关配置
 
-- [entry](/guide/entry/file-based.md)、[manifest](/guide/manifest)：路径与自动加载均相对于 appDir。
+- [entry](/guide/entry/file-based.md)、[manifest](/config/manifest)：路径与自动加载均相对于 `appDir`。
+- [outDir](/config/out-dir)、[outputRoot](/config/output-root)：控制最终产物输出位置。

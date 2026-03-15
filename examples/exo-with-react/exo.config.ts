@@ -19,9 +19,17 @@ const manifest = {
       js: ["content/index.js"],
     },
   ],
+  "extension_pages": "script-src 'self' http://localhost:3000; object-src 'self'"
 };
 
 export default defineConfig({
   manifest: { chromium: manifest, firefox: { ...manifest } },
-  plugins: [pluginReact()]
+  plugins: [pluginReact()],
+  launch: {
+    arc: 'C:\\Users\\GomiGXY\\AppData\\Local\\Microsoft\\WindowsApps\\Arc.exe',
+    browseros: 'C:\\Users\\GomiGXY\\AppData\\Local\\BrowserOS\\BrowserOS\\Application\\chrome.exe',
+  },
+  hotReload: {
+    autoRefreshContentPage: true,
+  },
 });

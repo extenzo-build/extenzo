@@ -1,4 +1,4 @@
-import rspack from "@rspack/core";
+import { rspack } from "@rsbuild/core";
 import type { RsbuildPluginAPI } from "@rsbuild/core";
 import type { ExtenzoResolvedConfig, EntryInfo } from "@extenzo/core";
 import { HTML_ENTRY_NAMES } from "@extenzo/core";
@@ -10,6 +10,11 @@ const VIRTUAL_MODULE_SUFFIX = ".js";
 
 function getVirtualModulePath(entryName: string): string {
   return `${VIRTUAL_MODULE_PREFIX}${entryName}${VIRTUAL_MODULE_SUFFIX}`;
+}
+
+function getVirtualModulesPlugin(): (new (modules: Record<string, string>) => unknown) | null {
+  const exp = (rspack as { experiments?: { VirtualModulesPlugin?: new (modules: Record<string, string>) => unknown } }).experiments;
+  return exp?.VirtualModulesPlugin ?? null;
 }
 
 type RsbuildEntryValue =
@@ -93,19 +98,18 @@ ${setupCall}
           }
           config.source = { ...source, entry: nextEntry };
         });
+
         api.onBeforeCreateCompiler(async ({ bundlerConfigs }: { bundlerConfigs: unknown[] }) => {
-          const config = bundlerConfigs[0] as { context?: string; plugins?: unknown[] } | undefined;
-          if (!config) return;
-          config.plugins = config.plugins ?? [];
+          const bundlerConfig = bundlerConfigs[0] as { plugins?: unknown[] } | undefined;
+          if (!bundlerConfig) return;
+          const VirtualModulesPlugin = getVirtualModulesPlugin();
+          if (!VirtualModulesPlugin) return;
           const modules: Record<string, string> = {};
           for (const [entryName, content] of self.virtualSources) {
             modules[getVirtualModulePath(entryName)] = content;
           }
-          const VirtualModulesPlugin =
-            (rspack as { experiments?: { VirtualModulesPlugin?: new (modules: Record<string, string>) => unknown } }).experiments?.VirtualModulesPlugin;
-          if (VirtualModulesPlugin) {
-            config.plugins.push(new VirtualModulesPlugin(modules));
-          }
+          bundlerConfig.plugins = bundlerConfig.plugins ?? [];
+          bundlerConfig.plugins.unshift(new VirtualModulesPlugin(modules));
         });
       },
     };

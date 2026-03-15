@@ -32,7 +32,7 @@ export default function App() {
       <h2 style={{ margin: "0 0 8px", fontSize: 16 }}>React Popup</h2>
       <p style={{ margin: "0 0 12px", fontSize: 13, color: "#666" }}>{status}</p>
       <button type="button" onClick={pingBackground} style={{ marginRight: 8, marginBottom: 8, padding: "6px 12px", cursor: "pointer" }}>
-        Ping Background
+        Ping Background123
       </button>
       <button type="button" onClick={sendToContent} style={{ marginRight: 8, marginBottom: 8, padding: "6px 12px", cursor: "pointer" }}>
         Send to Content

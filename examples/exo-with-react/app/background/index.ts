@@ -6,10 +6,10 @@ function openWelcomePage(): void {
 }
 
 browser.runtime.onInstalled.addListener((details) => {
-  if (details.reason === "install" || details.reason === "update") {
-    openWelcomePage();
-  }
-  console.log("[background] Extension installed");
+  // if (details.reason === "install" || details.reason === "update") {
+  //   openWelcomePage();
+  // }
+  console.log("[background] Extension installed123");
 });
 
 browser.runtime.onMessage.addListener(

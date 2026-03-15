@@ -2,12 +2,14 @@ import { describe, expect, it, beforeEach, afterEach } from "@rstest/core";
 import { mkdirSync, writeFileSync, rmSync, existsSync } from "fs";
 import { resolve } from "path";
 import { tmpdir } from "os";
+import { EXTENZO_OUTPUT_ROOT } from "@extenzo/core";
 import { zipDist, type ZipDistDeps } from "../src/zipDist.ts";
 
 describe("zipDist", () => {
   let testRoot: string;
   let distPath: string;
   const outDir = "dist";
+  const zipDir = EXTENZO_OUTPUT_ROOT;
 
   beforeEach(() => {
     testRoot = resolve(tmpdir(), `extenzo-zip-${Date.now()}`);
@@ -18,13 +20,13 @@ describe("zipDist", () => {
 
   afterEach(() => {
     if (existsSync(testRoot)) rmSync(testRoot, { recursive: true, force: true });
-    const zipPath = resolve(testRoot, `${outDir}.zip`);
+    const zipPath = resolve(testRoot, zipDir, `${outDir}.zip`);
     if (existsSync(zipPath)) rmSync(zipPath, { force: true });
   });
 
-  it("resolves with zip path under root", async () => {
+  it("resolves with zip path under .extenzo with filename same as outDir", async () => {
     const zipPath = await zipDist(distPath, testRoot, outDir);
-    expect(zipPath).toBe(resolve(testRoot, `${outDir}.zip`));
+    expect(zipPath).toBe(resolve(testRoot, zipDir, `${outDir}.zip`));
     expect(existsSync(zipPath)).toBe(true);
   });
 

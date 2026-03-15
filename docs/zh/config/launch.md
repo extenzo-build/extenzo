@@ -1,12 +1,12 @@
 # launch
 
-`launch` 用于指定 **Chrome / Edge / Brave / Vivaldi / Opera / Santa / Firefox 可执行文件路径**，供 `extenzo dev` 在首次构建完成后自动打开浏览器并加载扩展。若未在 config 中设置，框架会按当前操作系统尝试**默认安装路径**（见下方），取第一个存在的可执行文件。
+`launch` 用于指定 **Chrome / Chromium / Edge / Brave / Vivaldi / Opera / Santa / Arc / Yandex / BrowserOS / custom / Firefox 可执行文件路径**，供 `extenzo dev` 在首次构建完成后自动打开浏览器并加载扩展。若未在 config 中设置，框架会按当前操作系统尝试**默认安装路径**（见下方），取第一个存在的可执行文件。**Chromium** 指开源 Chromium 浏览器（内置路径）。**custom** 表示由用户在 `launch.custom` 中填写任意 Chromium 系浏览器路径（无默认路径）。
 
 ## 类型与默认值
 
-- **类型**：`{ chrome?: string; edge?: string; brave?: string; vivaldi?: string; opera?: string; santa?: string; firefox?: string } | undefined`
-- **默认**：不配置时，按 OS 尝试默认路径（Windows / macOS / Linux 常见安装位置）。若所有默认路径都不存在，`extenzo dev` 会打印警告并跳过自动打开浏览器。
-- **关联**：可在 `exo.config.ts` 增加 `browser: "chrome" | "edge" | "brave" | "vivaldi" | "opera" | "santa" | "firefox"` 作为默认启动浏览器（CLI `-l/--launch` 优先级更高）。
+- **类型**：`{ chrome?: string; chromium?: string; edge?: string; brave?: string; vivaldi?: string; opera?: string; santa?: string; arc?: string; yandex?: string; browseros?: string; custom?: string; firefox?: string } | undefined`
+- **默认**：不配置时，按 OS 尝试默认路径（Windows / macOS / Linux 常见安装位置）。**custom** 必须设置 `launch.custom` 为可执行文件路径。若所有默认路径都不存在，`extenzo dev` 会打印警告并跳过自动打开浏览器。
+- **关联**：可在 `exo.config.ts` 增加 `browser: "chrome" | "chromium" | "edge" | ... | "custom" | "firefox"` 作为默认启动浏览器（CLI `-l/--launch` 优先级更高）。
 
 ## 默认路径（常量）
 
@@ -14,27 +14,23 @@
 
 - **Windows (win32)**  
   Chrome: `C:\Program Files\Google\Chrome\Application\chrome.exe`、`C:\Program Files (x86)\...`  
-  Edge: `C:\Program Files\Microsoft\Edge\Application\msedge.exe`、`C:\Program Files (x86)\...`  
-  Brave: `C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe`、`C:\Program Files (x86)\...`  
-  Vivaldi: `C:\Users\<用户名>\AppData\Local\Vivaldi\Application\vivaldi.exe`、`C:\Program Files\Vivaldi\Application\vivaldi.exe`、`C:\Program Files (x86)\...`  
-  Opera: `C:\Program Files\Opera\launcher.exe`、`C:\Program Files (x86)\...`  
-  Santa: `C:\Program Files\Santa Browser\Application\Santa Browser.exe`、`C:\Program Files (x86)\...`  
-  Firefox: `C:\Program Files\Mozilla Firefox\firefox.exe`、`C:\Program Files (x86)\...`
+  Chromium: `C:\Program Files\Chromium\Application\chrome.exe`、`C:\Program Files (x86)\...`  
+  Edge: ...  
+  Brave: ...  
+  ...  
+  **custom**：无默认路径，须在 config 中设置 `launch.custom`。  
+  Firefox: `C:\Program Files\Mozilla Firefox\firefox.exe`、...
 - **macOS (darwin)**  
   Chrome: `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`  
-  Edge: `/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge`  
-  Brave: `/Applications/Brave Browser.app/Contents/MacOS/Brave Browser`  
-  Vivaldi: `/Applications/Vivaldi.app/Contents/MacOS/Vivaldi`  
-  Opera: `/Applications/Opera.app/Contents/MacOS/Opera`  
-  Santa: `/Applications/Santa Browser.app/Contents/MacOS/Santa Browser`  
+  Chromium: `/Applications/Chromium.app/Contents/MacOS/Chromium`  
+  ...  
+  **custom**：无默认路径，须设置 `launch.custom`。  
   Firefox: `/Applications/Firefox.app/Contents/MacOS/firefox`
 - **Linux**  
   Chrome: `/usr/bin/google-chrome`、`google-chrome-stable`、`chromium`、`chromium-browser`  
-  Edge: `/usr/bin/microsoft-edge`、`/usr/bin/microsoft-edge-stable`  
-  Brave: `/usr/bin/brave-browser`、`/usr/bin/brave`  
-  Vivaldi: `/usr/bin/vivaldi-stable`、`/usr/bin/vivaldi`  
-  Opera: `/usr/bin/opera`、`/usr/bin/opera-stable`  
-  Santa: `/usr/bin/santa-browser`  
+  Chromium: `/usr/bin/chromium`、`/usr/bin/chromium-browser`、...  
+  ...  
+  **custom**：无默认路径，须设置 `launch.custom`。  
   Firefox: `/usr/bin/firefox`、`/usr/bin/firefox-esr`
 
 ## 作用
@@ -83,7 +79,20 @@ export default defineConfig({
 
 ### 仅指定当前使用的浏览器
 
-使用 `extenzo dev -l chrome` 时只需 `launch.chrome`；使用 `-l edge/brave/vivaldi/opera/santa` 时只需对应字段；使用 `-l firefox` 时只需 `launch.firefox`。
+使用 `extenzo dev -l chrome` 时只需 `launch.chrome`；使用 `-l chromium` 时使用内置 Chromium 路径或 `launch.chromium`；使用 `-l edge/brave/vivaldi/opera/santa/arc/yandex/browseros` 时只需对应字段；使用 **`-l custom`** 时必须设置 **`launch.custom`** 为可执行文件路径（Chromium 系浏览器，无默认路径）；使用 `-l firefox` 时只需 `launch.firefox`。**若在 `launch` 中指定了某浏览器的路径（如 `launch.arc`），会覆盖该浏览器的内置默认路径。**
+
+### 自定义浏览器示例
+
+```ts
+export default defineConfig({
+  browser: "custom",
+  launch: {
+    custom: "C:\\MyBrowser\\my-chromium.exe",  // 或 macOS/Linux 路径
+  },
+});
+```
+
+然后执行 `extenzo dev` 或 `extenzo dev -l custom`。
 
 ## 相关说明
 

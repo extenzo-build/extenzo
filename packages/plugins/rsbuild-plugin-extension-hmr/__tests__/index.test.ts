@@ -4,6 +4,7 @@ import { mkdirSync, writeFileSync, rmSync, existsSync } from "fs";
 import { tmpdir } from "os";
 import {
   hmrPlugin,
+  createHmrRspackPlugin,
   notifyReload,
   getBrowserPath,
   getLaunchPathFromOptions,
@@ -16,8 +17,9 @@ import {
   statsHasErrors,
   launchBrowserOnly,
   ensureDistReady,
-  getReloadKind,
+  getReloadKindFromDecision,
   isContentChanged,
+  getReloadManagerDecision,
   createTestWsServer,
 } from "../src/index.ts";
 
@@ -33,7 +35,7 @@ describe("plugin-extension-hmr", () => {
   });
 
   it("notifyReload does not throw when no server", () => {
-    expect(() => notifyReload()).not.toThrow();
+    expect(() => notifyReload("toggle-extension")).not.toThrow();
   });
 
   it("getLaunchPathFromOptions returns path for each browser", () => {
@@ -151,7 +153,7 @@ describe("plugin-extension-hmr", () => {
       },
     });
     try {
-      const plugin = hmrPlugin(
+      const plugin = createHmrRspackPlugin(
         {
           distPath,
           autoOpen: true,
@@ -168,7 +170,7 @@ describe("plugin-extension-hmr", () => {
         }
       );
       const cbs: Array<(stats: unknown) => void> = [];
-      plugin.apply!({
+      plugin.apply({
         hooks: { done: { tap: (_: string, fn: (s: unknown) => void) => cbs.push(fn) } },
       } as never);
       await cbs[0]!({ hasErrors: () => false });
@@ -179,7 +181,7 @@ describe("plugin-extension-hmr", () => {
   });
 
   it("hmrPlugin apply registers done hooks and reload tap invokes notifyReload", async () => {
-    const plugin = hmrPlugin({
+    const plugin = createHmrRspackPlugin({
       distPath: resolve(tmpdir(), "hmr-apply-test"),
       wsPort: 23999,
       enableReload: true,
@@ -190,20 +192,20 @@ describe("plugin-extension-hmr", () => {
       hooks: {
         done: {
           tap: (name: string, fn: (stats: unknown) => void) => {
-            if (name === "extenzo-hmr-reload") reloadCbs.push(fn);
-            else launchCbs.push(fn);
+            if (name === "rsbuild-plugin-extension-hmr:reload") reloadCbs.push(fn);
+            else if (name === "rsbuild-plugin-extension-hmr:launch") launchCbs.push(fn);
           },
         },
       },
     };
-    plugin.apply!(compiler as never);
+    plugin.apply(compiler as never);
     expect(reloadCbs.length).toBe(1);
     expect(launchCbs.length).toBe(1);
     await reloadCbs[0]!({ hasErrors: () => false });
   });
 
   it("hmrPlugin apply with autoOpen false does not launch", async () => {
-    const plugin = hmrPlugin({
+    const plugin = createHmrRspackPlugin({
       distPath: resolve(tmpdir(), "hmr-no-open"),
       wsPort: 23998,
       autoOpen: false,
@@ -218,14 +220,14 @@ describe("plugin-extension-hmr", () => {
         },
       },
     };
-    plugin.apply!(compiler as never);
+    plugin.apply(compiler as never);
     await cbs[1]!({ hasErrors: () => false });
   });
 
   it("hmrPlugin apply returns early when hooks.done missing", () => {
-    const plugin = hmrPlugin({ distPath: "/tmp", wsPort: 23333 });
+    const plugin = createHmrRspackPlugin({ distPath: "/tmp", wsPort: 23333 });
     const compiler = { hooks: {} };
-    expect(() => plugin.apply!(compiler as never)).not.toThrow();
+    expect(() => plugin.apply(compiler as never)).not.toThrow();
   });
 
   it("hmrPlugin apply launch tap runs launchBrowser with mock runner", async () => {
@@ -237,7 +239,7 @@ describe("plugin-extension-hmr", () => {
       "utf-8"
     );
     const mockRunner = async () => ({ exit: async () => {} });
-    const plugin = hmrPlugin(
+    const plugin = createHmrRspackPlugin(
       {
         distPath,
         autoOpen: true,
@@ -258,7 +260,7 @@ describe("plugin-extension-hmr", () => {
         },
       },
     };
-    plugin.apply!(compiler as never);
+    plugin.apply(compiler as never);
     await cbs[1]!({ hasErrors: () => false });
     const cacheDir = resolve(distPath, "..", "cache");
     if (existsSync(cacheDir)) rmSync(cacheDir, { recursive: true, force: true });
@@ -291,91 +293,28 @@ describe("plugin-extension-hmr", () => {
     if (existsSync(cacheDir)) rmSync(cacheDir, { recursive: true, force: true });
   });
 
-  it("getReloadKind returns toggle-extension for null stats", () => {
-    expect(getReloadKind(null)).toBe("toggle-extension");
+  it("getReloadKindFromDecision returns reload-extension when backgroundChanged", () => {
+    expect(getReloadKindFromDecision(false, true, false)).toBe("reload-extension");
+    expect(getReloadKindFromDecision(false, true, true)).toBe("reload-extension");
+    expect(getReloadKindFromDecision(true, true, true)).toBe("reload-extension");
   });
 
-  it("getReloadKind returns toggle-extension when stats has no compilation", () => {
-    expect(getReloadKind("not-an-object")).toBe("toggle-extension");
+  it("getReloadKindFromDecision returns toggle-extension-refresh-page when contentChanged and autoRefreshContentPage", () => {
+    expect(getReloadKindFromDecision(true, false, true)).toBe("toggle-extension-refresh-page");
   });
 
-  it("getReloadKind returns toggle-extension when compilation is not an object", () => {
-    expect(getReloadKind({ compilation: "invalid" })).toBe("toggle-extension");
+  it("getReloadKindFromDecision returns toggle-extension otherwise", () => {
+    expect(getReloadKindFromDecision(false, false, false)).toBe("toggle-extension");
+    expect(getReloadKindFromDecision(false, false, true)).toBe("toggle-extension");
+    expect(getReloadKindFromDecision(true, false, false)).toBe("toggle-extension");
   });
 
-  it("getReloadKind returns toggle-extension when no background entrypoint exists", () => {
-    const stats = { compilation: { entrypoints: new Map() } };
-    expect(getReloadKind(stats)).toBe("toggle-extension");
+  it("getReloadKindFromDecision prefers reload-extension when both content and background changed", () => {
+    expect(getReloadKindFromDecision(true, true, true)).toBe("reload-extension");
   });
 
-  it("getReloadKind returns toggle-extension when entrypoints lacks get method", () => {
-    const stats = { compilation: { entrypoints: {} } };
-    expect(getReloadKind(stats)).toBe("toggle-extension");
-  });
-
-  it("getReloadKind returns reload-extension on first build with background entry", () => {
-    const stats = {
-      compilation: {
-        entrypoints: new Map([
-          ["background", { chunks: [{ hash: "initial-hash-1" }] }],
-        ]),
-      },
-    };
-    expect(getReloadKind(stats)).toBe("reload-extension");
-  });
-
-  it("getReloadKind returns toggle-extension when background hash is unchanged", () => {
-    const stats = {
-      compilation: {
-        entrypoints: new Map([
-          ["background", { chunks: [{ hash: "initial-hash-1" }] }],
-        ]),
-      },
-    };
-    expect(getReloadKind(stats)).toBe("toggle-extension");
-  });
-
-  it("getReloadKind returns reload-extension when background hash changes", () => {
-    const stats = {
-      compilation: {
-        entrypoints: new Map([
-          ["background", { chunks: [{ hash: "changed-hash-2" }] }],
-        ]),
-      },
-    };
-    expect(getReloadKind(stats)).toBe("reload-extension");
-  });
-
-  it("getReloadKind falls back to getFiles when chunks have no hash", () => {
-    const stats = {
-      compilation: {
-        entrypoints: new Map([
-          ["background", { chunks: [{}], getFiles: () => ["bg.js"] }],
-        ]),
-      },
-    };
-    expect(getReloadKind(stats)).toBe("reload-extension");
-  });
-
-  it("getReloadKind returns toggle-extension when getFiles throws", () => {
-    const stats = {
-      compilation: {
-        entrypoints: new Map([
-          ["background", {
-            chunks: [{}],
-            getFiles: () => { throw new Error("proxy"); },
-          }],
-        ]),
-      },
-    };
-    expect(getReloadKind(stats)).toBe("toggle-extension");
-  });
-
-  it("getReloadKind returns toggle-extension when entrypoint has no chunks or files", () => {
-    const stats = {
-      compilation: { entrypoints: new Map([["background", {}]]) },
-    };
-    expect(getReloadKind(stats)).toBe("toggle-extension");
+  it("getReloadKindFromDecision returns toggle-extension when only content changed and autoRefresh off", () => {
+    expect(getReloadKindFromDecision(true, false, false)).toBe("toggle-extension");
   });
 
   it("isContentChanged returns false for null stats", () => {
@@ -413,6 +352,29 @@ describe("plugin-extension-hmr", () => {
       },
     };
     expect(isContentChanged(stats)).toBe(false);
+  });
+
+  it("getReloadManagerDecision shouldNotify only when content or background entry output changed", () => {
+    const contentBg = (c: string, b: string) => ({
+      compilation: {
+        entrypoints: new Map([
+          ["content", { chunks: [{ hash: c }] }],
+          ["background", { chunks: [{ hash: b }] }],
+        ]),
+      },
+    });
+    const d1 = getReloadManagerDecision(contentBg("c1", "b1"));
+    expect(d1.shouldNotify).toBe(true);
+    const d2 = getReloadManagerDecision(contentBg("c1", "b1"));
+    expect(d2.shouldNotify).toBe(false);
+    const d3 = getReloadManagerDecision(contentBg("c2", "b1"));
+    expect(d3.shouldNotify).toBe(true);
+    expect(d3.contentChanged).toBe(true);
+    expect(d3.backgroundChanged).toBe(false);
+    const d4 = getReloadManagerDecision(contentBg("c2", "b2"));
+    expect(d4.shouldNotify).toBe(true);
+    expect(d4.contentChanged).toBe(false);
+    expect(d4.backgroundChanged).toBe(true);
   });
 
   it("createTestWsServer starts and notifyReload does not throw", async () => {

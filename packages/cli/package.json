@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "@rsbuild/core": "^1.6.0",
-    "@rsdoctor/rspack-plugin": "^1.5.0",
     "@extenzo/core": "workspace:*",
     "@extenzo/pkg-manager": "workspace:*",
     "archiver": "^7.0.0",
